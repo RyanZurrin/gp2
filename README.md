@@ -8,14 +8,3 @@
 ```  bash
 conda env create -f O.yml
 ```
-
-### Unofficial Usur study to  find percent of dataset that is bad.
-
-[//]: # ([//]: # &#40;Create a clickable link to FRONT_END/outlier_study for people to click&#41;)
-[//]: # ([User Study Link]&#40;https://mpsych.github.io/omama/FRONT_END/outlier_study/&#41;)
-
-[//]: # (Create a clickable link to FRONT_END/outlier_study/dataset_Astar)
-[Dataset A* Groundtruth study](https://mpsych.github.io/omama/FRONT_END/outlier_study/dataset_Astar)
-
-[//]: # (Create a clickable link to FRONT_END/outlier_study for people to click)
-[Dataset B* Groundtruth study](https://mpsych.github.io/omama/FRONT_END/outlier_study/dataset_Bstar)
