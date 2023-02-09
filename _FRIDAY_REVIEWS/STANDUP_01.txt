@@ -1,0 +1,27 @@
+General Update and Intro:
+    GitHub Repo has been created and forked by team members
+    Chimera cluster access has been requested and given
+    Environment setup has begun on Chimera
+    
+    
+Draft of Requirments:
+    Will need to understand TensorFlow and Keras
+    GP2 API exploration in order to learn workflow
+    Hyperparameter Optimazation library needs to be implemented
+    Experiment tracking softwared needs to be decided on
+    
+    
+    
+Outlier detection:
+    Ryan Zurrin
+    
+    
+Exploring Use of Kaggle data
+    - add names
+    
+    
+GP2 workflow and use:
+    - add names
+    
+
+    
