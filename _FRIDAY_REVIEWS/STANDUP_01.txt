@@ -28,7 +28,8 @@ Exploring Use of Kaggle data:
     
     
 GP2 workflow and use:
-    - add names
+    GPA2 API workflow
+    Vivek Kamisetty . Email: Vivek.Kamisetty001@umb.edu
     
 
     
