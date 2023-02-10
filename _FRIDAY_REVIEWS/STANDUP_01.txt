@@ -1,25 +1,62 @@
-Project:
-    Omama
+# STANDUP 01 - 2/9/2023
 
-Main Objective : 
-    Remove bad images from 2D images using outlier detection.
+Project Team:
+    Omama-DB
+
+Main Objective
+==============
+0. Explore use of Kaggle data with DeepSight classifier
+1. Remove bad images from 2D images using outlier detection.
+2. Build out GP2 pipeline in order to tune existing classifiers
+3. Build final mammography dataset for public release
     
-General Update and Intro:
-    GitHub Repo has been created and forked by team members
-    Chimera cluster access has been requested and given
-    Environment setup has begun on Chimera
+General Update and Intro
+========================
+Team has been in communication via Discord and Zoom and project 
+leader was selected to be Ryan Zurrin because he already has some
+experience with what needs to be done. 
+
+We have also established a GitHub Repo: https://github.com/RyanZurrin/CS410-Omama, 
+which has been forked by team members and team has started learning how to use
+version control properly via syncing local branches, and creating pull requests.
+
+Chimera cluster access has been requested and granted and team has begun setting
+up environments on cluster which includes use of Anaconda for managing package
+dependencies. 
     
     
-Draft of Requirments:
-    Will need to understand TensorFlow and Keras
-    GP2 API exploration in order to learn workflow
-    Hyperparameter Optimazation library needs to be implemented
-    Experiment tracking software needs to be decided on
+Draft of Requirments
+====================
+MAIN #1 : We will need to use GP2 API and start testing it's use on different datasets
+with it's end goal to be used on improving existing classifiers, and in this case 
+DeepSight in particular.
+To  achieve this task the following frameworks will be put to use:
+    - TensorFlow and Keras
+    - Training will be done on GPU nodes on HCP cluster so must learn how to use this
+
+MAIN #2 : Outlier detection for removing unwanted images from final dataset
+To achieve this goal the following framworks and tools will be used:
+    - PyOD, Python library with focus on outlier detection
+    - Hyperparameter optimazation library (exploring possible libraries in progress)
+    - Experiment Tracking such as Weight and Biases or neptune.ai
+    
+MAIN #3 : Explore use of Kaggle Data with Deepsight
+To achieve this goal we will use the following tools:
+    - Pydicom python library for manipulating dicom header data
+    - DeepSight classifier for testing changes to kaggle data    
     
     
+Current Questions / Problems / Something we need
+================================================
+
+
+
+
+List of Working Packages with Responsible Student and Completion Date
+=====================================================================
     
 Outlier detection:
-    Ryan Zurrin
+    Ryan Zurrin Email: ryan.zurrin001@umb.edu
     
     
 Exploring Use of Kaggle data:
