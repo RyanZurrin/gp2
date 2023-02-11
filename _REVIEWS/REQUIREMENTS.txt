@@ -1,0 +1,25 @@
+General Requirements for Omama-DB project
+=========================================
+
+1.  The project will use Anaconda as a package manager.  Anaconda is a
+    free and open source distribution of the Python and R programming
+    languages for scientific computing, that aims to simplify package
+    management and deployment.  The use of Anaconda will allow the
+    project team to easily all work from the same environment, and
+    ensure that all team members are using the same versions of packages.
+
+2. The project will use the Python programming language.  Python is a
+    general-purpose, high-level programming language that is used
+    extensively in scientific computing.  Python is a popular language
+    for data science, and is used in many machine learning and
+    artificial intelligence projects.  Python is also a popular language
+    for web development, and is used in many web applications.
+
+3.  The project will use GitHub for version control and GitHub issues as a
+    project management tool.  GitHub is a web-based hosting service for
+    version control using Git.  It is a popular tool for open source
+    projects, and is used by many large companies.  GitHub issues is a
+    project management tool that allows users to create and track issues
+    and bugs for a project.
+
+4.
