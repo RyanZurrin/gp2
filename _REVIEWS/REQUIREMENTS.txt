@@ -1,25 +1,134 @@
-General Requirements for Omama-DB project
-=========================================
+CS410: Introduction to Software Engineering
+Project Name - Omama-DB
+(Teaching Staff - Shivang)
 
-1.  The project will use Anaconda as a package manager.  Anaconda is a
-    free and open source distribution of the Python and R programming
-    languages for scientific computing, that aims to simplify package
-    management and deployment.  The use of Anaconda will allow the
-    project team to easily all work from the same environment, and
-    ensure that all team members are using the same versions of packages.
+0.  Team Members
+            Ryan Zurrin (Team Leader),
+            Poornendu Pabbati,
+            Vivek Kamisetty,
+            Yomil Shah
 
-2. The project will use the Python programming language.  Python is a
-    general-purpose, high-level programming language that is used
-    extensively in scientific computing.  Python is a popular language
-    for data science, and is used in many machine learning and
-    artificial intelligence projects.  Python is also a popular language
-    for web development, and is used in many web applications.
+1. Introduction
 
-3.  The project will use GitHub for version control and GitHub issues as a
-    project management tool.  GitHub is a web-based hosting service for
-    version control using Git.  It is a popular tool for open source
-    projects, and is used by many large companies.  GitHub issues is a
-    project management tool that allows users to create and track issues
-    and bugs for a project.
+    1.1 Purpose
+        The Goal for the Omama-DB project is to release an open source dataset
+        of high-quality mammograms. The final dataset should contain at minimum
+        a total of 70,000 (50,000 2D & 20,000 3D) images. As part of the
+        released data there will be additional tools for researchers and medical
+        professionals to use which will allow them to harness the power of a
+        two-network annotation classifier to create accurate annotations of
+        mammograms as well as give them the ability to increase performance of
+        existing classifiers. In addition to the original Omama-DB data there is
+        plans to utilize the use of existing Kaggle breast cancer dataset which
+        will help diversify the data in a way that helps us to guarantee that
+        the algorithm and tools will generalize well to any mammography data.
 
-4.
+    1.2 Intended Audience
+        The intended audience for the Omama-DB project is the public as well as
+        researchers and medical professionals.
+
+    1.3 Intended Use
+        The public will be able to use the tools and data to help advance their
+        own research and development. The hope is to make available a
+        high-quality dataset complete with ground-truth annotations that can be
+        used to train and test machine learning models which can then be used in
+        the advancement of breast cancer detection.
+
+    1.4 Product Scope
+        The scope of the Omama-DB project is to release a high-quality dataset
+        of mammograms as well as tools to help researchers and medical
+        professionals to harness the power of a two-network annotation
+        classifier to create accurate annotations of mammograms as well as give
+        them the ability to increase performance of existing classifiers.
+
+    1.5 Definitions and Acronyms
+        GP2 - General Purpose Pipeline
+        DS - DeepSight
+        Omama-DB - Omama Database
+
+2. Overall Description
+
+    2.1 User Needs
+        The user needs for the Omama-DB data to be high-quality and to have
+        an easy-to-use API and interface for researchers and medical
+        professionals to use. The user needs for the tools to be efficient,
+        accurate and reliable.
+
+    2.2 Assumptions and Dependencies
+        The project will assume that the original data will not be of the
+        best quality and will therefore need to be cleaned and preprocessed
+        using anomaly detection and outlier detection techniques. The project
+        dependencies will be maintained using Anaconda and GitHub, and once the
+        project is ready for release and use in will be packaged in such a way
+        as to be easily installed and used by the public using tools such as pip
+        and conda install. This will keep users from having to worry about what
+        is needed to run the tools and data as the Omama-DB package will handle
+        all that behind the scenes.
+
+3. System Features and Requirements
+
+    3.1 Functional Requirements
+        3.1.1.  Get Kaggle data working with deepsight classifier for use as
+                additional dataset in addition to the Omama-DB data.
+        3.1.2.  Perform Outlier Detection on Omama-DB data to remove any
+                unwanted low quality images from the dataset
+        3.1.3.  Understand how DeepSight classifier is working in order to use
+                in our GP2 setup on it.
+        3.1.4.  Test existing GP2 pipeline on DeepSight Classifier with small
+                subset of data using simulated Human/machine labels just to
+                verify we can make it work.
+        3.1.5.  Add functionality to front-end annotation tool for use on 3D
+                images. Mainly add the ability to scroll through slices of 3D
+                image.
+        3.1.6.  Work with annotators to add professional labels to GP2 pipeline
+                steps in order to establish ground truths to use in fine-tuning
+                DeepSight.
+        3.1.7.  Use the full data and real Human/machine labels to fine tune
+                Deepsight.
+        3.1.8.  Package final dataset and tools for use by public.
+        3.1.9.  Release data and tools.
+        3.1.10. The End - and we all lived happily ever after.
+
+    3.2 External Interface Requirements
+        3.2.1.  The front-end annotation tool will be a web application that
+                will be hosted on a web server.  The web application will
+                allow users to view and annotate mammograms.  The web
+                application will be able to display 2D and 3D mammograms.
+        3.2.2.  The Released Dataset will be available for download as a
+                package that can be installed using pip or conda install, or as
+                a standalone download of just the data and labels.
+
+
+    3.3 System Features
+
+    3.4 Nonfunctional Requirements
+        3.4.1.  The project will use Anaconda as a package manager. Anaconda is
+                a free and open source distribution of the Python and R
+                programming languages for scientific computing, that aims to
+                simplify package management and deployment.  The use of Anaconda
+                 will allow the project team to easily all work from the same
+                 environment, and ensure that all team members are using the
+                 same versions of packages.
+
+        3.4.2. The project will use the Python programming language.  Python is
+                a general-purpose, high-level programming language that is used
+                extensively in scientific computing.  Python is a popular
+                language for data science, and is used in many machine learning
+                and artificial intelligence projects.  Python is also a popular
+                language for web development, and is used in many web
+                applications.
+
+        3.4.3.  The project will use GitHub for version control and GitHub
+                issues as a project management tool.  GitHub is a web-based
+                hosting service for version control using Git.  It is a popular
+                tool for open source projects, and is used by many large
+                companies.  GitHub issues is a project management tool that
+                allows users to create and track issues and bugs for a project.
+
+        3.4.4.  For the front-end annotation tool, the project will a tornado
+                webserver and cornerstone.js. Tornado is a Python web framework
+                and asynchronous networking library, and is used to build the
+                web application. Cornerstone is a JavaScript library for medical
+                imaging, and is used to display medical images in the web
+                application.
+

@@ -1,8 +1,8 @@
 # class for extracting features from data
 import time
 from types import SimpleNamespace
-from ..feature_extractor.normalization import Normalize
-from ..feature_extractor.keypoints import KeyPoints
+from .normalization import Normalize
+from .keypoints import KeyPoints
 import mahotas as mh
 import numpy as np
 
@@ -186,8 +186,22 @@ class Features:
             SIFT keypoints
         """
         t0 = time.time()
+        pixels = Normalize.extract_pixels(imgs)
+        dis_ext = Features.sift(pixels,
+                                norm_type=norm_type,
+                                timing=timing,
+                                **kwargs)
+
+        descriptors = []
+
+        for item in pixels:
+            dis_ext.detect_and_extract(item)
+            kp = dis_ext.keypoints
+            descriptors.append(kp)
+
         kp = KeyPoints(images=imgs,
-                       algorithm='sift',
+                       dis_ext=dis_ext,
+                       keypoints=descriptors,
                        norm_type=norm_type,
                        timing=timing,
                        **kwargs)
@@ -350,16 +364,16 @@ class Features:
                                               output_shape=output_shape,
                                               normalize=True)
 
-        discriptors = []
+        descriptors = []
 
         for item in downsized_imgs:
             descriptor_extractor.detect_and_extract(item)
             kp = descriptor_extractor.keypoints
-            discriptors.append(kp)
+            descriptors.append(kp)
 
         kp = KeyPoints(images=imgs,
-                       keypoints=discriptors,
-                       algorithm='orb',
+                       dis_ext=descriptor_extractor,
+                       keypoints=descriptors,
                        timing=timing,
                        **kwargs)
 
