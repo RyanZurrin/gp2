@@ -1,7 +1,8 @@
 import time
 
 import numpy as np
-from ..feature_extractor import *
+# from .features import Features
+from .normalization import Normalize
 
 
 class KeyPoints:
@@ -10,17 +11,17 @@ class KeyPoints:
     descriptors = []
 
     def __init__(self,
-                 images=None,
+                 dis_ext,
+                 images,
                  keypoints=None,
                  norm_type=None,
-                 algorithm='sift',
                  timing=False,
                  **kwargs):
         t0 = time.time()
+        self._dis_ext = dis_ext
         self._norm_type = norm_type
         self._images = images
         self._keypoints = keypoints
-        self._algorithm = algorithm
         self._timing = timing
         self._options = kwargs
         self._init()
@@ -37,21 +38,7 @@ class KeyPoints:
                     pixels = Normalize.get_norm(image.pixels, self._norm_type)
                 else:
                     pixels = image.pixels
-
-                if self._algorithm == 'sift':
-                    dis_ext = Features.sift(pixels,
-                                            norm_type=self._norm_type,
-                                            timing=self._timing,
-                                            kwargs=self._options)
-                elif self._algorithm == 'orb':
-                    dis_ext = Features.orb(pixels,
-                                           norm_type=self._norm_type,
-                                           timing=self._timing,
-                                           kwargs=self._options)
-                else:
-                    raise ValueError("Algorithm not supported")
-
-                kp = dis_ext.keypoints
+                kp = self._dis_ext.keypoints
                 kp_intensities = self._extract_intensities(pixels, kp)
                 self.imageID_to_intensities[
                     image.SOPInstanceUID] = kp_intensities
