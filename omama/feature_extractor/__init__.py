@@ -1,4 +1,4 @@
-from .features import Features
-from .normalization import Normalize
-from .keypoints import KeyPoints
+from .features import *
+from .normalization import *
+from .keypoints import *
 
