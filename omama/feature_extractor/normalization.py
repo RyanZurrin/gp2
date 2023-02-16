@@ -1,6 +1,7 @@
 import time
 import types
 
+import pydicom as dicom
 import numpy as np
 import mahotas as mh
 
@@ -22,24 +23,24 @@ class Normalize:
             The default is False.
         """
         t0 = time.time()
+        pixels = []
         if isinstance(images, list):
             if isinstance(images[0], np.ndarray):
                 return images
-        elif isinstance(images, np.ndarray):
-            return [images]
-        if isinstance(images, list):
-            pixels = []
-            if isinstance(images[0], types.SimpleNamespace):
+            elif isinstance(images[0], types.SimpleNamespace):
                 for image in images:
                     pixels.append(image.pixels)
-            else:
+            elif isinstance(images[0], dicom.dataset.FileDataset):
                 for image in images:
-                    pixels.append(image)
-        else:
-            if isinstance(images, types.SimpleNamespace):
-                pixels = images.pixels
+                    pixels.append(image.pixel_array)
             else:
-                pixels = images
+                raise TypeError("Unknown type of images")
+        elif isinstance(images, np.ndarray):
+            pixels = images  # was returning this as list before
+        elif isinstance(images, types.SimpleNamespace):
+            pixels = images.pixels
+        else:
+            raise TypeError("Unknown type of images")
         if timing:
             print("Extract pixels: {}".format(time.time() - t0))
         return pixels

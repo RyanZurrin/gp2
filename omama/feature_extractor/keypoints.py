@@ -33,16 +33,16 @@ class KeyPoints:
 
     def _init(self):
         if self._keypoints is None:
-            for image in self._images:
+            for i, dis_ext in enumerate(self._dis_ext):
                 if self._norm_type is not None:
-                    pixels = Normalize.get_norm(image.pixels, self._norm_type)
+                    pixels = Normalize.get_norm(self._images[i].pixels, self._norm_type)
                 else:
-                    pixels = image.pixels
-                kp = self._dis_ext.keypoints
-                kp_intensities = self._extract_intensities(pixels, kp)
+                    pixels = self._images[i].pixels
+                kp = self._dis_ext[i].keypoints
+                kp_intensities = self.extract_intensities(pixels, kp)
                 self.imageID_to_intensities[
-                    image.SOPInstanceUID] = kp_intensities
-                self.imageID_to_keypoints[image.SOPInstanceUID] = kp
+                    self._images[i].SOPInstanceUID] = kp_intensities
+                self.imageID_to_keypoints[self._images[i].SOPInstanceUID] = kp
 
         else:
             for image, kp in zip(self._images, self._keypoints):
@@ -51,11 +51,11 @@ class KeyPoints:
                 else:
                     pixels = image.pixels
 
-                kp_intensities = self._extract_intensities(pixels, kp)
+                kp_intensities = self.extract_intensities(pixels, kp)
                 self.imageID_to_intensities[
                     image.SOPInstanceUID] = kp_intensities
                 self.imageID_to_keypoints[image.SOPInstanceUID] = kp
-        self._normalize_keypoint_lengths()
+        self.normalize_keypoint_lengths()
 
     def get_data(self, index):
         sop_uid = self._images[index].SOPInstanceUID
@@ -65,7 +65,7 @@ class KeyPoints:
         return sop_uid, pixels, kp, kp_intensities
 
     @staticmethod
-    def _extract_intensities(pixels, keypoints):
+    def extract_intensities(pixels, keypoints):
         """Extract intensities of pixel under keypoints
         Parameters
         ----------
@@ -92,7 +92,7 @@ class KeyPoints:
             intensities.append(kp_array)
         return intensities
 
-    def _normalize_keypoint_lengths(self):
+    def normalize_keypoint_lengths(self):
         """ Normalize keypoint lengths by finding the smallest length of
         keypoints and then selecting a random distribution of keypoints of
         similar length in the rest of the keypoints.

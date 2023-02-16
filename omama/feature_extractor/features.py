@@ -187,21 +187,26 @@ class Features:
         """
         t0 = time.time()
         pixels = Normalize.extract_pixels(imgs)
-        dis_ext = Features.sift(pixels,
-                                norm_type=norm_type,
-                                timing=timing,
-                                **kwargs)
+        pixels = Normalize.get_norm(pixels, norm_type)
 
-        descriptors = []
+        dis_exts = []
 
-        for item in pixels:
-            dis_ext.detect_and_extract(item)
-            kp = dis_ext.keypoints
-            descriptors.append(kp)
+        if isinstance(pixels, list):
+            for image in pixels:
+                dis_ext = Features.sift(image,
+                                        norm_type=norm_type,
+                                        timing=timing,
+                                        **kwargs)
+                dis_exts.append(dis_ext)
+        else:
+            dis_ext = Features.sift(pixels,
+                                    norm_type=norm_type,
+                                    timing=timing,
+                                    **kwargs)
+            dis_exts.append(dis_ext)
 
         kp = KeyPoints(images=imgs,
-                       dis_ext=dis_ext,
-                       keypoints=descriptors,
+                       dis_ext=dis_exts,
                        norm_type=norm_type,
                        timing=timing,
                        **kwargs)
@@ -319,6 +324,7 @@ class Features:
 
     @staticmethod
     def orb_keypoint_intensities(imgs,
+                                 norm_type='minmax',
                                  timing=False,
                                  **kwargs):
         """Create ORB keypoints of data
@@ -338,6 +344,7 @@ class Features:
             ORB keypoints
         """
         t0 = time.time()
+
         from skimage.feature import (match_descriptors, corner_harris,
                                      corner_peaks, ORB, plot_matches)
 
@@ -347,7 +354,11 @@ class Features:
         harris_k = kwargs.get('harris_k', 0.04)
         downscale = kwargs.get('downscale', 1.2)
         n_scales = kwargs.get('n_scales', 8)
-        output_shape = kwargs.get('output_shape', (128, 128))
+        output_shape = kwargs.get('output_shape', (256, 256))
+
+        pixels = Normalize.extract_pixels(imgs)
+        pixels = Normalize.downsample(pixels, output_shape=output_shape)
+        pixels = Normalize.get_norm(pixels, norm_type=norm_type)
 
         descriptor_extractor = ORB(n_keypoints=n_keypoints,
                                    fast_n=fast_n,
@@ -356,24 +367,28 @@ class Features:
                                    downscale=downscale,
                                    n_scales=n_scales)
 
-        pixels = []
-        for img in imgs:
-            pixels.append(img.pixels)
-
-        downsized_imgs = Normalize.downsample(imgs,
-                                              output_shape=output_shape,
-                                              normalize=True)
+        dis_exts = []
+        if isinstance(pixels, list):
+            for i in range(len(pixels)):
+                descriptor_extractor.detect_and_extract(pixels[i])
+                dis_ext = descriptor_extractor.descriptors
+                dis_exts.append(dis_ext)
+        else:
+            descriptor_extractor.detect_and_extract(pixels)
+            dis_ext = descriptor_extractor.descriptors
+            dis_exts.append(dis_ext)
 
         descriptors = []
 
-        for item in downsized_imgs:
+        for item in dis_exts:
             descriptor_extractor.detect_and_extract(item)
             kp = descriptor_extractor.keypoints
             descriptors.append(kp)
 
         kp = KeyPoints(images=imgs,
-                       dis_ext=descriptor_extractor,
+                       dis_ext=dis_exts,
                        keypoints=descriptors,
+                       norm_type=norm_type,
                        timing=timing,
                        **kwargs)
 
