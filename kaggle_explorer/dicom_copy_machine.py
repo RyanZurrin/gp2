@@ -1,6 +1,7 @@
 import pydicom
 import matplotlib.pyplot as plt
 
+
 class DicomCopyMachine:
     """
     This class will take two lists or two dicoms A and B and copy all the header
@@ -32,22 +33,16 @@ class DicomCopyMachine:
         transfer syntax with the pixel data and transfer syntax from
         dicom B. This will use proper encapsulation as the pixel data is compressed.
 
+        Jpeg fromat needs to start with 0xFFD8 and end with 0xFFD9
+        Jpeg2000 needs to start with 0xFF4F and end with 0xFFD9 so make sure
+        this is the case.
+
         Returns
         -------
         new_dicom : pydicom.dataset.FileDataset
             The new dicom
         """
-        new_dicom = self.dicom_A
-        new_dicom.PixelData = self.dicom_B.PixelData
-        new_dicom.file_meta.TransferSyntaxUID = \
-            self.dicom_B.file_meta.TransferSyntaxUID
-        # add the window center and width from B to C
-        new_dicom.WindowCenter = self.dicom_B.WindowCenter
-        new_dicom.WindowWidth = self.dicom_B.WindowWidth
-        
-        if self.save_path is not None:
-            new_dicom.save_as(self.save_path)
-        return new_dicom
+
 
     def view_dicom(self):
         """
