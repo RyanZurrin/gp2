@@ -1,12 +1,19 @@
-import os, pickle, sklearn
-import numpy as np
-
+import os
+import sys
+sys.path.insert(0,'../..')
 import omama as O
+import numpy as np
+import sklearn
+import warnings
 
+from sklearn.exceptions import ConvergenceWarning
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
+
+import pickle
 THRESHOLD = 0.0001
 
 
-class OutlierDetectorLite:
+class OutlierDetector:
 
     def __init__(self, DATAPATH='/raid/mpsych/'):
         """ Initializes the class
@@ -456,5 +463,3 @@ class OutlierDetectorLite:
         if display:
             print(latex)
         return latex
-
-

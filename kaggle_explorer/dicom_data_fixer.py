@@ -1,7 +1,10 @@
 import random
 import string
 import time
+import argparse
 import pydicom
+from pydicom.sequence import Sequence
+from pydicom.dataset import Dataset
 import pandas as pd
 import os
 
@@ -29,6 +32,18 @@ PARAMETERS = {
     'ManufacturerModelName': 'Selenia Dimensions',
     'ViewCodeSequence': '',
 }
+
+# use argparse to get the parameters from the command line if you want both short and long options
+parser = argparse.ArgumentParser()
+parser.add_argument('-d', '--dicom_dir', help='Path to dicom directory',
+                    type=str, default=DICOM_DIR)
+parser.add_argument('-o', '--output_dir', help='Path to output directory',
+                    type=str, default=OUTPUT_DIR)
+parser.add_argument('-c', '--csv_path', help='Path to csv file',
+                    type=str, default=CSV_PATH)
+parser.add_argument('-p', '--parameters', help='Parameters to change',
+                    type=str, default=PARAMETERS)
+args = parser.parse_args()
 
 
 class DicomDataFixer:
@@ -91,6 +106,15 @@ class DicomDataFixer:
         elif view == 'MLO':
             return "R-10226"
 
+    def get_view_code_meaning_value(self, dicom_data):
+        inst_num = dicom_data.InstanceNumber
+        view = \
+            self.csv_df.loc[self.csv_df['image_id'] == inst_num, 'view'].iloc[0]
+        if view == 'CC':
+            return "cranio-caudal"
+        elif view == 'MLO':
+            return "mediolateral-oblique"
+
     def generate_accession_number(self):
         """
         Generate a random AccessionNumber of 12 characters all uppercase
@@ -138,8 +162,13 @@ class DicomDataFixer:
             dicom_data.PatientOrientation = self.get_patient_orientations(
                 dicom_data)
             dicom_data.AccessionNumber = self.generate_accession_number()
-            # dicom_data.add_new((0x0018, 0x5101), 'SH',
-            #                     self.get_view_code_sequence_value(dicom_data))
+
+            dsv = Dataset()
+            dsv.CodeValue = self.get_view_code_sequence_value(dicom_data)
+            dsv.CodeMeaning = self.get_view_code_meaning_value(dicom_data)
+
+            dicom_data.ViewCodeSequence = Sequence([dsv])
+
             for key, value in self.parameters.items():
                 setattr(dicom_data, key, value)
                 # save the dicom data
@@ -162,7 +191,8 @@ class DicomDataFixer:
 
 if __name__ == '__main__':
     # create the object
-    fixer = DicomDataFixer(DICOM_DIR, CSV_PATH, output_dir=OUTPUT_DIR,
-                           inplace=True, **PARAMETERS)
+    fixer = DicomDataFixer(args.dicom_dir, args.csv_path, args.output_dir,
+                           args.inplace, **vars(args))
+
     # fix the dicoms
     fixer.fix_dicoms()
