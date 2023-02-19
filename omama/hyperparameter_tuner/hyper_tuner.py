@@ -85,7 +85,7 @@ class HyperTuner(object):
         self.test_size = test_size
         self.random_state = random_state
         self.tts_random_state = tts_random_state
-        self.obj_func = None,
+        self.obj_func = obj_func
         self.trials = Trials()
         self.best_params = None
         self.kwargs = kwargs
