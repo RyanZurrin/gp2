@@ -1,0 +1,77 @@
+Acceptance Criteria Number,Description
+PAC-10,patient age < 35
+PAC-30,breast implants present
+SAC-30,lmlo missing
+SAC-40,rmlo missing
+SAC-50,lcc missing
+SAC-60,rcc missing
+SAC-70,patient name is empty or inconsistent
+SAC-80,patient birth date is empty or inconsistent
+SAC-81,patient age inconsistent
+SAC-90,patient id is empty or inconsistent
+SAC-100,study instance uid is empty or inconsistent
+SAC-110,study date is empty or inconsistent
+SAC-120,files too large (>10 GB)
+SAC-130,no corresponding 2D for 3D file
+SAC-131,no corresponding 3D for 2D file
+SAC-140,manufacturer is empty or inconsistent
+FAC-10,dicom cannot be read
+FAC-20,sop class uid isn't 1.2.840.10008.5.1.4.1.1.1.2 or 1.2.840.10008.5.1.4.1.1.13.1.3
+FAC-21,modality not 'MG'
+FAC-23,body part examined not 'BREAST'
+FAC-24,lossy image compression
+FAC-26,quality control image
+FAC-27,burned in annotation
+FAC-29,image laterality not L or R
+FAC-30,wrong Patient Orientation values
+FAC-80,manufacturer missing
+FAC-90,manufacturer model name missing
+FAC-100,pixel data missing
+FAC-101,error in extracting pixel array
+FAC-110,presentation intent type is not For Presentation
+FAC-130,Image processing tags don't match manufacturer specifications
+FAC-140,manufacturer not supported
+FAC-150,file too large (>1.5GB)
+FAC-160,view not mlo or cc
+FAC-170,modified view
+FAC-181,partial view
+FAC-200,"missing one of the following: SOP Instance UID Series Instance UID Study Instance UID Patient ID Study Date Patient Birth Date"
+FAC-210,"Transfer syntax must be one of the following: 1.2.840.10008.1.2.1 - Explicit VR Little Endian 1.2.840.10008.1.2 -  Implicit VR Little Endian 1.2.840.10008.1.2.2 - Explicit VR BigEndian 1.2.840.10008.1.2.1.99 - Deflated Explicit VR Little Endian 1.2.840.10008.1.2.5 - RLE Lossless 1.2.840.10008.1.2.4.70 - JPEG Lossless (Process 14, SV1) 1.2.840.10008.1.2.4.80 - JPEG LS Lossless 1.2.840.10008.1.2.4.90 - JPEG2000 Lossless"
+IAC-20,pixel intensity range insufficient
+HOL-10,image type
+HOL-20,estimated radiographic magnification factor
+HOL-30,photometric interpretation
+HOL-40,bits allocated
+HOL-50,bits stored
+HOL-60,high bit
+HOL-80,mismatch between WindowCenter WindowWidth and WindowCenterWidthExplanation
+HOL-110,grid
+HOL-120,focal spots
+HOL-130,exposure status
+HOL-140,rows
+HOL-150,columns
+HOL-160,window center
+HOL-170,window width
+HOL-180,pixel intensity relationship
+HOL-190,pixel intensity relationship sign
+HOL-200,presentation lut shape
+HOL-210,series description
+GE-10,image type
+GE-20,estimated radiographic magnification factor
+GE-30,photometric interpretation
+GE-40,bits allocated
+GE-50,bits stored
+GE-60,high bit
+GE-70,volumetric properties
+GE-80,window center and width explanation
+GE-90,voi lut function
+GE-110,grid
+GE-120,focal spots
+GE-130,exposure status
+GE-140,rows
+GE-150,columns
+GE-160,window center
+GE-170,window width
+GE-180,pixel intensity relationship
+GE-190,pixe intensity relationship sign
+GE-200,presentation lut shape
