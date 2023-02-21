@@ -158,6 +158,7 @@ class Normalize:
         """
         normalized_pixels = mh.gaussian_filter(pixels, sigma=1)
         normalized_pixels /= normalized_pixels.max()
+        normalized_pixels *= 255
         return normalized_pixels
 
     @staticmethod
@@ -244,53 +245,6 @@ class Normalize:
             print("z_score: ", time.time() - t0)
         return normalized_pixels
 
-    @staticmethod
-    def _robust_helper(pixels):
-        """Helper function to normalize data using robust method
-        """
-        median = np.median(pixels)
-        iqr = np.percentile(pixels, 75) - np.percentile(pixels, 25)
-        normalized_pixels = (pixels - median) / iqr
-
-        return normalized_pixels
-
-    @staticmethod
-    def robust(pixels, downsample=False, output_shape=None, timing=False):
-        """In robust scaling, we scale each feature of the data set by subtracting
-        the median and then dividing by the interquartile range. The interquartile
-        range (IQR) is defined as the difference between the third and the first
-        quartile and represents the central 50% of the data.
-        Parameters
-        ----------
-        pixels : numpy.ndarray | list of numpy.ndarray
-            Array of pixels to be normalized
-        downsample : bool
-            If true, the image is downsampled to a smaller size
-        output_shape : tuple of int
-            The shape of the output image if downsampling is used
-        timing : bool
-            If true, the time needed to perform the normalization is printed
-        Returns
-        -------
-        numpy.ndarray
-            Normalized pixels
-        """
-        t0 = time.time()
-        temp_pixels = pixels
-        if isinstance(temp_pixels, list):
-            normalized_pixels = []
-            if downsample:
-                temp_pixels = Normalize.downsample(pixels, output_shape)
-            for p in temp_pixels:
-                normalized_pixels.append(Normalize._robust_helper(p))
-        else:
-            if downsample:
-                temp_pixels = Normalize.downsample(pixels, output_shape)
-            normalized_pixels = Normalize._robust_helper(temp_pixels)
-
-        if timing:
-            print("robust: ", time.time() - t0)
-        return normalized_pixels
 
     @staticmethod
     def downsample(images, output_shape=None, flatten=False,
