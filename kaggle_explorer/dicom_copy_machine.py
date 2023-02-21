@@ -26,6 +26,7 @@ class DicomCopyMachine:
         self.dicom_B = dicom_b
         self.save_path = save_path
         self.dicom_C = self.copy_dicom()
+        print(f'New dicom saved to {self.save_path}')
 
     def copy_dicom(self):
         """
@@ -42,6 +43,22 @@ class DicomCopyMachine:
         new_dicom : pydicom.dataset.FileDataset
             The new dicom
         """
+        new_dicom = self.dicom_A
+        new_dicom.PixelData = self.dicom_B.PixelData
+
+        new_dicom.file_meta.TransferSyntaxUID = \
+            self.dicom_B.file_meta.TransferSyntaxUID
+
+        # new_dicom.file_meta.TransferSyntaxUID = \
+        #     self.dicom_A.file_meta.TransferSyntaxUID
+
+        # add the window center and width from B to C
+        # new_dicom.WindowCenter = self.dicom_B.WindowCenter
+        # new_dicom.WindowWidth = self.dicom_B.WindowWidth
+
+        if self.save_path is not None:
+            new_dicom.save_as(self.save_path)
+        return new_dicom
 
 
     def view_dicom(self):
