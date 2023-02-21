@@ -46,11 +46,11 @@ class DicomCopyMachine:
         new_dicom = self.dicom_A
         new_dicom.PixelData = self.dicom_B.PixelData
 
-        new_dicom.file_meta.TransferSyntaxUID = \
-            self.dicom_B.file_meta.TransferSyntaxUID
-
         # new_dicom.file_meta.TransferSyntaxUID = \
-        #     self.dicom_A.file_meta.TransferSyntaxUID
+        #     self.dicom_B.file_meta.TransferSyntaxUID
+
+        new_dicom.file_meta.TransferSyntaxUID = \
+            self.dicom_A.file_meta.TransferSyntaxUID
 
         # add the window center and width from B to C
         # new_dicom.WindowCenter = self.dicom_B.WindowCenter
