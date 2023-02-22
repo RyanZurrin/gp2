@@ -33,18 +33,6 @@ PARAMETERS = {
     'ViewCodeSequence': '',
 }
 
-# use argparse to get the parameters from the command line if you want both short and long options
-parser = argparse.ArgumentParser()
-parser.add_argument('-d', '--dicom_dir', help='Path to dicom directory',
-                    type=str, default=DICOM_DIR)
-parser.add_argument('-o', '--output_dir', help='Path to output directory',
-                    type=str, default=OUTPUT_DIR)
-parser.add_argument('-c', '--csv_path', help='Path to csv file',
-                    type=str, default=CSV_PATH)
-parser.add_argument('-p', '--parameters', help='Parameters to change',
-                    type=str, default=PARAMETERS)
-args = parser.parse_args()
-
 
 class DicomDataFixer:
     def __init__(self,
@@ -191,8 +179,8 @@ class DicomDataFixer:
 
 if __name__ == '__main__':
     # create the object
-    fixer = DicomDataFixer(args.dicom_dir, args.csv_path, args.output_dir,
-                           args.inplace, **vars(args))
+    fixer = DicomDataFixer(DICOM_DIR, CSV_PATH, inplace=True,
+                           output_dir=OUTPUT_DIR, **PARAMETERS)
 
     # fix the dicoms
     fixer.fix_dicoms()
