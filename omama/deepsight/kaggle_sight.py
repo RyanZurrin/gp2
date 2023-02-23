@@ -7,6 +7,7 @@ import time
 from types import GeneratorType
 import pydicom as dicom
 import os
+from omama import data as D
 
 IGNORE_CHECKS = [
     'PAC-10', 'FAC-140', 'FAC-200', 'SAC-30', 'GE-160',
@@ -168,6 +169,9 @@ class KaggleSight:
                 ds = dicom.dcmread(cases, stop_before_pixels=True)
                 sop_uid = ds.get('SOPInstanceUID')
                 identifier = ds.get(target)
+                # check if the identifier is the same as the folder name and if not then set the identifier to the folder name
+                if identifier != cases.split('/')[-2]:
+                    identifier = cases.split('/')[-2]
                 KaggleSight.sop_to_path_dict[identifier] = cases
                 study_uid_dict = KaggleSight._modify_study_dict(
                     study_uid_dict, identifier, sop_uid)
@@ -628,6 +632,10 @@ class KaggleSight:
         # set the input nad output paths
         if output_dir is None:
             output_dir = OUTPUT_DIRECTORY
+        else:
+            # make sure the output directory exists and if not create it
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
 
         if caselist_file_name is None:
             caselist_file_name = CASELIST_FILE_NAME
@@ -659,6 +667,10 @@ class KaggleSight:
         # create the output directory
         os.makedirs(output_location)
 
+        # check if the cases is a Data object
+        if isinstance(cases, D.Data):
+            # use the Data.to_text_file method to make a caselist file
+            cases = cases.to_text_file(output_location, caselist_file_name)
         if isinstance(cases, GeneratorType):
             cases = list(cases)
 
@@ -721,9 +733,11 @@ class KaggleSight:
             for folder in folders:
                 # make sure it is a directory first
                 if os.path.isdir(os.path.join(deepsight_out, folder)):
-                    # with folder as key for study_uid_dict get the
-                    # SOPInstanceUID
-                    target_id_list = study_uid_dict[folder]
+                    # check if the folder is in the study_uid_dict
+                    if folder in study_uid_dict:
+                        target_id_list = study_uid_dict[folder]
+                    else:
+                        target_id_list = []
                     # read-in classifier results output
                     f = open(deepsight_out + '/' + folder +
                              '/results_full.json')
