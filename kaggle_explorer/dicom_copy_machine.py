@@ -45,9 +45,6 @@ class DicomCopyMachine:
         """
         new_dicom = self.dicom_A
 
-
-        # TODO: crashes kernal, figure out if there is other way to interpret
-        #  pixel data properly
         new_dicom.file_meta.TransferSyntaxUID = \
             self.dicom_B.file_meta.TransferSyntaxUID
         # set all the (0028, XXXX) tags to the same as dicom B
@@ -113,5 +110,5 @@ class DicomCopyMachine:
         """
         View the dicom using matplotlib
         """
-        plt.imshow(self.dicom_C.pixel_array, cmap=plt.cm.bone)
+        plt.imshow(self.dicom_C.pixel_array, cmap='gray')
         plt.show()

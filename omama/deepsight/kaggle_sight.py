@@ -18,7 +18,8 @@ IGNORE_CHECKS = [
     'FAC-21', 'FAC-27', 'FAC-80', 'FAC-90', 'FAC-20', 'IAC-20',
     'HOL-30', 'HOL-50', 'HOL-60', 'HOL-110', 'HOL-140', 'HOL-190',
     'HOL-200', 'HOL-80', 'HOL-30', 'HOL-50', 'HOL-60', 'HOL-110',
-    'HOL-140', 'HOL-190', 'HOL-200', 'HOL-80'
+    'HOL-140', 'HOL-190', 'HOL-200', 'HOL-80',
+    'GE-30', 'GE-50', 'GE-60', 'GE-140', 'GE-190', 'GE-80'
 ]
 
 # _____________________ variables below need to get set: _______________________
