@@ -2,52 +2,36 @@ import random
 import string
 import time
 import argparse
+from pathlib import Path
+
 import pydicom
 from pydicom.sequence import Sequence
 from pydicom.dataset import Dataset
 import pandas as pd
 import os
 
-DICOM_DIR = r'/raid/mpsych/kaggle_mammograms/original/train_images/10006/'
-OUTPUT_DIR = None
-CSV_PATH = r'/raid/mpsych/kaggle_mammograms/train.csv'
 PARAMETERS = {
-    'PatientName': '',
-    'PatientBirthDate': '',
-    'PatientSex': '',
-    'StudyDate': '',
-    'StudyTime': '',
-    'SeriesDate': '',
-    'ContentDate': '',
-    'InstitutionName': '',
-    'AcquisitionDeviceProcessingCode': '',
-    'PartialView': '',
-    'PartialViewDescription': '',
-    'StudyPriorityID': '',
-    'ScheduledStudyStartTime': '',
-    'RouteOfAdmissions': '',
-    'RequestedProcedurePriority': '',
-    'SOPClassUID': '1.2.840.10008.5.1.4.1.1.1.2',
-    'Manufacturer': 'Hologic',
-    'ManufacturerModelName': 'Selenia Dimensions',
-    'ViewCodeSequence': '',
+
 }
 
 
 class DicomDataFixer:
     def __init__(self,
-                 dicom_dir,
+                 dicom_dir: Path,
                  csv_path,
                  output_dir=None,
-                 inplace=False,
-                 **kwargs):
+                 **parameters):
         self.dicom_dir = dicom_dir
         self.image_paths = self.get_image_paths()
         self.output_dir = output_dir
         self.csv_path = csv_path
-        self.inplace = inplace
+        if self.output_dir is None:
+            self.output_dir = self.dicom_dir
+            self.inplace = True
+        else:
+            self.inplace = False
         self.csv_df = self.read_csv()
-        self.parameters = kwargs
+        self.parameters = parameters
 
     def read_csv(self):
         print('Reading csv file: {}'.format(self.csv_path))
@@ -56,18 +40,26 @@ class DicomDataFixer:
 
     def get_image_paths(self):
         image_paths = []
-        for root, dirs, files in os.walk(self.dicom_dir):
-            for file in files:
-                if file.endswith(".dcm"):
-                    image_paths.append(os.path.join(root, file))
-        return image_paths
+        # check if dicom_dir is a single dicom file and if so just add path
+        # to the one file to the list and return
+        if self.dicom_dir.is_file():
+            print('Single dicom file found: {}'.format(self.dicom_dir))
+            image_paths.append(self.dicom_dir)
+            return image_paths
+        else:
+            print('Dicom directory found: {}'.format(self.dicom_dir))
+            for root, dirs, files in os.walk(self.dicom_dir):
+                for file in files:
+                    if file.endswith(".dcm"):
+                        image_paths.append(os.path.join(root, file))
+            return image_paths
 
     def get_age(self, dicom_data):
         inst_num = dicom_data.InstanceNumber
-        age = self.csv_df.loc[self.csv_df['image_id'] == inst_num, 'age'].iloc[
-            0]
+        age = \
+            self.csv_df.loc[self.csv_df['image_id'] == inst_num, 'age'].iloc[0]
         age = age * 12
-        return str(age) + 'm'
+        return str(int(age)) + 'm'
 
     def get_veiw(self, dicom_data):
         inst_num = dicom_data.InstanceNumber
@@ -163,9 +155,11 @@ class DicomDataFixer:
                 if self.inplace:
                     dicom_data.save_as(dicom_loc)
                 else:
+                    save_path = os.path.join(self.output_dir,
+                                                os.path.basename(dicom_loc))
+
                     dicom_data.save_as(os.path.join(self.output_dir,
-                                                    os.path.basename(
-                                                        dicom_loc)),
+                                                    os.path.basename(dicom_loc)),
                                        write_like_original=False)
             if count % 100 == 0:
                 print(
@@ -178,9 +172,28 @@ class DicomDataFixer:
 
 
 if __name__ == '__main__':
-    # create the object
-    fixer = DicomDataFixer(DICOM_DIR, CSV_PATH, inplace=True,
-                           output_dir=OUTPUT_DIR, **PARAMETERS)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dicom_dir', type=Path,
+                        default=r'/raid/mpsych/kaggle_mammograms/original/train_images/10006/')
+    parser.add_argument('-o', '--output_dir', type=str, default=None)
+    parser.add_argument('-c', '--csv_path', type=str,
+                        default=r'/hpcstor6/scratch01/r/ryan.zurrin001/train.csv')
+    args = parser.parse_args()
 
-    # fix the dicoms
+    # update the default values with the user passed in values
+    DICOM_DIR = args.dicom_dir
+    OUTPUT_DIR = args.output_dir
+    CSV_PATH = args.csv_path
+
+    # print out all the values
+    print(f'DICOM_DIR: {DICOM_DIR}')
+    print(f'OUTPUT_DIR: {OUTPUT_DIR}')
+    print(f'CSV_PATH: {CSV_PATH}')
+
+    fixer = DicomDataFixer(
+        dicom_dir=DICOM_DIR,
+        csv_path=CSV_PATH,
+        output_dir=OUTPUT_DIR,
+        parameters=PARAMETERS
+    )
     fixer.fix_dicoms()

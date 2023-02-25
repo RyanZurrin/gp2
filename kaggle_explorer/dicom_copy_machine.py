@@ -1,5 +1,15 @@
+import subprocess
+from pathlib import Path
+import io
 import pydicom
 import matplotlib.pyplot as plt
+from pydicom.encaps import encapsulate
+from pydicom.uid import generate_uid
+from PIL import ImageDraw
+from PIL.FontFile import WIDTH
+from PIL.Image import Image
+import gdcm
+from .dicom_data_fixer import DicomDataFixer
 
 
 class DicomCopyMachine:
@@ -11,7 +21,7 @@ class DicomCopyMachine:
     dicom intact.
     """
 
-    def __init__(self, dicom_a, dicom_b, save_path=None):
+    def __init__(self, dicom_a, dicom_b, save_path=None, compression_type=None):
         """
         Parameters
         ----------
@@ -19,13 +29,15 @@ class DicomCopyMachine:
             The dicom data
         dicom_a : pydicom.dataset.FileDataset
             The dicom data
-        save_path : str
+        save_path : Path
             The path to save the new dicom to
         """
         self.dicom_A = dicom_a
         self.dicom_B = dicom_b
         self.save_path = save_path
+        self.compression_type = compression_type
         self.dicom_C = self.copy_dicom()
+
         print(f'New dicom saved to {self.save_path}')
 
     def copy_dicom(self):
@@ -90,21 +102,64 @@ class DicomCopyMachine:
         # Lossy Image Compression
         new_dicom.LossyImageCompression = self.dicom_B.LossyImageCompression
 
-        # remove pixel padding range limit
-        if hasattr(new_dicom, 'PixelPaddingRangeLimit'):
-            del new_dicom.PixelPaddingRangeLimit
+        # use gdcm to decompress the pixel data and then re-compress it with
+        # the new compression type and set the pixel data to the new compression
+        # type
+        # decompress the pixel data
+        decompressed_pixel_data = gdcm.ImageReader()
+        decompressed_pixel_data.SetFileName(self.dicom_B.filename)
+        decompressed_pixel_data.Read()
+        decompressed_pixel_data = decompressed_pixel_data.GetImage()
+        # compress the pixel data
+        compressed_pixel_data = gdcm.ImageWriter()
+        compressed_pixel_data.SetFileName(self.dicom_B.filename)
+        compressed_pixel_data.SetImage(decompressed_pixel_data)
+        compressed_pixel_data.SetFile(self.dicom_B)
+        compressed_pixel_data.Write()
+        # set the pixel data to the new compression
 
-        # remove VOI LUT Sequence
-        if hasattr(new_dicom, 'VOILUTSequence'):
-            del new_dicom.VOILUTSequence
 
 
         new_dicom.PixelData = self.dicom_B.PixelData
 
+        # if self.compression_type is None:
+        #     # if none use the compression from A and pixel data from B
+        #     self.compression_type = self.dicom_A.file_meta.TransferSyntaxUID
+        # # set the transfer syntax to the new compression
+        # new_dicom.file_meta.TransferSyntaxUID = self.compression_type
+        # # set the pixel data to the new compression
+        # new_dicom.PixelData = encapsulate([self.dicom_B.PixelData])
+
+
+        # add the InstanceNumber tag from dicom B
+        new_dicom.InstanceNumber = self.dicom_B.InstanceNumber
+
+        # remove the VOI LUT Sequence tag from dicom C
+        if hasattr(new_dicom, 'VOILUTSequence'):
+            del new_dicom.VOILUTSequence
+
         if self.save_path is not None:
-            new_dicom.save_as(self.save_path)
+            new_dicom.save_as(self.save_path, write_like_original=False)
         return new_dicom
 
+    def change_compression(self, new_compression=None):
+        """
+        Change the compression of the dicom C to the new compression
+        """
+
+        # save the dicom
+
+    def dicom_fixer(self):
+        """
+        Calls the DicomDataFixer class to fix dicom C using python to call using
+        terminal commands
+        """
+        # python /hpcstor6/scratch01/r/ryan.zurrin001/scripts/dicom_data_fixer.py -d save_path -o save_path
+        save_path = Path(self.save_path)
+        print(f'Running dicom fixer on files located at {save_path.parent}')
+        subprocess.run(['python',
+                        '/hpcstor6/scratch01/r/ryan.zurrin001/scripts/dicom_data_fixer.py',
+                        '-d', save_path, '-o', save_path.parent])
 
     def view_dicom(self):
         """
