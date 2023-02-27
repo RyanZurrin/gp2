@@ -1,5 +1,5 @@
-import data
-import gp2
+from .data import *
+from .gp2 import *
 
 import numpy as np
 import os
@@ -24,7 +24,7 @@ class Runner:
         if verbose:
             print('Verbose mode active!')
 
-        self.M = data.Manager()
+        self.M = Manager()
 
         self.dataset_size = None
 
@@ -57,13 +57,13 @@ class Runner:
                 'B'] * dataset_size)
             print('Weights OK!')
 
-        A_, B_, Z_ = gp2.Util.create_A_B_Z_split(images, masks,
+        A_, B_, Z_ = Util.create_A_B_Z_split(images, masks,
                                                  dataset_size=dataset_size,
                                                  weights=weights)
 
-        A = data.Collection.from_list(A_)
-        B = data.Collection.from_list(B_)
-        Z = data.Collection.from_list(Z_)
+        A = Collection.from_list(A_)
+        B = Collection.from_list(B_)
+        Z = Collection.from_list(Z_)
 
         M.register(A, 'A')  # we might not need to save this one here
         M.register(B, 'B')
@@ -82,7 +82,7 @@ class Runner:
             val_count = int(weights['A'] * weights['A_val'] * dataset_size)
             test_count = int(weights['A'] * weights['A_test'] * dataset_size)
 
-        A_train_, A_val_, A_test_ = gp2.Util.create_train_val_test_split(A_,
+        A_train_, A_val_, A_test_ = Util.create_train_val_test_split(A_,
                                                                          train_count=train_count,
                                                                          val_count=val_count,
                                                                          test_count=test_count,
@@ -92,10 +92,10 @@ class Runner:
         A_test_ids = A_ids[
                      train_count + val_count:train_count + val_count + test_count]
 
-        A_train = data.Collection.from_list(A_train_,
+        A_train = Collection.from_list(A_train_,
                                             A_train_ids)  # COLLECTION LAND
-        A_val = data.Collection.from_list(A_val_, A_val_ids)
-        A_test = data.Collection.from_list(A_test_, A_test_ids)
+        A_val = Collection.from_list(A_val_, A_val_ids)
+        A_test = Collection.from_list(A_test_, A_test_ids)
 
         M.register(A_train, 'A_train')
         M.register(A_val, 'A_val')
@@ -118,7 +118,7 @@ class Runner:
         # ACTUAL CLASSIFIER TRAINING
         #
         if not self.classifier:
-            u = gp2.UNet(verbose=self.verbose, workingdir=self.workingdir)
+            u = UNet(verbose=self.verbose, workingdir=self.workingdir)
             self.classifier = u
 
         X_train_, X_train_ids = A_train.to_array()
@@ -147,7 +147,7 @@ class Runner:
         #
         # A_TEST PREDICTION
         #
-        A_test_pred = data.Collection.from_list(predictions, X_test_ids)
+        A_test_pred = Collection.from_list(predictions, X_test_ids)
 
         M.register(A_test_pred, 'A_test_pred')
 
@@ -203,7 +203,7 @@ class Runner:
         # combine the uniq ids from A_test_pred and B
         C_ids = A_test_pred_ids + B_ids
 
-        C = data.Collection.from_list(C_, C_ids)
+        C = Collection.from_list(C_, C_ids)
 
         M.register(C, 'C')
 
@@ -223,7 +223,7 @@ class Runner:
         C.shuffle()  # we need to shuffle in connection land to keep track of the ids
 
         C_, C_ids = C.to_array()
-        C_train_, C_val_, C_test_ = gp2.Util.create_train_val_test_split(C_,
+        C_train_, C_val_, C_test_ = Util.create_train_val_test_split(C_,
                                                                          train_count=train_count,
                                                                          val_count=val_count,
                                                                          test_count=test_count,
@@ -234,9 +234,9 @@ class Runner:
         C_test_ids = C_ids[
                      train_count + val_count:train_count + val_count + test_count]
 
-        C_train = data.Collection.from_list(C_train_, C_train_ids)
-        C_val = data.Collection.from_list(C_val_, C_val_ids)
-        C_test = data.Collection.from_list(C_test_, C_test_ids)
+        C_train = Collection.from_list(C_train_, C_train_ids)
+        C_val = Collection.from_list(C_val_, C_val_ids)
+        C_test = Collection.from_list(C_test_, C_test_ids)
 
         M.register(C_train, 'C_train')
         M.register(C_val, 'C_val')
@@ -286,7 +286,7 @@ class Runner:
             X_val_masks_ = C_val_[:, :, :, 1]
             y_val_ = C_val_[:, 0, 0, 2]
 
-            cnnd = gp2.CNNDiscriminator(verbose=self.verbose,
+            cnnd = CNNDiscriminator(verbose=self.verbose,
                                         workingdir=self.workingdir)
 
             cnnd.train(X_train_images_, X_train_masks_, y_train_, X_val_images_,
@@ -321,7 +321,7 @@ class Runner:
 
         self.discriminator_scores.append(scores)
 
-        C_test_pred = data.Collection.from_list(predictions, C_test_ids)
+        C_test_pred = Collection.from_list(predictions, C_test_ids)
 
         M.register(C_test_pred, 'C_test_pred')
 
@@ -376,7 +376,7 @@ class Runner:
 
         print('D_ids', D_ids)
 
-        D = data.Collection.from_list(D_, D_ids)
+        D = Collection.from_list(D_, D_ids)
 
         M.register(D, 'D')
 
@@ -419,7 +419,7 @@ class Runner:
         A_test = M.get('A_test')
         B = M.get('B')
 
-        uniqids_in_D = list(D.data.keys())
+        uniqids_in_D = list(D.keys())
 
         for i, k in enumerate(selected_ids):
             # i is running number 0..len(selected_ids)
@@ -454,9 +454,9 @@ class Runner:
         print('D_relabeled_', D_relabeled_.shape[0])
         print('selected_ids', selected_ids)
 
-        D_relabeled = data.Collection.from_list(D_relabeled_, selected_ids)
+        D_relabeled = Collection.from_list(D_relabeled_, selected_ids)
 
-        print(D_relabeled.data.keys())
+        print(D_relabeled.keys())
 
         M.register(D_relabeled, 'D_relabeled')
 
@@ -488,7 +488,7 @@ class Runner:
         removed_counter = 0
         filled_counter = 0
 
-        point_ids = list(D_relabeled.data.keys())
+        point_ids = list(D_relabeled.keys())
 
         print('point ids', len(point_ids))
 
@@ -511,7 +511,7 @@ class Runner:
                 print('Lost Datapoint!!', k)  # TODO - this is a problem!
                 continue
 
-            p = data.Point(origin.data[k])
+            p = Point(origin.data[k])
             p.id = k
 
             M.remove_and_add(origin, A_train, p)
@@ -520,10 +520,10 @@ class Runner:
 
             # now fill up the origin from Z
             if fillup:
-                Z_uniq_ids = list(Z.data.keys())
+                Z_uniq_ids = list(Z.keys())
                 Z_uniq_id = np.random.choice(Z_uniq_ids, replace=False)
 
-                p = data.Point(Z.data[Z_uniq_id])
+                p = Point(Z.data[Z_uniq_id])
                 p.id = Z_uniq_id
 
                 M.remove_and_add(Z, origin, p)
@@ -543,4 +543,4 @@ class Runner:
         y1 = C_accuracies = [v[1] for v in self.classifier_scores]
         y2 = D_accuracies = [v[1] for v in self.discriminator_scores]
 
-        gp2.Util.plot_accuracies(x, y1, y2)
+        Util.plot_accuracies(x, y1, y2)

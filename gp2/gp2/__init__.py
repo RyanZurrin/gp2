@@ -5,3 +5,4 @@ from .classifier import Classifier
 from .unet import UNet
 from .discriminator import Discriminator
 from .cnndiscriminator import CNNDiscriminator
+from .util import Util
