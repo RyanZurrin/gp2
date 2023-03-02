@@ -34,7 +34,7 @@ class DicomCopyMachine:
         """
         self.dicom_A = dicom_a
         self.dicom_B = dicom_b
-        self.save_path = save_path
+        self.save_path = Path(save_path)
         self.compression_type = compression_type
         self.dicom_C = self.copy_dicom()
 
@@ -110,15 +110,10 @@ class DicomCopyMachine:
         decompressed_pixel_data.SetFileName(self.dicom_B.filename)
         decompressed_pixel_data.Read()
         decompressed_pixel_data = decompressed_pixel_data.GetImage()
-        # compress the pixel data
-        compressed_pixel_data = gdcm.ImageWriter()
-        compressed_pixel_data.SetFileName(self.dicom_B.filename)
-        compressed_pixel_data.SetImage(decompressed_pixel_data)
-        compressed_pixel_data.SetFile(self.dicom_B)
-        compressed_pixel_data.Write()
+        decompressed_pixel_data = decompressed_pixel_data.GetBuffer()
         # set the pixel data to the new compression
 
-
+        new_dicom.PixelData = decompressed_pixel_data
 
         new_dicom.PixelData = self.dicom_B.PixelData
 
