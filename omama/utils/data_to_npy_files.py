@@ -20,7 +20,8 @@ class DataToNpyFiles:
                  output_dir: Path,
                  images_file_name: str,
                  masks_file_name: str,
-                 image_extension: str):
+                 image_extension: str,
+                 force=False):
         """
         Args:
             image_dir: Path to the directory containing the images
@@ -36,6 +37,7 @@ class DataToNpyFiles:
         self.mask_paths = self._get_paths(mask_dir)
         self.image_name = images_file_name
         self.mask_name = masks_file_name
+        self.force = force
         self._convert_data()
 
     def __str__(self):
@@ -46,20 +48,34 @@ class DataToNpyFiles:
                                             self.output_dir,
                                             self.image_extension)
 
+    def _already_converted(self):
+        """
+        Check if the data has already been converted to npy files
+        """
+        if self.image_name + '.npy' in os.listdir(self.output_dir) and \
+                self.mask_name + '.npy' in os.listdir(self.output_dir):
+            return True
+        else:
+            return False
+
     def _get_paths(self, root_dir):
         image_paths = []
         for root, dirs, files in os.walk(root_dir):
             for file in files:
                 if file.endswith(self.image_extension):
                     image_paths.append(os.path.join(root, file))
+        # sort the paths so that they are in the same order as the masks
+        image_paths.sort()
         return image_paths
 
     def _convert_data(self):
         """
         Convert the data to npy files
         """
-        # do not zip the images and masks together as the masks are not
-        # always in the same order as the images
+        # check if the data has already been converted, unless force is True
+        if self._already_converted() and not self.force:
+            print('Data has already been converted to npy files')
+            return
         images = []
         masks = []
         for image_path in self.image_paths:
@@ -76,6 +92,7 @@ class DataToNpyFiles:
         masks = masks[np.argsort(self.mask_paths)]
         np.save(str(self.output_dir / (self.image_name + '.npy')), images)
         np.save(str(self.output_dir / (self.mask_name + '.npy')), masks)
+        print(f'Images and masks saved to {self.output_dir}')
 
     def display_image_and_mask(self, index):
         """
@@ -142,15 +159,10 @@ class DataToNpyFiles:
         from skimage.transform import resize
         images, masks = self.load_data()
         images = np.array([resize(image, new_shape, mode='constant',
-                                    preserve_range=True)
-                            for image in images])
+                                  preserve_range=True)
+                           for image in images])
         masks = np.array([resize(mask, new_shape, mode='constant',
-                                      preserve_range=True)
-                            for mask in masks])
+                                 preserve_range=True)
+                          for mask in masks])
         np.save(str(self.output_dir / (self.image_name + '.npy')), images)
         np.save(str(self.output_dir / (self.mask_name + '.npy')), masks)
-
-
-
-
-
