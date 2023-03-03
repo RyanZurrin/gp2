@@ -4,7 +4,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 import os
-
+import tqdm
+from tqdm import tqdm
 from matplotlib import pyplot as plt
 
 
@@ -157,12 +158,26 @@ class DataToNpyFiles:
         Reshape all images and masks in the given directory
         """
         from skimage.transform import resize
-        images, masks = self.load_data()
-        images = np.array([resize(image, new_shape, mode='constant',
+
+        try:
+            images, masks = self.load_data()
+            for i in tqdm(range(len(images))):
+                images[i] = resize(images[i], new_shape, mode='constant',
+                                   preserve_range=True)
+                masks[i] = resize(masks[i], new_shape, mode='constant',
                                   preserve_range=True)
-                           for image in images])
-        masks = np.array([resize(mask, new_shape, mode='constant',
-                                 preserve_range=True)
-                          for mask in masks])
-        np.save(str(self.output_dir / (self.image_name + '.npy')), images)
-        np.save(str(self.output_dir / (self.mask_name + '.npy')), masks)
+            np.save(str(self.output_dir / (self.image_name + '.npy')), images)
+            np.save(str(self.output_dir / (self.mask_name + '.npy')), masks)
+        except:
+            print('Could not use tqdm to show progress')
+            images, masks = self.load_data()
+            images = np.array([resize(image, new_shape, mode='constant',
+                                      preserve_range=True)
+                               for image in images])
+            masks = np.array([resize(mask, new_shape, mode='constant',
+                                     preserve_range=True)
+                              for mask in masks])
+            np.save(str(self.output_dir / (self.image_name + '.npy')), images)
+            np.save(str(self.output_dir / (self.mask_name + '.npy')), masks)
+
+        # use tqdm to show progress
