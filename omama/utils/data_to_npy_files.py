@@ -3,102 +3,154 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
-import glob
+import os
 
 from matplotlib import pyplot as plt
 
 
 class DataToNpyFiles:
+    """
+    Class to convert segmentation datasets containing images and masks to
+    single images and masks in npy files for use in deep learning models.
+    """
+
     def __init__(self,
-                 images_path: str,
-                 masks_path: str,
-                 output_dir: str,
-                 image_type: str):
-        self.images_path = Path(images_path)
-        self.masks_path = Path(masks_path)
+                 image_dir: Path,
+                 mask_dir: Path,
+                 output_dir: Path,
+                 images_file_name: str,
+                 masks_file_name: str,
+                 image_extension: str):
+        """
+        Args:
+            image_dir: Path to the directory containing the images
+            mask_dir: Path to the directory containing the masks
+            output_dir: Path to the directory where the npy files will be
+            image_extension: The extension of the images
+        """
+        self.image_dir = Path(image_dir)
+        self.mask_dir = Path(mask_dir)
         self.output_dir = Path(output_dir)
-        self.image_type = image_type
-        self.img_npy_path = self.output_dir / 'images.npy'
-        self.masks_npy_path = self.output_dir / 'masks.npy'
-        self.convert()
+        self.image_extension = image_extension
+        self.image_paths = self._get_paths(image_dir)
+        self.mask_paths = self._get_paths(mask_dir)
+        self.image_name = images_file_name
+        self.mask_name = masks_file_name
+        self._convert_data()
 
-    def convert(self):
-        print('Converting data to npy files...')
-        if self.images_path.is_file():
-            print("Single image file found: {}".format(self.images_path))
-            self.image_to_npy(self.images_path, self.img_npy_path)
-        else:
-            print("Image directory found: {}".format(self.images_path))
-            self.image_collection_to_npy(self.images_path, self.image_type)
-        if self.masks_path.is_file():
-            print("Single mask file found: {}".format(self.masks_path))
-            self.mask_to_npy(self.masks_path, self.masks_npy_path)
-        else:
-            print("Mask directory found: {}".format(self.masks_path))
-            self.mask_collection_to_npy(self.masks_path, self.image_type)
+    def __str__(self):
+        return 'DataToNpyFiles(image_dir={}, ' \
+               'mask_dir={}, output_dir={}, ' \
+               'image_extension={})'.format(self.image_dir,
+                                            self.mask_dir,
+                                            self.output_dir,
+                                            self.image_extension)
 
-    def image_to_npy(self, image_path: Path, npy_path: Path):
-        print('Converting image to npy file...')
-        image = Image.open(image_path)
-        image = np.array(image)
-        np.save(str(npy_path), image)
+    def _get_paths(self, root_dir):
+        image_paths = []
+        for root, dirs, files in os.walk(root_dir):
+            for file in files:
+                if file.endswith(self.image_extension):
+                    image_paths.append(os.path.join(root, file))
+        return image_paths
 
-    def image_collection_to_npy(self, image_dir: Path, image_type: str):
-        print('Converting image collection to npy file...')
-        image_paths = glob.glob(str(image_dir) / ('*.' + image_type))
-        print(f'path is {str(image_dir) / ("*." + image_type)}')
-        print('Image paths: {}'.format(image_paths))
+    def _convert_data(self):
+        """
+        Convert the data to npy files
+        """
+        # do not zip the images and masks together as the masks are not
+        # always in the same order as the images
         images = []
-        for image_path in image_paths:
-            print('Converting image: {}'.format(image_path))
-            image = Image.open(image_path)
-            image = np.array(image)
-            print('Image shape: {}'.format(image.shape))
-            images.append(image)
-        np.save(str(self.img_npy_path), images)
-
-    def mask_to_npy(self, mask_path: Path, npy_path: Path):
-        print('Converting mask to npy file...')
-        mask = Image.open(mask_path)
-        mask = np.array(mask)
-        np.save(str(npy_path), mask)
-
-    def mask_collection_to_npy(self, mask_dir: Path, image_type: str):
-        print('Converting mask collection to npy file...')
-        mask_paths = glob.glob(str(mask_dir / ('*.' + image_type)))
-        print('Mask paths: {}'.format(mask_paths))
         masks = []
-        for mask_path in mask_paths:
-            print('Converting mask: {}'.format(mask_path))
+        for image_path in self.image_paths:
+            image = Image.open(image_path)
+            images.append(np.array(image))
+        for mask_path in self.mask_paths:
             mask = Image.open(mask_path)
-            mask = np.array(mask)
-            print('Mask shape: {}'.format(mask.shape))
-            masks.append(mask)
-        np.save(str(self.masks_npy_path), masks)
+            masks.append(np.array(mask))
+        images = np.array(images)
+        masks = np.array(masks)
+        # sort the images and masks by the image name so that they are in
+        # the same order
+        images = images[np.argsort(self.image_paths)]
+        masks = masks[np.argsort(self.mask_paths)]
+        np.save(str(self.output_dir / (self.image_name + '.npy')), images)
+        np.save(str(self.output_dir / (self.mask_name + '.npy')), masks)
 
-    def load_images(self):
-        print('Loading images from npy file...')
-        images = np.load(str(self.img_npy_path))
-        return images
-
-    def load_masks(self):
-        print('Loading masks from npy file...')
-        masks = np.load(str(self.masks_npy_path))
-        return masks
+    def display_image_and_mask(self, index):
+        """
+        Display the image and mask at the given index
+        Args:
+            index: The index of the image and mask to display
+        """
+        image, mask = self.load_data()
+        plt.subplot(1, 2, 1)
+        plt.imshow(image[index])
+        plt.subplot(1, 2, 2)
+        plt.imshow(mask[index])
+        plt.show()
 
     def load_data(self):
-        print('Loading data from npy files...')
-        images = self.load_images()
-        masks = self.load_masks()
+        """
+        Load the saved .npy files
+        """
+        images = np.load(str(self.output_dir / (self.image_name + '.npy')))
+        masks = np.load(str(self.output_dir / (self.mask_name + '.npy')))
         return images, masks
 
-    def view_image_and_mask(self, image_index):
-        print('Viewing image and mask...')
+    def get_data_with_masks(self):
+        """
+        Iterate through the images dircetory and return a list of paths
+        to the images that also have a mask file
+        """
+        data_with_masks = []
+        for image_path in self.image_paths:
+            if Path(image_path).stem in self.mask_paths:
+                data_with_masks.append(image_path)
+        return data_with_masks
+
+    def seperate_masks_and_images(self, root_dir, output_img, output_mask,
+                                  image_extension, mask_keyword):
+        """
+        Seperate the masks and images into seperate folders
+        """
+        for root, dirs, files in os.walk(root_dir):
+            for file in files:
+                if file.endswith(image_extension):
+                    if mask_keyword in file:
+                        os.rename(os.path.join(root, file),
+                                  os.path.join(output_mask, file))
+                    else:
+                        os.rename(os.path.join(root, file),
+                                  os.path.join(output_img, file))
+
+    def print_images_in_dir(self, root_dir, image_extension):
+        """
+        Print the images in the images directory using Image and plt
+        """
+        for root, dirs, files in os.walk(root_dir):
+            for file in files:
+                if file.endswith(image_extension):
+                    image = Image.open(os.path.join(root, file))
+                    plt.imshow(image)
+                    plt.show()
+
+    def reshape_all_images_and_masks(self, new_shape=(512, 512, 1)):
+        """
+        Reshape all images and masks in the given directory
+        """
+        from skimage.transform import resize
         images, masks = self.load_data()
-        image = images[image_index]
-        mask = masks[image_index]
-        plt.imshow(image)
-        plt.show()
-        plt.imshow(mask)
-        plt.show()
+        images = np.array([resize(image, new_shape, mode='constant',
+                                    preserve_range=True)
+                            for image in images])
+        masks = np.array([resize(mask, new_shape, mode='constant',
+                                      preserve_range=True)
+                            for mask in masks])
+        np.save(str(self.output_dir / (self.image_name + '.npy')), images)
+        np.save(str(self.output_dir / (self.mask_name + '.npy')), masks)
+
+
+
+
 
