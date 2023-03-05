@@ -7,7 +7,7 @@ import os
 import tqdm
 from tqdm import tqdm
 from matplotlib import pyplot as plt
-
+import tempfile
 
 class DataToNpyFiles:
     """
@@ -22,6 +22,7 @@ class DataToNpyFiles:
                  images_file_name: str,
                  masks_file_name: str,
                  image_extension: str,
+                 image_shape: tuple = (512, 512, 1),
                  force=False):
         """
         Args:
@@ -34,11 +35,13 @@ class DataToNpyFiles:
         self.mask_dir = Path(mask_dir)
         self.output_dir = Path(output_dir)
         self.image_extension = image_extension
+        self.image_shape = image_shape
         self.image_paths = self._get_paths(image_dir)
         self.mask_paths = self._get_paths(mask_dir)
         self.image_name = images_file_name
         self.mask_name = masks_file_name
         self.force = force
+        # self._resize_images()
         self._convert_data()
 
     def __str__(self):
@@ -79,12 +82,21 @@ class DataToNpyFiles:
             return
         images = []
         masks = []
-        for image_path in self.image_paths:
-            image = Image.open(image_path)
-            images.append(np.array(image))
-        for mask_path in self.mask_paths:
-            mask = Image.open(mask_path)
-            masks.append(np.array(mask))
+        # if the type is not numpy array use Image.open otherwise use np.load
+        try:
+            for image_path in tqdm(self.image_paths):
+                image = Image.open(image_path)
+                images.append(np.array(image))
+            for mask_path in tqdm(self.mask_paths):
+                mask = Image.open(mask_path)
+                masks.append(np.array(mask))
+        except:
+            for image_path in tqdm(self.image_paths):
+                image = np.load(image_path)
+                images.append(image)
+            for mask_path in tqdm(self.mask_paths):
+                mask = np.load(mask_path)
+                masks.append(mask)
         images = np.array(images)
         masks = np.array(masks)
         # sort the images and masks by the image name so that they are in
@@ -112,9 +124,47 @@ class DataToNpyFiles:
         """
         Load the saved .npy files
         """
-        images = np.load(str(self.output_dir / (self.image_name + '.npy')))
-        masks = np.load(str(self.output_dir / (self.mask_name + '.npy')))
+        try:
+            images = np.load(str(self.output_dir / (self.image_name + '.npy')))
+            masks = np.load(str(self.output_dir / (self.mask_name + '.npy')))
+        except ValueError:
+            # add allow_pickle=True to fix error
+            images = np.load(str(self.output_dir / (self.image_name + '.npy')),
+                             allow_pickle=True)
+            masks = np.load(str(self.output_dir / (self.mask_name + '.npy')),
+                            allow_pickle=True)
+        except FileNotFoundError:
+            print('Data has not been converted to npy files yet')
+            return
+
         return images, masks
+
+    def remove_certain_images(self, substring_in_filename, image_type='masks'):
+        """
+        Remove images that have a certain substring in their filename
+        Args:
+            image_type: The type of image to remove. Can be 'images' or 'masks'
+            substring_in_filename: The substring that the filename must contain
+        """
+        if image_type == 'images':
+            image_paths = self.image_paths
+        elif image_type == 'masks':
+            image_paths = self.mask_paths
+        else:
+            raise ValueError('image_type must be "images" or "masks"')
+        for image_path in image_paths:
+            if substring_in_filename in image_path:
+                os.remove(image_path)
+        print(f'Removed images with {substring_in_filename} in their filename')
+
+    def resave_npy_files(self):
+        """
+        Resave the npy files
+        """
+        images, masks = self.load_data()
+        np.save(str(self.output_dir / (self.image_name + '.npy')), images)
+        np.save(str(self.output_dir / (self.mask_name + '.npy')), masks)
+        print(f'Images and masks saved to {self.output_dir}')
 
     def get_data_with_masks(self):
         """
@@ -126,21 +176,6 @@ class DataToNpyFiles:
             if Path(image_path).stem in self.mask_paths:
                 data_with_masks.append(image_path)
         return data_with_masks
-
-    def seperate_masks_and_images(self, root_dir, output_img, output_mask,
-                                  image_extension, mask_keyword):
-        """
-        Seperate the masks and images into seperate folders
-        """
-        for root, dirs, files in os.walk(root_dir):
-            for file in files:
-                if file.endswith(image_extension):
-                    if mask_keyword in file:
-                        os.rename(os.path.join(root, file),
-                                  os.path.join(output_mask, file))
-                    else:
-                        os.rename(os.path.join(root, file),
-                                  os.path.join(output_img, file))
 
     def print_images_in_dir(self, root_dir, image_extension):
         """
@@ -180,4 +215,102 @@ class DataToNpyFiles:
             np.save(str(self.output_dir / (self.image_name + '.npy')), images)
             np.save(str(self.output_dir / (self.mask_name + '.npy')), masks)
 
-        # use tqdm to show progress
+    def fix_dtype(self):
+        """
+        If images originally loaded where not all the same size the dypte will
+        be Object. After reshaping all the images and masks the dtype of the
+        npy files will still be Object and the shpae will be (n,). This function
+        fixes that by loading the npy files and saving them again as npy files
+        with a dypte of flaot64 and a shape of (n, x, y, z), where n is the
+        number of images, x, y, are the dimensions of the images and z is 1 which
+        is the number of channels
+        """
+        # save each of the images and masks from the npy file into temp directories
+        images, masks = self.load_data()
+        # use tempfiles to create temp directories
+        temp_image_dir = tempfile.TemporaryDirectory()
+        print(f'Temp image directory: {temp_image_dir.name}')
+        temp_mask_dir = tempfile.TemporaryDirectory()
+        print(f'Temp mask directory: {temp_mask_dir.name}')
+        for i in range(len(images)):
+            np.save(str(Path(temp_image_dir.name) / f'image_{i}.npy'), images[i])
+            np.save(str(Path(temp_mask_dir.name) / f'mask_{i}.npy'), masks[i])
+
+        # print the ist of images and masks in the temp directories
+        # print(f'Images in temp image directory: {os.listdir(temp_image_dir.name)}')
+        # print(f'Masks in temp mask directory: {os.listdir(temp_mask_dir.name)}')
+        # print out the shape of the images and masks in the temp directories
+        print(f'Shape of images in temp image directory: {np.load(str(Path(temp_image_dir.name) / "image_0.npy")).shape}')
+        print(f'Shape of masks in temp mask directory: {np.load(str(Path(temp_mask_dir.name) / "mask_0.npy")).shape}')
+
+        #
+        # # remove the original npy files
+        # os.remove(str(self.output_dir / (self.image_name + '.npy')))
+        # os.remove(str(self.output_dir / (self.mask_name + '.npy')))
+        #
+        # create a new instance of the class with the temp directories
+        print(f'Output directory: {self.output_dir}')
+        print(f'Image name: {self.image_name}')
+        print(f'Mask name: {self.mask_name}')
+        print(f'Image extension: {self.image_extension}')
+        print(f'temp image directory: {temp_image_dir.name}')
+        print(f'temp mask directory: {temp_mask_dir.name}')
+        temp_data = DataToNpyFiles(temp_image_dir.name,
+                                   temp_mask_dir.name,
+                                   self.output_dir,
+                                   self.image_name,
+                                   self.mask_name,
+                                   'npy',
+                                   force=True
+                                   )
+        # # reshape the images and masks in the temp directories
+        # temp_data.reshape_all_images_and_masks()
+        # clear the temp directories and delete the temp directories
+        temp_image_dir.cleanup()
+        temp_mask_dir.cleanup()
+
+    def _resize_images(self):
+        """
+        Reshape all images and masks in the masks and images directory, use
+        similar code to the reshape_all_images_and_masks function just instead
+        of loading npy files it loads the images and masks from the folders
+        """
+        from skimage.transform import resize
+
+        for root, dirs, files in os.walk(self.image_dir):
+            for file in files:
+                if file.endswith(self.image_extension):
+                    image = Image.open(os.path.join(root, file))
+                    image = np.array(image)
+                    image = resize(image, self.image_shape, mode='constant',
+                                   preserve_range=True)
+                    image = Image.fromarray(image)
+                    image.save(os.path.join(self.image_dir, file))
+        for root, dirs, files in os.walk(self.mask_dir):
+            for file in files:
+                if file.endswith(self.image_extension):
+                    mask = Image.open(os.path.join(root, file))
+                    mask = np.array(mask)
+                    mask = resize(mask, self.image_shape, mode='constant',
+                                  preserve_range=True)
+                    mask = Image.fromarray(mask)
+                    mask.save(os.path.join(self.mask_dir, file))
+        print('Images and masks resized')
+
+    @staticmethod
+    def seperate_masks_and_images(root_dir, output_img, output_mask,
+                                  image_extension, mask_keyword):
+        """
+        Seperate the masks and images into seperate folders
+        """
+        for root, dirs, files in os.walk(root_dir):
+            for file in files:
+                if file.endswith(image_extension):
+                    if mask_keyword in file:
+                        os.rename(os.path.join(root, file),
+                                  os.path.join(output_mask, file))
+                    else:
+                        os.rename(os.path.join(root, file),
+                                  os.path.join(output_img, file))
+
+
