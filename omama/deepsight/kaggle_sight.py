@@ -833,7 +833,7 @@ class KaggleSight:
             print(f"No predictions made, printing output file located at {output_location}deepsight_out.txt"
                   f" for error information.")
             # print the output file
-            outfile = open(output_location + 'deepsight_out.txt', 'r')
+            outfile = open(output_location + 'deepsight_out.txt', 'r', encoding='utf-8')
             print(outfile.read())
             outfile.close()
         return predictions

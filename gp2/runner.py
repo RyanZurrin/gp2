@@ -38,12 +38,12 @@ class Runner:
     # STEP 0
     #
     def setup_data(self, images, masks, dataset_size=1000, weights=None):
-        '''
-    Will setup:
-    A_: data to train/val/test the classifier
-    B_: expert labels to feed directly into the discriminator
-    Z_: a repository of additional data that can further train the classifier
-    '''
+        """
+        Will setup:
+        A_: data to train/val/test the classifier
+        B_: expert labels to feed directly into the discriminator
+        Z_: a repository of additional data that can further train the classifier
+        """
         M = self.M
 
         self.dataset_size = dataset_size
@@ -104,9 +104,9 @@ class Runner:
     # STEP 1
     #
     def run_classifier(self, patience_counter=2):
-        '''
-    (Re-)Train the classifier
-    '''
+        """
+        (Re-)Train the classifier
+        """
         M = self.M
 
         A_train = M.get('A_train')
@@ -159,8 +159,8 @@ class Runner:
     # STEP 2 (gets called by 4)
     #
     def create_C_dataset(self):
-        '''
-    '''
+        """ Create the C dataset from the classifier predictions
+        """
         M = self.M
 
         A_test = M.get('A_test')
@@ -214,6 +214,8 @@ class Runner:
     #
     def create_C_train_val_test_split(self, train_count=300, val_count=100,
                                       test_count=100):
+        """ Create the C train/val/test split
+        """
 
         M = self.M
 
@@ -248,11 +250,11 @@ class Runner:
     # STEP 4 (calls 2+3+5)
     #
     def run_discriminator(self, train_ratio=0.4, val_count=0.1, test_count=0.5):
-        '''
-    Train the discriminator using C_train/C_val.
-    If the discriminator was trained, this
-    will just predict.
-    '''
+        """
+        Train the discriminator using C_train/C_val.
+        If the discriminator was trained, this
+        will just predict.
+        """
         self.create_C_dataset()
 
         dataset_size = self.dataset_size
@@ -302,9 +304,9 @@ class Runner:
     # STEP 5 (gets called by 4)
     #
     def predict_discriminator(self):
-        '''
-    Predict using the Discriminator (internal!)
-    '''
+        """
+        Predict using the Discriminator (internal!)
+        """
         M = self.M
 
         C_test = M.get('C_test')
@@ -331,12 +333,12 @@ class Runner:
     # STEP 6
     #
     def find_machine_labels(self):
-        '''
-    This finds all machine labels,
-    as indicated from the Discriminator
-    and create dataset D.
-    Returns number of machine labels found.
-    '''
+        """
+        This finds all machine labels,
+        as indicated from the Discriminator
+        and create dataset D.
+        Returns number of machine labels found.
+        """
         M = self.M
 
         C_test = M.get('C_test')
@@ -365,6 +367,7 @@ class Runner:
             D_ids.append(C_test_ids[p])
 
         if (len(all_machine_labels_indices) == 0):
+            print('No machine labels found. Skipping step 6.')
             return 0
 
         assert (np.all(
@@ -387,13 +390,18 @@ class Runner:
     # STEP 7 (calls 8)
     #
     def relabel(self, percent_to_replace=30):
-        '''
-    Relabels a subset of Dataset D
-    '''
+        """
+        Relabels a subset of Dataset D
+        """
 
         M = self.M
 
         D = M.get('D')
+
+        # check that D in not NoneType
+        if D is None:
+            print('D is empty. Dataset may be too complex for this method. Skipping step 7.')
+            return
 
         D_, D_ids = D.to_array()
         D_images = D_[:, :, :, 0]
