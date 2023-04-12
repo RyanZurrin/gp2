@@ -1,15 +1,23 @@
 import subprocess
+from copy import deepcopy
 from pathlib import Path
 import io
 import pydicom
 import matplotlib.pyplot as plt
 from pydicom.encaps import encapsulate
 from pydicom.uid import generate_uid
-from PIL import ImageDraw
 from PIL.FontFile import WIDTH
 from PIL.Image import Image
 import gdcm
+import tempfile
+import os
 from .dicom_data_fixer import DicomDataFixer
+import pydicom
+from PIL import Image
+import numpy as np
+from io import BytesIO
+from pydicom.pixel_data_handlers.util import convert_color_space
+from pydicom.encaps import encapsulate
 
 
 class DicomCopyMachine:
@@ -21,7 +29,7 @@ class DicomCopyMachine:
     dicom intact.
     """
 
-    def __init__(self, dicom_a, dicom_b, save_path=None, compression_type=None):
+    def __init__(self, dicom_a, dicom_b, save_path=None):
         """
         Parameters
         ----------
@@ -35,7 +43,6 @@ class DicomCopyMachine:
         self.dicom_A = dicom_a
         self.dicom_B = dicom_b
         self.save_path = Path(save_path)
-        self.compression_type = compression_type
         self.dicom_C = self.copy_dicom()
 
         print(f'New dicom saved to {self.save_path}')
@@ -55,7 +62,7 @@ class DicomCopyMachine:
         new_dicom : pydicom.dataset.FileDataset
             The new dicom
         """
-        new_dicom = self.dicom_A
+        new_dicom = deepcopy(self.dicom_A)
 
         new_dicom.file_meta.TransferSyntaxUID = \
             self.dicom_B.file_meta.TransferSyntaxUID
@@ -99,32 +106,31 @@ class DicomCopyMachine:
         new_dicom.VOILUTFunction = self.dicom_B.VOILUTFunction
         # partial view
         new_dicom.PartialView = self.dicom_B.PartialView
-        # Lossy Image Compression
-        new_dicom.LossyImageCompression = self.dicom_B.LossyImageCompression
 
-        # use gdcm to decompress the pixel data and then re-compress it with
-        # the new compression type and set the pixel data to the new compression
-        # type
-        # decompress the pixel data
-        decompressed_pixel_data = gdcm.ImageReader()
-        decompressed_pixel_data.SetFileName(self.dicom_B.filename)
-        decompressed_pixel_data.Read()
-        decompressed_pixel_data = decompressed_pixel_data.GetImage()
-        decompressed_pixel_data = decompressed_pixel_data.GetBuffer()
-        # set the pixel data to the new compression
-
-        new_dicom.PixelData = decompressed_pixel_data
-
+        # set the pixel data
+        # set the pixel data
         new_dicom.PixelData = self.dicom_B.PixelData
 
-        # if self.compression_type is None:
-        #     # if none use the compression from A and pixel data from B
-        #     self.compression_type = self.dicom_A.file_meta.TransferSyntaxUID
-        # # set the transfer syntax to the new compression
-        # new_dicom.file_meta.TransferSyntaxUID = self.compression_type
-        # # set the pixel data to the new compression
-        # new_dicom.PixelData = encapsulate([self.dicom_B.PixelData])
+        # Check if the data is compressed and encapsulate it
+        if new_dicom.file_meta.TransferSyntaxUID.is_compressed:
+            compressed_data = new_dicom.PixelData
+            encapsulated_data = pydicom.encaps.encapsulate([compressed_data])
+            new_dicom.PixelData = encapsulated_data
 
+        # convert from jpeg2000 to JPEG Lossless, Non-Hierarchical, First-Order Prediction (Process 14 [Selection Value 1])
+        # will need to decompress the data first and then compress it again with the new transfer syntax
+        if new_dicom.file_meta.TransferSyntaxUID == pydicom.uid.JPEG2000:
+            # decompress the data
+            decompressed_data = pydicom.pixel_data_handlers.jpeg2000_handler.decompress_data(new_dicom)
+            # compress the data
+            compressed_data = pydicom.pixel_data_handlers.jpeg_ls_handler.compress_data(decompressed_data)
+            # encapsulate the data
+            encapsulated_data = pydicom.encaps.encapsulate([compressed_data])
+            # set the pixel data
+            new_dicom.PixelData = encapsulated_data
+
+            # Overwrite the input dataset with the modified dataset
+            new_dicom.file_meta.TransferSyntaxUID = pydicom.uid.JPEGLosslessP14
 
         # add the InstanceNumber tag from dicom B
         new_dicom.InstanceNumber = self.dicom_B.InstanceNumber
@@ -136,13 +142,6 @@ class DicomCopyMachine:
         if self.save_path is not None:
             new_dicom.save_as(self.save_path, write_like_original=False)
         return new_dicom
-
-    def change_compression(self, new_compression=None):
-        """
-        Change the compression of the dicom C to the new compression
-        """
-
-        # save the dicom
 
     def dicom_fixer(self):
         """
