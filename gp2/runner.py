@@ -8,9 +8,12 @@ import tempfile
 
 class Runner:
 
-    def __init__(self, verbose=False,
+    def __init__(self,
+                 verbose=False,
                  workingdir=tempfile.mkdtemp(suffix='GP2'),
-                 store_after_each_step=False):
+                 store_after_each_step=False,
+                 classifier=None,
+                 discriminator=None):
 
         self.store_after_each_step = store_after_each_step
 
@@ -27,11 +30,15 @@ class Runner:
         self.M = data.Manager()
 
         self.dataset_size = None
-
-        self.classifier = None
         self.classifier_scores = []
+        if classifier is None:
+            self.classifier = gp2.UNet(verbose=self.verbose, workingdir=self.workingdir)
+        elif isinstance(classifier, gp2.UNetPLUS) or classifier == 'unetplus':
+            self.classifier = gp2.UNetPLUS(verbose=self.verbose, workingdir=self.workingdir)
+        else:
+            self.classifier = classifier
 
-        self.discriminator = None
+        self.discriminator = discriminator
         self.discriminator_scores = []
 
     #
@@ -116,9 +123,7 @@ class Runner:
         #
         # ACTUAL CLASSIFIER TRAINING
         #
-        if not self.classifier:
-            u = gp2.UNet(verbose=self.verbose, workingdir=self.workingdir)
-            self.classifier = u
+        u = self.classifier
 
         X_train_, X_train_ids = A_train.to_array()
         X_train_ = X_train_[:, :, :, 0].astype(np.float32)
@@ -132,7 +137,6 @@ class Runner:
         y_val_, y_val_ids = A_val.to_array()
         y_val_ = y_val_[:, :, :, 1].astype(np.float32)
 
-        u = self.classifier
         history = u.train(X_train_, y_train_, X_val_, y_val_,
                           patience_counter=patience_counter)
 
@@ -400,7 +404,8 @@ class Runner:
 
         # check that D in not NoneType
         if D is None:
-            print('D is empty. Dataset may be too complex for this method. Skipping step 7.')
+            print(
+                'D is empty. Dataset may be too complex for this method. Skipping step 7.')
             return
 
         D_, D_ids = D.to_array()
