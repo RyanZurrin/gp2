@@ -14,7 +14,7 @@ class UNetPLUS(Classifier):
     def __init__(self,
                  input_shape=(512, 512, 1),
                  num_classes=1,
-                 num_filters=8,
+                 base_filters=4,
                  dropout=0.1,
                  batchnorm=True,
                  activation='relu',
@@ -23,8 +23,8 @@ class UNetPLUS(Classifier):
                  strides=1,
                  depth=4,
                  num_layers=4,
-                 optimizer=optimizers.Adam(lr=1e-4),
-                 loss=losses.binary_crossentropy,
+                 optimizer=None,
+                 loss=None,
                  _metrics=None,
                  verbose=True,
                  workingdir='/tmp'):
@@ -36,7 +36,7 @@ class UNetPLUS(Classifier):
                 The shape of the input image.
             num_classes : int
                 The number of classes to predict.
-            num_filters : int
+            base_filters : int
                 The number of filters to use in the convolutional layers.
             dropout : float
                 The dropout rate.
@@ -58,7 +58,7 @@ class UNetPLUS(Classifier):
                 The optimizer to use.
             loss : keras.Losses
                 The loss function to use.
-            metrics : list
+            _metrics : list
                 The metrics to use.
             verbose : bool
                 Whether to print the model summary.
@@ -68,12 +68,18 @@ class UNetPLUS(Classifier):
             """
         super().__init__(verbose=verbose, workingdir=workingdir)
 
+        if optimizer is None:
+            self._optimizer = optimizers.Adam(lr=1e-4)
+
+        if loss is None:
+            self._loss = losses.binary_crossentropy
+
         if _metrics is None:
-            self._metrics = [metrics.binary_accuracy]
+            self._metrics = [UNetPLUS.dice_coef]
 
         self.input_shape = input_shape
         self.num_classes = num_classes
-        self.num_filters = num_filters
+        self.base_filters = base_filters
         self.dropout = dropout
         self.batchnorm = batchnorm
         self.activation = activation
@@ -82,24 +88,14 @@ class UNetPLUS(Classifier):
         self.strides = strides
         self.depth = depth
         self.num_layers = num_layers
-        self.optimizer = optimizer
-        self.loss = loss
 
-        self.model = self.build(input_shape=input_shape,
-                                num_classes=num_classes,
-                                base_filters=num_filters)
+        self.model = self.build()
 
-    def build(self, input_shape=(512, 512, 1), num_classes=1, base_filters=8):
+        if verbose:
+            self.model.summary()
+
+    def build(self):
         """ Build the model.
-
-        Parameters
-        ----------
-        input_shape : tuple
-            The shape of the input image.
-        num_classes : int
-            The number of classes to predict.
-        base_filters : int
-            The number of filters to use in the convolutional layers.
 
         Returns
         -------
@@ -115,7 +111,7 @@ class UNetPLUS(Classifier):
         skips = []
         for i in range(self.depth):
             for j in range(self.num_layers):
-                x = layers.Conv2D(base_filters * (2 ** i),
+                x = layers.Conv2D(self.base_filters * (2 ** i),
                                   self.kernel_size,
                                   padding=self.padding,
                                   strides=self.strides,
@@ -129,7 +125,7 @@ class UNetPLUS(Classifier):
 
         # Bottleneck (encoder)
         for i in range(self.num_layers):
-            x = layers.Conv2D(base_filters * (2 ** self.depth),
+            x = layers.Conv2D(self.base_filters * (2 ** self.depth),
                               self.kernel_size,
                               padding=self.padding,
                               strides=self.strides,
@@ -141,13 +137,13 @@ class UNetPLUS(Classifier):
 
         # Expansive path (decoder)
         for i in reversed(range(self.depth)):
-            x = layers.Conv2DTranspose(base_filters * (2 ** i),
+            x = layers.Conv2DTranspose(self.base_filters * (2 ** i),
                                        (2, 2),
                                        strides=(2, 2),
                                        padding='same')(x)
             x = layers.concatenate([x, skips[i]])
             for j in range(self.num_layers):
-                x = layers.Conv2D(base_filters * (2 ** i),
+                x = layers.Conv2D(self.base_filters * (2 ** i),
                                   self.kernel_size,
                                   padding=self.padding,
                                   strides=self.strides,
@@ -158,16 +154,18 @@ class UNetPLUS(Classifier):
                     x = layers.Dropout(self.dropout)(x)
 
         # Output layer
-        x = layers.Conv2D(num_classes,
-                            self.kernel_size,
-                            padding=self.padding,
-                            strides=self.strides,
-                            activation='sigmoid')(x)
+        x = layers.Conv2D(self.num_classes,
+                          self.kernel_size,
+                          padding=self.padding,
+                          strides=self.strides,
+                          activation='sigmoid')(x)
 
-        model = models.Model(inputs=[inputs], outputs=[x])
+        out = layers.Conv2D(self.num_classes, (1, 1), activation='sigmoid')(x)
 
-        model.compile(optimizer=self.optimizer,
-                      loss=self.loss,
+        model = models.Model(inputs=[inputs], outputs=[out])
+
+        model.compile(optimizer=self._optimizer,
+                      loss=self._loss,
                       metrics=self._metrics)
 
         return model

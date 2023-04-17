@@ -13,7 +13,8 @@ class Runner:
                  workingdir=tempfile.mkdtemp(suffix='GP2'),
                  store_after_each_step=False,
                  classifier=None,
-                 discriminator=None):
+                 discriminator=None,
+                 **kwargs):
 
         self.store_after_each_step = store_after_each_step
 
@@ -34,7 +35,7 @@ class Runner:
         if classifier is None:
             self.classifier = gp2.UNet(verbose=self.verbose, workingdir=self.workingdir)
         elif isinstance(classifier, gp2.UNetPLUS) or classifier == 'unetplus':
-            self.classifier = gp2.UNetPLUS(verbose=self.verbose, workingdir=self.workingdir)
+            self.classifier = gp2.UNetPLUS(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
         else:
             self.classifier = classifier
 
