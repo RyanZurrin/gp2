@@ -15,6 +15,27 @@ class Runner:
                  classifier=None,
                  discriminator=None,
                  **kwargs):
+        """ Initialize the GP2 runner with specified classifier and discriminator.
+
+        Parameters
+        ----------
+        verbose : bool
+            If True, will print out additional information during training.
+        workingdir : str
+            Location where to store temporary files and model checkpoints.
+        store_after_each_step : bool
+            If True, will store the model after each step of the training process.
+        classifier : str or gp2.Classifier
+            The classifier to use. If None, will use the default handcrafted
+            unet classifier. If 'unet', will use the default unet classifier.
+            Supported classifers are: 'unet', 'unetplus', 'kattunet2d', 'kunet2d', 'kunetplus2d', 'kresunet2d'.
+        discriminator : str or gp2.Discriminator
+            The discriminator to use. If None, will use the default handcrafted
+            discriminator. If 'unet', will use the default unet discriminator.
+            Supported discriminators are: DEFAULT ONLY FOR NOW.
+        **kwargs
+            Additional keyword arguments to pass to the classifier and discriminator.
+        """
 
         self.store_after_each_step = store_after_each_step
 
@@ -32,10 +53,18 @@ class Runner:
 
         self.dataset_size = None
         self.classifier_scores = []
-        if classifier is None:
+        if classifier is None or isinstance(classifier, gp2.UNet) or classifier == 'unet':
             self.classifier = gp2.UNet(verbose=self.verbose, workingdir=self.workingdir)
         elif isinstance(classifier, gp2.UNetPLUS) or classifier == 'unetplus':
             self.classifier = gp2.UNetPLUS(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier, gp2.KATTUnet2D) or classifier == 'kattunet2d':
+            self.classifier = gp2.KATTUnet2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier, gp2.KUNet2D) or classifier == 'kunet2d':
+            self.classifier = gp2.KUNet2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier, gp2.KUNetPlus2D) or classifier == 'kunetplus2d':
+            self.classifier = gp2.KUNetPlus2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier, gp2.KResUNet2D) or classifier == 'kresunet2d':
+            self.classifier = gp2.KResUNet2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
         else:
             self.classifier = classifier
 

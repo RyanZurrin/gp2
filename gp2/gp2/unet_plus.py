@@ -3,7 +3,7 @@ import os
 import pickle
 
 import tensorflow as tf
-from tensorflow.keras import layers, models, optimizers, losses, metrics, \
+from tensorflow.keras import layers, models, optimizers, losses, \
     callbacks
 from .classifier import Classifier
 from .util import Util
@@ -25,7 +25,8 @@ class UNetPLUS(Classifier):
                  num_layers=4,
                  optimizer=None,
                  loss=None,
-                 _metrics=None,
+                 metrics=None,
+                 name='unetplus',
                  verbose=True,
                  workingdir='/tmp'):
         """ Initialize the KerasUNet class.
@@ -60,6 +61,8 @@ class UNetPLUS(Classifier):
                 The loss function to use.
             _metrics : list
                 The metrics to use.
+            name : str
+                The name of the model.
             verbose : bool
                 Whether to print the model summary.
             workingdir : str
@@ -69,13 +72,13 @@ class UNetPLUS(Classifier):
         super().__init__(verbose=verbose, workingdir=workingdir)
 
         if optimizer is None:
-            self._optimizer = optimizers.Adam(lr=1e-4)
+            self.optimizer = optimizers.Adam(lr=1e-4)
 
         if loss is None:
-            self._loss = losses.binary_crossentropy
+            self.loss = losses.binary_crossentropy
 
-        if _metrics is None:
-            self._metrics = [UNetPLUS.dice_coef]
+        if metrics is None:
+            self.metrics = [UNetPLUS.dice_coef]
 
         self.input_shape = input_shape
         self.num_classes = num_classes
@@ -88,6 +91,7 @@ class UNetPLUS(Classifier):
         self.strides = strides
         self.depth = depth
         self.num_layers = num_layers
+        self.name = name
 
         self.model = self.build()
 
@@ -164,9 +168,9 @@ class UNetPLUS(Classifier):
 
         model = models.Model(inputs=[inputs], outputs=[out])
 
-        model.compile(optimizer=self._optimizer,
-                      loss=self._loss,
-                      metrics=self._metrics)
+        model.compile(optimizer=self.optimizer,
+                      loss=self.loss,
+                      metrics=self.metrics)
 
         return model
 
@@ -202,8 +206,8 @@ class UNetPLUS(Classifier):
         super().train(X_train, y_train, X_val, y_val)
 
         # create the checkpoint files
-        checkpoint_file = os.path.join(self.workingdir, 'kunet')
-        checkpoint_file = Util.create_numbered_file(checkpoint_file, 'model')
+        checkpoint_file = os.path.join(self.workingdir, 'unetplus')
+        checkpoint_file = Util.create_numbered_file(checkpoint_file, 'unetplus_model')
 
         if call_backs is None:
             call_backs = [callbacks.EarlyStopping(patience=patience_counter,
@@ -227,7 +231,7 @@ class UNetPLUS(Classifier):
                                  verbose=int(self.verbose))
 
         # save the history
-        history_file = os.path.join(self.workingdir, 'khistory')
+        history_file = os.path.join(self.workingdir, 'unetplut_history')
         history_file = Util.create_numbered_file(history_file, '.pkl')
         with open(history_file, 'wb') as f:
             pickle.dump(history.history, f)
@@ -252,12 +256,13 @@ class UNetPLUS(Classifier):
 
         # threshold the predictions
         predictions[predictions >= threshold] = 1
-        predictions[predictions < (1 - threshold)] = 0
+        predictions[predictions < threshold] = 0
 
         # get the predicted masks
         scores = self.model.evaluate(X_text, y_pred, verbose=0)
 
         return predictions, scores
+
 
     @staticmethod
     def dice_coef(y_true, y_pred, smooth=1e-9):
@@ -282,6 +287,7 @@ class UNetPLUS(Classifier):
         union = tf.reduce_sum(y_true_flat) + tf.reduce_sum(y_pred_flat)
         dice = (2. * intersection + smooth) / (union + smooth)
         return dice
+
 
     @staticmethod
     def bce_dice_loss(y_true, y_pred):
