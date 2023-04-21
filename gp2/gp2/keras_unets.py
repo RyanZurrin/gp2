@@ -8,6 +8,7 @@ from .classifier import Classifier
 from .util import Util
 from keras_unet_collection import models, base, utils
 import tensorflow as tf
+
 policy = tf.keras.mixed_precision.Policy('mixed_float16')
 tf.keras.mixed_precision.set_global_policy(policy)
 
@@ -536,15 +537,187 @@ class KUNetPlus2D(Classifier):
         return predictions, scores
 
 
+class KUNet3Plus2D(Classifier):
+    def __init__(self,
+                 input_size=(512, 512, 1),
+                 n_labels=1,
+                 filter_num_down=None,
+                 filter_num_skip=None,
+                 filter_num_aggregate=None,
+                 stack_num_down=2,
+                 stack_num_up=2,
+                 activation='ReLU',
+                 output_activation='Softmax',
+                 batch_norm=True,
+                 pool=True,
+                 unpool=True,
+                 deep_supervision=False,
+                 name='unet3plus',
+                 optimizer=None,
+                 loss=None,
+                 metric=None,
+                 verbose=False,
+                 workingdir='/tmp',
+                 ):
+        super().__init__(verbose=verbose, workingdir=workingdir)
+
+        policy = tf.keras.mixed_precision.Policy('mixed_float16')
+        tf.keras.mixed_precision.set_global_policy(policy)
+
+        if filter_num_down is None:
+            filter_num_down = [16, 32, 64, 128, 256]
+        if filter_num_skip is None:
+            filter_num_skip = 'auto'
+        if filter_num_aggregate is None:
+            filter_num_aggregate = 'auto'
+        if optimizer is None:
+            self.optimizer = optimizers.Adam()
+        if loss is None:
+            self.loss = losses.binary_crossentropy
+        if metric is None:
+            self.metric = [dice_coef]
+
+        print(f'KUNet3Plus2D: {self.optimizer}, {self.loss}, {self.metric}')
+
+        self.input_size = input_size
+        self.n_labels = n_labels
+        self.filter_num_down = filter_num_down
+        self.filter_num_skip = filter_num_skip
+        self.filter_num_aggregate = filter_num_aggregate
+        self.stack_num_down = stack_num_down
+        self.stack_num_up = stack_num_up
+        self.activation = activation
+        self.output_activation = output_activation
+        self.batch_norm = batch_norm
+        self.pool = pool
+        self.unpool = unpool
+        self.deep_supervision = deep_supervision
+        self.name = name
+        self.optimizer = optimizer
+        self.loss = loss
+        self.metric = metric
+
+        self.model = models.unet_3plus_2d(input_size=self.input_size,
+                                          n_labels=self.n_labels,
+                                          filter_num_down=self.filter_num_down,
+                                          filter_num_skip=self.filter_num_skip,
+                                          filter_num_aggregate=self.filter_num_aggregate,
+                                          stack_num_down=self.stack_num_down,
+                                          stack_num_up=self.stack_num_up,
+                                          activation=self.activation,
+                                          output_activation=self.output_activation,
+                                          batch_norm=self.batch_norm,
+                                          pool=self.pool,
+                                          unpool=self.unpool,
+                                          deep_supervision=self.deep_supervision,
+                                          backbone=None,
+                                          weights=None,
+                                          freeze_backbone=True,
+                                          freeze_batch_norm=True,
+                                          name=self.name)
+
+        self.model.compile(loss=self.loss,
+                           metrics=self.metric)
+
+        if self.verbose:
+            print(self.model.summary())
+
+    def fit(self, X_train, y_train, X_val, y_val,
+            batch_size=1, epochs=1, patience_counter=10,
+            call_backs=None, **kwargs):
+        """ Train the model.
+            Parameters
+            ----------
+            X_train : numpy.ndarray
+                The training images.
+            y_train : numpy.ndarray
+                The training masks.
+            X_val : numpy.ndarray
+                The validation images.
+            y_val : numpy.ndarray
+                The validation masks.
+            batch_size : int
+                The batch size to use for training.
+            epochs : int
+                The number of epochs to train for.
+            patience_counter : int
+                The number of epochs to wait for improvement.
+            call_backs : list
+                The list of callbacks to use.
+            Returns
+            -------
+            history : keras.callbacks.History
+                The history of the training.
+            """
+        checkpoint_file = os.path.join(self.workingdir, 'kunet3plus2d_model')
+        checkpoint_file = Util.create_numbered_file(checkpoint_file,
+                                                    'kunet3plus2d_model')
+
+        if call_backs is None:
+            call_backs = [callbacks.EarlyStopping(patience=patience_counter,
+                                                  monitor='loss',
+                                                  verbose=0),
+                          callbacks.ModelCheckpoint(checkpoint_file,
+                                                    save_weights_only=False,
+                                                    monitor='val_loss',
+                                                    mode='min',
+                                                    verbose=0,
+                                                    save_best_only=True)]
+        else:
+            call_backs = call_backs
+
+        history = self.model.fit(X_train, y_train,
+                                 batch_size=batch_size,
+                                 epochs=epochs,
+                                 verbose=1,
+                                 validation_data=(X_val, y_val),
+                                 callbacks=call_backs,
+                                 **kwargs)
+
+        history_file = os.path.join(self.workingdir, 'kunet3plus2d_history')
+        history_file = Util.create_numbered_file(history_file, '.pkl')
+        with open(history_file, 'wb') as f:
+            pickle.dump(history.history, f)
+
+        print('Model saved to: {}'.format(checkpoint_file))
+        print('History saved to: {}'.format(history_file))
+
+        return history
+
+    def predict(self, X_test, y_pred, threshold=0.5):
+        """ Predict the masks for the images.
+        Parameters
+        ----------
+        X_test : numpy.ndarray
+            The test images.
+        y_pred : numpy.ndarray
+            The predicted masks.
+        threshold : float
+            The threshold to use for the masks.
+        Returns
+        -------
+        y_pred : numpy.ndarray
+            The predicted masks.
+        """
+        predictions = self.model.predict(X_test)
+
+        predictions[predictions >= threshold] = 1
+        predictions[predictions < threshold] = 0
+
+        scores = self.model.evaluate(X_test, y_pred, verbose=0)
+
+        return predictions, scores
+
+
 class KResUNet2D(Classifier):
 
     def __init__(self,
                  input_size=(512, 512, 1),
                  filter_num=None,
-                 dilation_num=1,
+                 dilation_num=None,
                  n_labels=1,
-                 aspp_num_down=256,
-                 aspp_num_up=128,
+                 aspp_num_down=32,
+                 aspp_num_up=16,
                  activation='ReLU',
                  output_activation='Softmax',
                  batch_norm=True,
@@ -558,11 +731,15 @@ class KResUNet2D(Classifier):
                  workingdir='/tmp',
                  ):
         super().__init__(verbose=verbose, workingdir=workingdir)
+
         policy = tf.keras.mixed_precision.Policy('mixed_float16')
         tf.keras.mixed_precision.set_global_policy(policy)
 
         if filter_num is None:
-            filter_num = [32, 64, 128, 256, 512]
+            filter_num = [16, 32, 64, 128, 256]
+
+            if dilation_num is None:
+                dilation_num = [1, 3, 15, 31]
 
         if optimizer is None:
             self.optimizer = optimizers.Adam(lr=1e-4)
@@ -573,7 +750,7 @@ class KResUNet2D(Classifier):
         if metric is None:
             self.metric = [metrics.binary_accuracy]
 
-        self.input_shape = input_size
+        self.input_size = input_size
         self.filter_num = filter_num
         self.dilation_num = dilation_num
         self.n_labels = n_labels
@@ -585,7 +762,7 @@ class KResUNet2D(Classifier):
         self.pool = pool
         self.unpool = unpool
         self.name = name
-        self.model = models.resunet_a_2d(self.input_shape,
+        self.model = models.resunet_a_2d(input_size=self.input_size,
                                          filter_num=self.filter_num,
                                          dilation_num=self.dilation_num,
                                          n_labels=self.n_labels,

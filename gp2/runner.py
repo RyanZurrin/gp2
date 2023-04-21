@@ -65,6 +65,8 @@ class Runner:
             self.classifier = gp2.KUNetPlus2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
         elif isinstance(classifier, gp2.KResUNet2D) or classifier == 'kresunet2d':
             self.classifier = gp2.KResUNet2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier, gp2.KUNet3Plus2D) or classifier == 'kunet3plus2d':
+            self.classifier = gp2.KUNet3Plus2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
         else:
             self.classifier = classifier
 
