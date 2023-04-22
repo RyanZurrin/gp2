@@ -1,16 +1,10 @@
 import os
 import pickle
 
-from keras import losses, metrics
-from tensorflow.keras import callbacks, optimizers
+from tensorflow.keras import callbacks
 
 from .classifier import Classifier
 from .util import Util
-from keras_unet_collection import models, base, utils
-import tensorflow as tf
-
-policy = tf.keras.mixed_precision.Policy('mixed_float16')
-tf.keras.mixed_precision.set_global_policy(policy)
 
 
 class BaseKerasSegmentationClassifier(Classifier):
@@ -27,11 +21,11 @@ class BaseKerasSegmentationClassifier(Classifier):
               y_train,
               X_val,
               y_val,
-              patience_counter=10,
-              batch_size=1,
+              patience_counter=2,
+              batch_size=64,
               epochs=100,
               call_backs=None,
-              **kwargs):
+              ):
         super().train(X_train, y_train, X_val, y_val)
         checkpoint_file = os.path.join(self.workingdir, self.name)
         checkpoint_file = Util.create_numbered_file(checkpoint_file,
@@ -56,7 +50,7 @@ class BaseKerasSegmentationClassifier(Classifier):
                                  verbose=1,
                                  validation_data=(X_val, y_val),
                                  callbacks=call_backs,
-                                 **kwargs)
+                                 )
 
         history_file = os.path.join(self.workingdir, f'{self.name}_history')
         history_file = Util.create_numbered_file(history_file, '.pkl')
