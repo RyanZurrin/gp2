@@ -4,7 +4,7 @@ import pickle
 from keras import losses, metrics
 from tensorflow.keras import callbacks, optimizers
 
-from .classifier import Classifier
+from .base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
 from .util import Util
 from keras_unet_collection import models, base, utils
 import tensorflow as tf
@@ -12,87 +12,8 @@ import tensorflow as tf
 policy = tf.keras.mixed_precision.Policy('mixed_float16')
 tf.keras.mixed_precision.set_global_policy(policy)
 
-"""
-Optimizer:
-    - Gradient Descent (SGD) - The most basic optimizer, which updates the model's 
-            parameters in the direction of the negative gradient of the loss function 
-            with respect to the parameters.
-            In Keras: tf.keras.optimizers.SGD
-    - Momentum - A variation of gradient descent that helps accelerate convergence 
-            by using an exponential moving average of the gradients.
-            In Keras: tf.keras.optimizers.SGD with the momentum parameter set to a non-zero value.
-    - Nesterov Accelerated Gradient (NAG) - A modification of the momentum optimizer 
-            that improves convergence by considering the future position of the gradients.
-            In Keras: tf.keras.optimizers.SGD with the momentum and nesterov parameters 
-            set to non-zero values.
-    - Adagrad (Adaptive Gradient Algorithm) - Adapts the learning rate for each 
-            parameter individually based on the history of gradients, which can be 
-            particularly useful for sparse data.
-            In Keras: tf.keras.optimizers.Adagrad
-    - RMSprop (Root Mean Square Propagation) - Adapts the learning rate for each 
-            parameter individually based on an exponential moving average of the squared gradients.
-            In Keras: tf.keras.optimizers.RMSprop
-    - Adadelta - A variation of Adagrad that seeks to address its diminishing 
-            learning rates by accumulating a window of past gradients.
-            In Keras: tf.keras.optimizers.Adadelta
-    - Adam (Adaptive Moment Estimation) - A popular choice that combines the 
-            concepts of RMSprop and momentum to adapt the learning rate for each 
-            parameter individually.
-            In Keras: tf.keras.optimizers.Adam
-    - Adamax - A variation of Adam that uses the infinity norm of the gradients 
-            to update the learning rate for each parameter.
-            In Keras: tf.keras.optimizers.Adamax
-    - Nadam (Nesterov-accelerated Adaptive Moment Estimation) - Combines the 
-            concepts of Adam and Nesterov momentum for adaptive learning rates.
-            In Keras: tf.keras.optimizers.Nadam
-    - FTRL (Follow The Regularized Leader) - An optimizer designed for large-scale 
-            linear models with support for L1 and L2 regularization.
-            In Keras: tf.keras.optimizers.Ftrl
 
-Loss functions:
-    - Cross-Entropy Loss - A widely used loss function for classification tasks, 
-            including image segmentation. It measures the dissimilarity between 
-            the predicted probability distribution and the true distribution.
-    - Binary Cross-Entropy Loss - Used for binary segmentation problems, where 
-            each pixel is classified into one of two classes. It measures the 
-            dissimilarity between the predicted probability and the true label 
-            for each pixel. This is a special case of Cross-Entropy Loss when 
-            there are only two classes.
-    - Categorical Cross-Entropy Loss - Used for multi-class segmentation problems, 
-            where each pixel is classified into one of multiple classes. Similar to 
-            Cross-Entropy Loss, it measures the dissimilarity between the predicted 
-            probability distribution and the true distribution, but it is applied to a 
-            one-hot encoded representation of the labels.
-    - Dice Loss - A loss function specifically designed for segmentation tasks,
-            focusing on overlapping regions between the predicted and ground 
-            truth masks.
-    - Jaccard/Intersection over Union (IoU) Loss - Another loss function tailored 
-            for segmentation tasks, which penalizes based on the area of overlap 
-            between the predicted and ground truth masks.
-    - Combined Loss - A combination of different loss functions 
-            (e.g., Cross-Entropy Loss + Dice Loss) can sometimes improve performance 
-            by leveraging the strengths of multiple loss functions.
-
-Metric functions:
-    - IoU (Intersection over Union) - A popular metric to measure the overlap 
-            between the predicted and ground truth masks. A higher IoU indicates 
-            better segmentation performance.
-    - Dice Coefficient - Similar to IoU, it measures the overlap between the 
-            predicted and ground truth masks, with a range of 0 to 1 (higher values 
-            indicate better performance).
-    - Pixel Accuracy - The ratio of correctly labeled pixels to the total number 
-            of pixels in the image.
-    - Mean Intersection over Union (mIoU) - The average IoU over all classes, 
-            taking into account class imbalances.
-
-Remember to experiment with different combinations of optimizers, loss functions, 
-and metric functions to find the best configuration for your specific task. 
-You may also consider using learning rate schedules and data augmentation techniques 
-to further improve your model's performance.
-"""
-
-
-class KATTUnet2D(Classifier):
+class KATTUnet2D(BaseKerasSegmentationClassifier):
     """
     Attention U-net with an optional ImageNet backbone
     """
@@ -235,105 +156,8 @@ class KATTUnet2D(Classifier):
         if self.verbose:
             self.model.summary()
 
-    def build(self):
-        """ Build the model. """
-        self.model.compile(loss=self.loss,
-                           optimizer=self.optimizer,
-                           metrics=self.metric)
 
-    def train(self,
-              X_train,
-              y_train,
-              X_val,
-              y_val,
-              patience_counter=2,
-              batch_size=64,
-              epochs=100,
-              call_backs=None,
-              **kwargs):
-        """ Train the model.
-        Parameters
-        ----------
-        X_train : numpy.ndarray
-            The training images.
-        y_train : numpy.ndarray
-            The training masks.
-        X_val : numpy.ndarray
-            The validation images.
-        y_val : numpy.ndarray
-            The validation masks.
-        patience_counter : int
-            The number of epochs to wait before early stopping.
-        batch_size : int
-            The batch size to use.
-        epochs : int
-            The number of epochs to train for.
-        call_backs : list
-            The list of callbacks to use.
-        """
-        super().train(X_train, y_train, X_val, y_val)
-        checkpoint_file = os.path.join(self.workingdir, 'kattunet')
-        checkpoint_file = Util.create_numbered_file(checkpoint_file,
-                                                    'kattunet_model')
-
-        if call_backs is None:
-            call_backs = [callbacks.EarlyStopping(patience=patience_counter,
-                                                  monitor='loss',
-                                                  verbose=0),
-                          callbacks.ModelCheckpoint(checkpoint_file,
-                                                    save_weights_only=False,
-                                                    monitor='val_loss',
-                                                    mode='min',
-                                                    verbose=0,
-                                                    save_best_only=True)]
-        else:
-            call_backs = call_backs
-
-        history = self.model.fit(X_train, y_train,
-                                 batch_size=batch_size,
-                                 epochs=epochs,
-                                 verbose=1,
-                                 validation_data=(X_val, y_val),
-                                 callbacks=call_backs,
-                                 **kwargs)
-
-        history_file = os.path.join(self.workingdir, 'attunet_history')
-        history_file = Util.create_numbered_file(history_file, '.pkl')
-        with open(history_file, 'wb') as f:
-            pickle.dump(history.history, f)
-
-        print('Model saved to: {}'.format(checkpoint_file))
-        print('History saved to: {}'.format(history_file))
-
-        return history
-
-
-    def predict(self, X_test, y_pred, threshold=0.5):
-        """ Predict the masks for the images.
-        Parameters
-        ----------
-        X_test : numpy.ndarray
-            The test images.
-        y_pred : numpy.ndarray
-            The predicted masks.
-        threshold : float
-            The threshold to use for the masks.
-        Returns
-        -------
-        y_pred : numpy.ndarray
-            The predicted masks.
-        """
-        predictions = self.model.predict(X_test)
-
-        predictions[predictions >= threshold] = 1
-        predictions[predictions < threshold] = 0
-
-        scores = self.model.evaluate(X_test, y_pred, verbose=0)
-
-        return predictions, scores
-
-
-class KUNet2D(Classifier):
+class KUNet2D(BaseKerasSegmentationClassifier):
     """
     KU-Net 2D model.
     """
@@ -342,8 +166,8 @@ class KUNet2D(Classifier):
                  input_size=(512, 512, 1),
                  filter_num=None,
                  n_labels=1,
-                 stack_num_down=3,
-                 stack_num_up=3,
+                 stack_num_down=2,
+                 stack_num_up=2,
                  activation='ReLU',
                  output_activation='Sigmoid',
                  batch_norm=True,
@@ -415,10 +239,10 @@ class KUNet2D(Classifier):
         super().__init__(verbose=verbose, workingdir=workingdir)
 
         if filter_num is None:
-            filter_num = [16, 32, 64, 128, 256, 512, 1024, 2048]
+            filter_num = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096]
 
         if optimizer is None:
-            optimizer = optimizers.Adam(learning_rate=1e-4)
+            optimizer = optimizers.Adam(learning_rate=1e-3)
         if loss is None:
             loss = losses.binary_crossentropy
 
@@ -469,105 +293,8 @@ class KUNet2D(Classifier):
         if verbose:
             self.model.summary()
 
-    def build(self):
-        """ Build the model."""
-        self.model.compile(loss=self.loss,
-                           optimizer=self.optimizer,
-                           metrics=self.metric)
 
-    def train(self,
-              X_train,
-              y_train,
-              X_val,
-              y_val,
-              patience_counter=2,
-              batch_size=64,
-              epochs=100,
-              call_backs=None,
-              **kwargs):
-        """ Train the model.
-            Parameters
-            ----------
-            X_train : numpy.ndarray
-                The training images.
-            y_train : numpy.ndarray
-                The training masks.
-            X_val : numpy.ndarray
-                The validation images.
-            y_val : numpy.ndarray
-                The validation masks.
-            patience_counter : int
-                The number of epochs to wait before early stopping.
-            batch_size : int
-                The batch size to use.
-            epochs : int
-                The number of epochs to train for.
-            call_backs : list
-                The list of callbacks to use.
-            """
-        super().train(X_train, y_train, X_val, y_val)
-        checkpoint_file = os.path.join(self.workingdir, 'kunet2d')
-        checkpoint_file = Util.create_numbered_file(checkpoint_file,
-                                                    'kunet2d_model')
-
-        if call_backs is None:
-            call_backs = [callbacks.EarlyStopping(patience=patience_counter,
-                                                  monitor='loss',
-                                                  verbose=0),
-                          callbacks.ModelCheckpoint(checkpoint_file,
-                                                    save_weights_only=False,
-                                                    monitor='val_loss',
-                                                    mode='min',
-                                                    verbose=0,
-                                                    save_best_only=True)]
-        else:
-            call_backs = call_backs
-
-        history = self.model.fit(X_train, y_train,
-                                 batch_size=batch_size,
-                                 epochs=epochs,
-                                 verbose=1,
-                                 validation_data=(X_val, y_val),
-                                 callbacks=call_backs,
-                                 **kwargs)
-
-        history_file = os.path.join(self.workingdir, 'kunet2d_history')
-        history_file = Util.create_numbered_file(history_file, '.pkl')
-        with open(history_file, 'wb') as f:
-            pickle.dump(history.history, f)
-
-        print('Model saved to: {}'.format(checkpoint_file))
-        print('History saved to: {}'.format(history_file))
-
-        return history
-
-
-    def predict(self, X_test, y_pred, threshold=0.5):
-        """ Predict the masks for the images.
-        Parameters
-        ----------
-        X_test : numpy.ndarray
-            The test images.
-        y_pred : numpy.ndarray
-            The predicted masks.
-        threshold : float
-            The threshold to use for the masks.
-        Returns
-        -------
-        y_pred : numpy.ndarray
-            The predicted masks.
-        """
-        predictions = self.model.predict(X_test)
-
-        predictions[predictions >= threshold] = 1
-        predictions[predictions < threshold] = 0
-
-        scores = self.model.evaluate(X_test, y_pred, verbose=0)
-
-        return predictions, scores
-
-
-class KUNetPlus2D(Classifier):
+class KUNetPlus2D(BaseKerasSegmentationClassifier):
     """
     Keras U-net++ 2D model.
     """
@@ -700,110 +427,13 @@ class KUNetPlus2D(Classifier):
         if verbose:
             print('Verbose mode active!')
 
-
         self.build()
 
         if verbose:
             self.model.summary()
 
-    def build(self):
-        """ Build the model. """
-        self.model.compile(loss=self.loss,
-                           optimizer=self.optimizer,
-                           metrics=self.metric)
 
-    def train(self,
-              X_train,
-              y_train,
-              X_val,
-              y_val,
-              patience_counter=2,
-              batch_size=64,
-              epochs=100,
-              call_backs=None,
-              **kwargs):
-        """ Train the model.
-            Parameters
-            ----------
-            X_train : numpy.ndarray
-                The training images.
-            y_train : numpy.ndarray
-                The training masks.
-            X_val : numpy.ndarray
-                The validation images.
-            y_val : numpy.ndarray
-                The validation masks.
-            patience_counter : int
-                The number of epochs to wait before early stopping.
-            batch_size : int
-                The batch size to use.
-            epochs : int
-                The number of epochs to train for.
-            call_backs : list
-                The list of callbacks to use.
-            """
-        super().train(X_train, y_train, X_val, y_val)
-        checkpoint_file = os.path.join(self.workingdir, 'kunetplus2d')
-        checkpoint_file = Util.create_numbered_file(checkpoint_file,
-                                                    'kunetplus2d_model')
-
-        if call_backs is None:
-            call_backs = [callbacks.EarlyStopping(patience=patience_counter,
-                                                  monitor='loss',
-                                                  verbose=0),
-                          callbacks.ModelCheckpoint(checkpoint_file,
-                                                    save_weights_only=False,
-                                                    monitor='val_loss',
-                                                    mode='min',
-                                                    verbose=0,
-                                                    save_best_only=True)]
-        else:
-            call_backs = call_backs
-
-        history = self.model.fit(X_train, y_train,
-                                 batch_size=batch_size,
-                                 epochs=epochs,
-                                 verbose=1,
-                                 validation_data=(X_val, y_val),
-                                 callbacks=call_backs,
-                                 **kwargs)
-
-        history_file = os.path.join(self.workingdir, 'kunetplus2d_history')
-        history_file = Util.create_numbered_file(history_file, '.pkl')
-        with open(history_file, 'wb') as f:
-            pickle.dump(history.history, f)
-
-        print('Model saved to: {}'.format(checkpoint_file))
-        print('History saved to: {}'.format(history_file))
-
-        return history
-
-    def predict(self, X_test, y_pred, threshold=0.5):
-        """ Predict the masks for the images.
-            Parameters
-            ----------
-            X_test : numpy.ndarray
-                The test images.
-            y_pred : numpy.ndarray
-                The predicted masks.
-            threshold : float
-                The threshold to use for the masks.
-            Returns
-            -------
-            y_pred : numpy.ndarray
-                The predicted masks.
-            """
-        predictions = self.model.predict(X_test)
-
-        predictions[predictions >= threshold] = 1
-        predictions[predictions < threshold] = 0
-
-        scores = self.model.evaluate(X_test, y_pred, verbose=0)
-
-        return predictions, scores
-
-
-class KUNet3Plus2D(Classifier):
+class KUNet3Plus2D(BaseKerasSegmentationClassifier):
     """
     Keras implementation of UNET 3+ with an optional ImageNet-trained backbone.
     """
@@ -960,103 +590,8 @@ class KUNet3Plus2D(Classifier):
         if self.verbose:
             print(self.model.summary())
 
-    def build(self):
-        self.model.compile(optimizer=self.optimizer,
-                           loss=self.loss,
-                           metrics=self.metric)
 
-    def train(self,
-              X_train,
-              y_train,
-              X_val,
-              y_val,
-              patience_counter=2,
-              batch_size=64,
-              epochs=100,
-              call_backs=None,
-              **kwargs):
-        """ Train the model.
-            Parameters
-            ----------
-            X_train : numpy.ndarray
-                The training images.
-            y_train : numpy.ndarray
-                The training masks.
-            X_val : numpy.ndarray
-                The validation images.
-            y_val : numpy.ndarray
-                The validation masks.
-            patience_counter : int
-                The number of epochs to wait before early stopping.
-            batch_size : int
-                The batch size to use.
-            epochs : int
-                The number of epochs to train for.
-            call_backs : list
-                The list of callbacks to use.
-            """
-        super().train(X_train, y_train, X_val, y_val)
-        checkpoint_file = os.path.join(self.workingdir, 'kunet3plus')
-        checkpoint_file = Util.create_numbered_file(checkpoint_file,
-                                                    'kunet3plus_model')
-
-        if call_backs is None:
-            call_backs = [callbacks.EarlyStopping(patience=patience_counter,
-                                                  monitor='loss',
-                                                  verbose=0),
-                          callbacks.ModelCheckpoint(checkpoint_file,
-                                                    save_weights_only=False,
-                                                    monitor='val_loss',
-                                                    mode='min',
-                                                    verbose=0,
-                                                    save_best_only=True)]
-        else:
-            call_backs = call_backs
-
-        history = self.model.fit(X_train, y_train,
-                                 batch_size=batch_size,
-                                 epochs=epochs,
-                                 verbose=1,
-                                 validation_data=(X_val, y_val),
-                                 callbacks=call_backs,
-                                 **kwargs)
-
-        history_file = os.path.join(self.workingdir, 'kunet3plus_history')
-        history_file = Util.create_numbered_file(history_file, '.pkl')
-        with open(history_file, 'wb') as f:
-            pickle.dump(history.history, f)
-
-        print('Model saved to: {}'.format(checkpoint_file))
-        print('History saved to: {}'.format(history_file))
-
-        return history
-
-    def predict(self, X_test, y_pred, threshold=0.5):
-        """ Predict the masks for the images.
-            Parameters
-            ----------
-            X_test : numpy.ndarray
-                The test images.
-            y_pred : numpy.ndarray
-                The predicted masks.
-            threshold : float
-                The threshold to use for the masks.
-            Returns
-            -------
-            y_pred : numpy.ndarray
-                The predicted masks.
-            """
-        predictions = self.model.predict(X_test)
-
-        predictions[predictions >= threshold] = 1
-        predictions[predictions < threshold] = 0
-
-        scores = self.model.evaluate(X_test, y_pred, verbose=0)
-
-        return predictions, scores
-
-
-class KVNet2D(Classifier):
+class KVNet2D(BaseKerasSegmentationClassifier):
     """
     KVNet2D for binary segmentation
     """
@@ -1175,108 +710,8 @@ class KVNet2D(Classifier):
         if self.verbose:
             self.model.summary()
 
-    def build(self):
-        self.model.compile(optimizer=self.optimizer,
-                           loss=self.loss,
-                           metrics=self.metric)
 
-    def train(self,
-              X_train,
-              y_train,
-              X_val,
-              y_val,
-              patience_counter=10,
-              batch_size=1,
-              epochs=100,
-              call_backs=None,
-              **kwargs):
-        """ Train the model.
-        Parameters
-        ----------
-        X_train : numpy.ndarray
-            The training images.
-        y_train : numpy.ndarray
-            The training masks.
-        X_val : numpy.ndarray
-            The validation images.
-        y_val : numpy.ndarray
-            The validation masks.
-        patience_counter : int
-            The number of epochs to wait before early stopping.
-        batch_size : int
-            The batch size to use.
-        epochs : int
-            The number of epochs to train for.
-        call_backs : list
-            The list of callbacks to use.
-
-        Returns
-        -------
-        history : keras.callbacks.History
-            The history of the training.
-        """
-        super().train(X_train, y_train, X_val, y_val)
-        checkpoint_file = os.path.join(self.workingdir, 'kvnet')
-        checkpoint_file = Util.create_numbered_file(checkpoint_file,
-                                                    'kvnet_model')
-
-        if call_backs is None:
-            call_backs = [callbacks.EarlyStopping(patience=patience_counter,
-                                                  monitor='loss',
-                                                  verbose=0),
-                          callbacks.ModelCheckpoint(checkpoint_file,
-                                                    save_weights_only=False,
-                                                    monitor='val_loss',
-                                                    mode='min',
-                                                    verbose=0,
-                                                    save_best_only=True)]
-        else:
-            call_backs = call_backs
-
-        history = self.model.fit(X_train, y_train,
-                                 batch_size=batch_size,
-                                 epochs=epochs,
-                                 verbose=1,
-                                 validation_data=(X_val, y_val),
-                                 callbacks=call_backs,
-                                 **kwargs)
-
-        history_file = os.path.join(self.workingdir, 'kvnet_history')
-        history_file = Util.create_numbered_file(history_file, '.pkl')
-        with open(history_file, 'wb') as f:
-            pickle.dump(history.history, f)
-
-        print('Model saved to: {}'.format(checkpoint_file))
-        print('History saved to: {}'.format(history_file))
-
-        return history
-
-    def predict(self, X_test, y_pred, threshold=0.5):
-        """ Predict the masks for the images.
-            Parameters
-            ----------
-            X_test : numpy.ndarray
-                The test images.
-            y_pred : numpy.ndarray
-                The predicted masks.
-            threshold : float
-                The threshold to use for the masks.
-            Returns
-            -------
-            y_pred : numpy.ndarray
-                The predicted masks.
-            """
-        predictions = self.model.predict(X_test)
-
-        predictions[predictions >= threshold] = 1
-        predictions[predictions < threshold] = 0
-
-        scores = self.model.evaluate(X_test, y_pred, verbose=0)
-
-        return predictions, scores
-
-
-class KResUNet2D(Classifier):
+class KResUNet2D(BaseKerasSegmentationClassifier):
     """
     KResUNet2D
     """
@@ -1399,102 +834,6 @@ class KResUNet2D(Classifier):
         if verbose:
             self.model.summary()
 
-    def build(self):
-        """ Build the model. """
-        self.model.compile(optimizer=self.optimizer,
-                           loss=self.loss,
-                           metrics=self.metric)
-
-    def train(self,
-              X_train,
-              y_train,
-              X_val,
-              y_val,
-              patience_counter=2,
-              batch_size=64,
-              epochs=100,
-              call_backs=None,
-              **kwargs):
-        """ Train the model.
-        Parameters
-        ----------
-        X_train : numpy.ndarray
-            The training images.
-        y_train : numpy.ndarray
-            The training masks.
-        X_val : numpy.ndarray
-            The validation images.
-        y_val : numpy.ndarray
-            The validation masks.
-        patience_counter : int
-            The number of epochs to wait before early stopping.
-        batch_size : int
-            The batch size to use.
-        epochs : int
-            The number of epochs to train for.
-        call_backs : list
-            The list of callbacks to use.
-        """
-        super().train(X_train, y_train, X_val, y_val)
-        checkpoint_file = os.path.join(self.workingdir, 'resunet')
-        checkpoint_file = Util.create_numbered_file(checkpoint_file,
-                                                    'resunet_model')
-
-        if call_backs is None:
-            call_backs = [callbacks.EarlyStopping(patience=patience_counter,
-                                                  monitor='loss',
-                                                  verbose=0),
-                          callbacks.ModelCheckpoint(checkpoint_file,
-                                                    save_weights_only=False,
-                                                    monitor='val_loss',
-                                                    mode='min',
-                                                    verbose=0,
-                                                    save_best_only=True)]
-        else:
-            call_backs = call_backs
-
-        history = self.model.fit(X_train, y_train,
-                                 batch_size=batch_size,
-                                 epochs=epochs,
-                                 verbose=1,
-                                 validation_data=(X_val, y_val),
-                                 callbacks=call_backs,
-                                 **kwargs)
-
-        history_file = os.path.join(self.workingdir, 'resunet_history')
-        history_file = Util.create_numbered_file(history_file, '.pkl')
-        with open(history_file, 'wb') as f:
-            pickle.dump(history.history, f)
-
-        print('Model saved to: {}'.format(checkpoint_file))
-        print('History saved to: {}'.format(history_file))
-
-        return history
-
-    def predict(self, X_test, y_pred, threshold=0.5):
-        """ Predict the masks for the images.
-        Parameters
-        ----------
-        X_test : numpy.ndarray
-            The test images.
-        y_pred : numpy.ndarray
-            The predicted masks.
-        threshold : float
-            The threshold to use for the masks.
-        Returns
-        -------
-        y_pred : numpy.ndarray
-            The predicted masks.
-        """
-        predictions = self.model.predict(X_test)
-
-        predictions[predictions >= threshold] = 1
-        predictions[predictions < threshold] = 0
-
-        scores = self.model.evaluate(X_test, y_pred, verbose=0)
-
-        return predictions, scores
-
 
 def dice_coef(y_true, y_pred, smooth=1e-9):
     """ Calculate the dice coefficient.
@@ -1512,18 +851,12 @@ def dice_coef(y_true, y_pred, smooth=1e-9):
     float
         The dice coefficient.
     """
-    # y_true_flat = tf.reshape(y_true, [-1])
-    # y_pred_flat = tf.reshape(y_pred, [-1])
-    # intersection = tf.reduce_sum(y_true_flat * y_pred_flat)
-    # union = tf.reduce_sum(y_true_flat) + tf.reduce_sum(y_pred_flat)
-    # dice = (2. * intersection + smooth) / (union + smooth)
-    # return dice
-    y_true = tf.keras.backend.flatten(y_true)
-    y_pred = tf.keras.backend.flatten(y_pred)
-    intersection = tf.keras.backend.sum(y_true * y_pred)
-    return (2. * intersection + smooth) / (tf.keras.backend.sum(y_true) +
-                                           tf.keras.backend.sum(y_pred) +
-                                           smooth)
+    y_true_flat = tf.reshape(y_true, [-1])
+    y_pred_flat = tf.reshape(y_pred, [-1])
+    intersection = tf.reduce_sum(y_true_flat * y_pred_flat)
+    union = tf.reduce_sum(y_true_flat) + tf.reduce_sum(y_pred_flat)
+    dice = (2. * intersection + smooth) / (union + smooth)
+    return dice
 
 
 def bce_dice_loss(y_true, y_pred):
@@ -1542,160 +875,3 @@ def bce_dice_loss(y_true, y_pred):
     """
     return tf.keras.losses.binary_crossentropy(y_true, y_pred) + \
         (1 - dice_coef(y_true, y_pred))
-
-#
-# def build(model, optimizer, loss, metric):
-#     """ Build the model. """
-#     model.compile(optimizer=optimizer,
-#                   loss=loss,
-#                   metrics=metric)
-#
-#
-# def train(X_train,
-#           y_train,
-#           X_val,
-#           y_val,
-#           patience_counter,
-#           batch_size,
-#           epochs,
-#           call_backs,
-#           model,
-#           shuffle,
-#           class_weight,
-#           sample_weight,
-#           initial_epoch,
-#           steps_per_epoch,
-#           validation_steps,
-#           validation_batch_size,
-#           validation_freq,
-#           max_queue_size,
-#           workers,
-#           use_multiprocessing,
-#
-#           **kwargs):
-#     """ Train the model.
-#     Parameters
-#     ----------
-#     X_train : numpy.ndarray
-#         The training images.
-#     y_train : numpy.ndarray
-#         The training masks.
-#     X_val : numpy.ndarray
-#         The validation images.
-#     y_val : numpy.ndarray
-#         The validation masks.
-#     patience_counter : int
-#         The number of epochs to wait before early stopping.
-#     batch_size : int
-#         The batch size to use.
-#     epochs : int
-#         The number of epochs to train for.
-#     call_backs : list
-#         The list of callbacks to use.
-#     shuffle : bool
-#         Whether to shuffle the data.
-#     class_weight : dict
-#         The class weights.
-#     sample_weight : numpy.ndarray
-#         The sample weights.
-#     initial_epoch : int
-#         The initial epoch.
-#     steps_per_epoch : int
-#         The number of steps per epoch.
-#     validation_steps : int
-#         The number of validation steps.
-#     validation_batch_size : int
-#         The validation batch size.
-#     validation_freq : int
-#         The validation frequency.
-#     max_queue_size : int
-#         The maximum queue size.
-#     workers : int
-#         The number of workers.
-#     use_multiprocessing : bool
-#         Whether to use multiprocessing.
-#
-#     """
-#     folder_name = kwargs.get('folder_name', 'kunet')
-#     model_name = kwargs.get('model_name', 'kunet_model')
-#     history_name = kwargs.get('history_name', 'kunet_history')
-#     workingdir = kwargs.get('workingdir', None)
-#
-#     checkpoint_file = os.path.join(workingdir, folder_name)
-#     checkpoint_file = Util.create_numbered_file(checkpoint_file,
-#                                                 model_name)
-#
-#     if call_backs is None:
-#         call_backs = [callbacks.EarlyStopping(patience=patience_counter,
-#                                               monitor='loss',
-#                                               verbose=0),
-#                       callbacks.ModelCheckpoint(checkpoint_file,
-#                                                 save_weights_only=False,
-#                                                 monitor='val_loss',
-#                                                 mode='min',
-#                                                 verbose=0,
-#                                                 save_best_only=True)]
-#     else:
-#         call_backs = call_backs
-#
-#     # history = model.model.fit(X_train, y_train,
-#     #                           batch_size=batch_size,
-#     #                           epochs=epochs,
-#     #                           verbose=1,
-#     #                           validation_data=(X_val, y_val),
-#     #                           callbacks=call_backs,
-#     #                           )
-#     history = model.model.fit(x=X_train,
-#                               y=y_train,
-#                               batch_size=batch_size,
-#                               epochs=epochs,
-#                               verbose=1,
-#                               callbacks=call_backs,
-#                               validation_split=0.,
-#                               validation_data=(X_val, y_val),
-#                               shuffle=True,
-#                               class_weight=None,
-#                               sample_weight=None,
-#                               initial_epoch=0,
-#                               steps_per_epoch=None,
-#                               validation_steps=None,
-#                               validation_batch_size=None,
-#                               validation_freq=1,
-#                               max_queue_size=10,
-#                               workers=1,
-#                               use_multiprocessing=False)
-#
-#     history_file = os.path.join(model.workingdir, history_name)
-#     history_file = Util.create_numbered_file(history_file, '.pkl')
-#     with open(history_file, 'wb') as f:
-#         pickle.dump(history.history, f)
-#
-#     print('Model saved to: {}'.format(checkpoint_file))
-#     print('History saved to: {}'.format(history_file))
-#
-#     return history
-#
-#
-# def predict(model, X_test, y_pred, threshold=0.5):
-#     """ Predict the masks for the images.
-#     Parameters
-#     ----------
-#     X_test : numpy.ndarray
-#         The test images.
-#     y_pred : numpy.ndarray
-#         The predicted masks.
-#     threshold : float
-#         The threshold to use for the masks.
-#     Returns
-#     -------
-#     y_pred : numpy.ndarray
-#         The predicted masks.
-#     """
-#     predictions = model.predict(X_test)
-#
-#     predictions[predictions >= threshold] = 1
-#     predictions[predictions < threshold] = 0
-#
-#     scores = model.evaluate(X_test, y_pred, verbose=0)
-#
-#     return predictions, scores
