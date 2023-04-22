@@ -20,6 +20,13 @@ class UNet(Classifier):
     def __init__(self, verbose=True, workingdir='/tmp'):
         super().__init__(verbose, workingdir)
 
+        print('*** GP2 UNet ***')
+        print('Working directory:', self.workingdir)
+
+        if verbose:
+            print('Verbose mode active!')
+
+
         self.model = self.build()
 
     def build(self, input_shape=(512, 512, 1), num_classes=1):
