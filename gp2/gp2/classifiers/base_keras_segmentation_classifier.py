@@ -1,10 +1,8 @@
 import os
 import pickle
-
 from tensorflow.keras import callbacks
-
-from .classifier import Classifier
-from .util import Util
+from gp2.gp2.classifiers.classifier import Classifier
+from gp2.gp2.util import Util
 
 
 class BaseKerasSegmentationClassifier(Classifier):
@@ -26,7 +24,7 @@ class BaseKerasSegmentationClassifier(Classifier):
               epochs=100,
               call_backs=None,
               ):
-        super().train(X_train, y_train, X_val, y_val)
+        super().train(X_train, y_train, X_val, y_val, patience_counter)
         checkpoint_file = os.path.join(self.workingdir, self.name)
         checkpoint_file = Util.create_numbered_file(checkpoint_file,
                                                     f'{self.name}_model')
@@ -71,3 +69,7 @@ class BaseKerasSegmentationClassifier(Classifier):
         scores = self.model.evaluate(X_test, y_pred, verbose=0)
 
         return predictions, scores
+
+    # print all the classes attributes using vars() function
+    def __str__(self):
+        return str(vars(self))

@@ -1,0 +1,89 @@
+from tensorflow.keras import layers
+from tensorflow.keras import losses
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.regularizers import l1_l2
+from .base_cnn_discriminator import BaseCNNDiscriminator
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, concatenate, Conv2D, MaxPooling2D, \
+    LeakyReLU, Dropout, Flatten, Dense
+
+
+class CNNDiscriminatorPLUS(BaseCNNDiscriminator):
+    def __init__(self,
+                 image_shape=(512, 512, 1),
+                 num_classes=2,
+                 conv_layers=None,
+                 dense_layers=None,
+                 optimizer=None,
+                 loss_function=None,
+                 metrics=None,
+                 activation='leaky_relu',
+                 alpha=0.1,
+                 kernel_regularizer=None,
+                 workingdir='/tmp',
+                 verbose=True):
+        super().__init__(workingdir)
+        self.image_shape = image_shape
+        self.num_classes = num_classes
+        self.conv_layers = conv_layers or [
+            (16, (3, 3), 0.25),
+            (32, (3, 3), 0.25),
+            (64, (3, 3), 0.25),
+            (128, (3, 3), 0.4),
+            (256, (3, 3), 0.4)
+        ]
+        self.dense_layers = dense_layers or [(512, 0.5)]
+        self.optimizer = optimizer or Adam()
+        self.loss_function = loss_function or losses.CategoricalCrossentropy()
+        self.metrics = metrics or ['accuracy']
+        self.activation = activation
+        self.alpha = alpha
+        self.kernel_regularizer = kernel_regularizer or l1_l2(l1=0.0, l2=0.0)
+        self.workingdir = workingdir
+        self.verbose = verbose
+
+        self.model = self.build()
+
+    def create_convolution_layers(self, input_img, input_shape=None):
+        model = input_img
+        for filters, kernel_size, dropout_rate in self.conv_layers:
+            model = Conv2D(filters, kernel_size, padding='same',
+                           kernel_regularizer=self.kernel_regularizer)(model)
+            if self.activation == 'leaky_relu':
+                model = LeakyReLU(alpha=self.alpha)(model)
+            else:
+                model = layers.Activation(self.activation)(model)
+            model = MaxPooling2D((2, 2), padding='same')(model)
+            model = Dropout(dropout_rate)(model)
+
+        return model
+
+    def build(self):
+        image_input = Input(shape=self.image_shape)
+        image_model = self.create_convolution_layers(image_input)
+
+        mask_input = Input(shape=self.image_shape)
+        mask_model = self.create_convolution_layers(mask_input)
+
+        conv = concatenate([image_model, mask_model])
+
+        conv = Flatten()(conv)
+
+        for units, dropout_rate in self.dense_layers:
+            conv = Dense(units, kernel_regularizer=self.kernel_regularizer)(
+                conv)
+            if self.activation == 'leaky_relu':
+                conv = LeakyReLU(alpha=self.alpha)(conv)
+            else:
+                conv = layers.Activation(self.activation)(conv)
+            conv = Dropout(dropout_rate)(conv)
+
+        output = Dense(self.num_classes, activation='softmax')(conv)
+
+        model = Model(inputs=[image_input, mask_input], outputs=[output])
+
+        model.compile(optimizer=self.optimizer,
+                      loss=self.loss_function,
+                      metrics=self.metrics)
+
+        return model

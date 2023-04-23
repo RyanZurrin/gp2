@@ -12,7 +12,7 @@ class Classifier:
     def build(self):
         pass
 
-    def train(self, X_train, y_train, X_val, y_val):
+    def train(self, X_train, y_train, X_val, y_val, patience_counter):
         pass
 
     def predict(self, X_test, y_pred, threshold):

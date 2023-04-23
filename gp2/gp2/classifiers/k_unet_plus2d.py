@@ -1,53 +1,54 @@
-from keras import losses, metrics
+from keras import losses
 from tensorflow.keras import  optimizers
-from .util import Util
-from .base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
+
+from gp2.gp2.classifiers.base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
 from keras_unet_collection import models
 import tensorflow as tf
+from gp2.gp2.util import Util
 
 policy = tf.keras.mixed_precision.Policy('mixed_float16')
 tf.keras.mixed_precision.set_global_policy(policy)
 
 
-class KATTUnet2D(BaseKerasSegmentationClassifier):
+class KUNetPlus2D(BaseKerasSegmentationClassifier):
     """
-    Attention U-net with an optional ImageNet backbone
+    Keras U-net++ 2D model.
     """
 
     def __init__(self,
                  input_size=(512, 512, 1),
                  filter_num=None,
                  n_labels=1,
-                 stack_num_down=2,
-                 stack_num_up=2,
+                 stack_num_down=3,
+                 stack_num_up=3,
                  activation='ReLU',
-                 atten_activation='ReLU',
-                 attention='add',
                  output_activation='Sigmoid',
                  batch_norm=True,
                  pool=True,
                  unpool=True,
+                 deep_supervision=False,
                  backbone=None,
                  weights='imagenet',
                  freeze_backbone=True,
                  freeze_batch_norm=True,
-                 name='attunet',
+                 name='xnet',
                  optimizer=None,
                  loss=None,
                  metric=None,
                  verbose=False,
                  workingdir='/tmp',
                  ):
-        '''
-        Attention U-net with an optional ImageNet backbone
+        """
+        U-net++ with an optional ImageNet-trained backbone.
 
-        att_unet_2d(input_size, filter_num, n_labels, stack_num_down=2, stack_num_up=2, activation='ReLU',
-                    atten_activation='ReLU', attention='add', output_activation='Softmax', batch_norm=False, pool=True, unpool=True,
-                    backbone=None, weights='imagenet', freeze_backbone=True, freeze_batch_norm=True, name='att-unet')
+        unet_plus_2d(input_size, filter_num, n_labels, stack_num_down=2, stack_num_up=2,
+                     activation='ReLU', output_activation='Softmax', batch_norm=False, pool=True, unpool=True, deep_supervision=False,
+                     backbone=None, weights='imagenet', freeze_backbone=True, freeze_batch_norm=True, name='xnet')
 
         ----------
-        Oktay, O., Schlemper, J., Folgoc, L.L., Lee, M., Heinrich, M., Misawa, K., Mori, K., McDonagh, S., Hammerla, N.Y., Kainz, B.
-        and Glocker, B., 2018. Attention u-net: Learning where to look for the pancreas. arXiv preprint arXiv:1804.03999.
+        Zhou, Z., Siddiquee, M.M.R., Tajbakhsh, N. and Liang, J., 2018. Unet++: A nested u-net architecture
+        for medical image segmentation. In Deep Learning in Medical Image Analysis and Multimodal Learning
+        for Clinical Decision Support (pp. 3-11). Springer, Cham.
 
         Input
         ----------
@@ -62,10 +63,6 @@ class KATTUnet2D(BaseKerasSegmentationClassifier):
             output_activation: one of the `tensorflow.keras.layers` or `keras_unet_collection.activations` interface or 'Sigmoid'.
                                Default option is 'Softmax'.
                                if None is received, then linear activation is applied.
-            atten_activation: a nonlinear atteNtion activation.
-                        The `sigma_1` in Oktay et al. 2018. Default is 'ReLU'.
-            attention: 'add' for additive attention. 'multiply' for multiplicative attention.
-                       Oktay et al. 2018 applied additive attention.
             batch_norm: True for batch normalization.
             pool: True or 'max' for MaxPooling2D.
                   'ave' for AveragePooling2D.
@@ -73,6 +70,7 @@ class KATTUnet2D(BaseKerasSegmentationClassifier):
             unpool: True or 'bilinear' for Upsampling2D with bilinear interpolation.
                     'nearest' for Upsampling2D with nearest interpolation.
                     False for Conv2DTranspose + batch norm + activation.
+            deep_supervision: True for a model that supports deep supervision. Details see Zhou et al. (2018).
             name: prefix of the created keras model and its layers.
 
             ---------- (keywords of backbone options) ----------
@@ -91,22 +89,22 @@ class KATTUnet2D(BaseKerasSegmentationClassifier):
 
         Output
         ----------
-            model: a keras model
+            model: a keras model.
 
-        '''
+        """
         super().__init__(verbose=verbose, workingdir=workingdir)
 
         if filter_num is None:
             filter_num = [32, 64, 128, 256, 512, 1024, 2048]
 
         if optimizer is None:
-            self.optimizer = optimizers.Adam(learning_rate=1e-4)
+            optimizer = optimizers.Adam(learning_rate=1e-4)
 
         if loss is None:
-            self.loss = losses.binary_crossentropy
+            loss = losses.binary_crossentropy
 
         if metric is None:
-            self.metric = [Util.dice_coef]
+            metric = [Util.dice_coef]
 
         self.input_size = input_size
         self.filter_num = filter_num
@@ -114,40 +112,40 @@ class KATTUnet2D(BaseKerasSegmentationClassifier):
         self.stack_num_down = stack_num_down
         self.stack_num_up = stack_num_up
         self.activation = activation
-        self.atten_activation = atten_activation
-        self.attention = attention
         self.output_activation = output_activation
         self.batch_norm = batch_norm
         self.pool = pool
         self.unpool = unpool
+        self.deep_supervision = deep_supervision
         self.backbone = backbone
         self.weights = weights
         self.freeze_backbone = freeze_backbone
         self.freeze_batch_norm = freeze_batch_norm
         self.name = name
-        self.model = models.att_unet_2d(self.input_size,
-                                        filter_num=self.filter_num,
-                                        n_labels=self.n_labels,
-                                        stack_num_down=self.stack_num_down,
-                                        stack_num_up=self.stack_num_up,
-                                        activation=self.activation,
-                                        atten_activation=self.atten_activation,
-                                        attention=self.attention,
-                                        output_activation=self.output_activation,
-                                        batch_norm=self.batch_norm,
-                                        pool=self.pool, unpool=self.unpool,
-                                        backbone=self.backbone,
-                                        weights=self.weights,
-                                        freeze_backbone=self.freeze_backbone,
-                                        freeze_batch_norm=self.freeze_batch_norm,
-                                        name=self.name)
-        print('*** GP2 KATTUnet2D ***')
+        self.optimizer = optimizer
+        self.loss = loss
+        self.metric = metric
+        self.model = models.unet_plus_2d(self.input_size,
+                                         filter_num=self.filter_num,
+                                         n_labels=self.n_labels,
+                                         stack_num_down=self.stack_num_down,
+                                         stack_num_up=self.stack_num_up,
+                                         activation=self.activation,
+                                         output_activation=self.output_activation,
+                                         batch_norm=self.batch_norm,
+                                         pool=self.pool, unpool=self.unpool,
+                                         backbone=self.backbone,
+                                         weights=self.weights,
+                                         freeze_backbone=self.freeze_backbone,
+                                         freeze_batch_norm=self.freeze_batch_norm,
+                                         name=self.name)
+        print('*** GP2  KUNetPlus2D ***')
         print('Working directory:', self.workingdir)
-
-        if verbose:
-            print('Verbose mode active!')
 
         self.build()
 
-        if self.verbose:
+        if verbose:
+            print('Verbose mode active!')
+            print(self)
+            print('Model summary:')
             self.model.summary()

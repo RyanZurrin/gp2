@@ -1,6 +1,6 @@
 import gp2.data as data
-import gp2.gp2 as gp2
-
+import gp2
+import time
 import numpy as np
 import os
 import tempfile
@@ -28,7 +28,8 @@ class Runner:
         classifier : str or gp2.Classifier
             The classifier to use. If None, will use the default handcrafted
             unet classifier. If 'unet', will use the default unet classifier.
-            Supported classifers are: 'unet', 'unetplus', 'kattunet2d', 'kunet2d', 'kunetplus2d', 'kresunet2d'.
+            Supported classifiers are: 'unet','unetplus', 'kattunet2d', 'kunet2d',
+            'kunetplus2d', 'kresunet2d', 'kunet3plus2d', 'kvnet2d', 'kr2unet2d'
         discriminator : str or gp2.Discriminator
             The discriminator to use. If None, will use the default handcrafted
             discriminator. If 'unet', will use the default unet discriminator.
@@ -46,30 +47,67 @@ class Runner:
         self.M = data.Manager()
 
         self.dataset_size = None
-        self.classifier_scores = []
-        if classifier is None or isinstance(classifier, gp2.UNet) or classifier == 'unet':
-            self.classifier = gp2.UNet(verbose=self.verbose, workingdir=self.workingdir)
-        elif isinstance(classifier, gp2.UNetPLUS) or classifier == 'unetplus':
-            self.classifier = gp2.UNetPLUS(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier, gp2.KATTUnet2D) or classifier == 'kattunet2d':
-            self.classifier = gp2.KATTUnet2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier, gp2.KUNet2D) or classifier == 'kunet2d':
-            self.classifier = gp2.KUNet2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier, gp2.KUNetPlus2D) or classifier == 'kunetplus2d':
-            self.classifier = gp2.KUNetPlus2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier, gp2.KResUNet2D) or classifier == 'kresunet2d':
-            self.classifier = gp2.KResUNet2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier, gp2.KUNet3Plus2D) or classifier == 'kunet3plus2d':
-            self.classifier = gp2.KUNet3Plus2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier, gp2.KVNet2D) or classifier == 'kvnet2d':
-            self.classifier = gp2.KVNet2D(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier, gp2.KR2UNet2dD) or classifier == 'kr2unet2d':
-            self.classifier = gp2.KR2UNet2dD(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
-        else:
-            self.classifier = classifier
 
-        self.discriminator = discriminator
+        # Initialize the classifier
+        self.classifier_scores = []
+        if classifier is None or isinstance(classifier,
+                                            gp2.UNet) or classifier == 'unet':
+            self.classifier = gp2.UNet(verbose=self.verbose,
+                                       workingdir=self.workingdir)
+        elif isinstance(classifier, gp2.UNetPLUS) or classifier == 'unetplus':
+            self.classifier = gp2.UNetPLUS(verbose=self.verbose,
+                                           workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier,
+                        gp2.gp2.classifiers.k_att_unet2d.KATTUnet2D) or classifier == 'kattunet2d':
+            self.classifier = gp2.KATTUnet2D(verbose=self.verbose,
+                                             workingdir=self.workingdir,
+                                             **kwargs)
+        elif isinstance(classifier, gp2.KUNet2D) or classifier == 'kunet2d':
+            self.classifier = gp2.KUNet2D(verbose=self.verbose,
+                                          workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier,
+                        gp2.KUNetPlus2D) or classifier == 'kunetplus2d':
+            self.classifier = gp2.KUNetPlus2D(verbose=self.verbose,
+                                              workingdir=self.workingdir,
+                                              **kwargs)
+        elif isinstance(classifier,
+                        gp2.KResUNet2D) or classifier == 'kresunet2d':
+            self.classifier = gp2.KResUNet2D(verbose=self.verbose,
+                                             workingdir=self.workingdir,
+                                             **kwargs)
+        elif isinstance(classifier,
+                        gp2.KUNet3Plus2D) or classifier == 'kunet3plus2d':
+            self.classifier = gp2.KUNet3Plus2D(verbose=self.verbose,
+                                               workingdir=self.workingdir,
+                                               **kwargs)
+        elif isinstance(classifier, gp2.KVNet2D) or classifier == 'kvnet2d':
+            self.classifier = gp2.KVNet2D(verbose=self.verbose,
+                                          workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier,
+                        gp2.KR2UNet2dD) or classifier == 'kr2unet2d':
+            self.classifier = gp2.KR2UNet2dD(verbose=self.verbose,
+                                             workingdir=self.workingdir,
+                                             **kwargs)
+        else:
+            raise ValueError('Classifier not supported: {}'.format(classifier))
+
+        # Initialize the discriminator
         self.discriminator_scores = []
+        if discriminator is None or isinstance(discriminator,
+                                               gp2.CNNDiscriminator) or discriminator == 'cnn':
+            print('Using default discriminator (CNN)')
+            self.discriminator = gp2.CNNDiscriminator(verbose=self.verbose,
+                                                      workingdir=self.workingdir)
+        elif isinstance(discriminator,
+                        gp2.CNNDiscriminatorPLUS) or discriminator == 'cnnplus':
+            print('Using  discriminator (CNN+)')
+            self.discriminator = gp2.CNNDiscriminatorPLUS(verbose=self.verbose,
+                                                          workingdir=self.workingdir)
+        else:
+            raise ValueError('Discriminator not supported: {}'.format(
+                discriminator))
+
+
 
     #
     # STEP 0
@@ -215,9 +253,6 @@ class Runner:
         #
         B_, B_ids = B.to_array()
 
-        # print('B', B_.shape)
-        # print('A_test_with_pred_', A_test_with_pred_.shape)
-
         C_size = (2 * B_.shape[0], B_.shape[1], B_.shape[2])
         C_images_ = np.zeros((C_size + (B_.shape[3],)), dtype=B_.dtype)
 
@@ -229,9 +264,6 @@ class Runner:
         C_labels_[B_.shape[0]:, 0, 0, 0] = 0
 
         C_ = np.concatenate((C_images_, C_labels_), axis=-1)
-        #
-        #
-        #
 
         # combine the uniq ids from A_test_pred and B
         C_ids = A_test_pred_ids + B_ids
@@ -283,20 +315,27 @@ class Runner:
     #
     # STEP 4 (calls 2+3+5)
     #
-    def run_discriminator(self, train_ratio=0.4, val_count=0.1, test_count=0.5):
+    def run_discriminator(self, train_ratio=0.4, val_ratio=0.1, test_ratio=0.5,
+                          threshold=1e-6):
         """
         Train the discriminator using C_train/C_val.
         If the discriminator was trained, this
         will just predict.
         """
+        # Check that the sum of the ratios is approximately equal to 1
+        if not (
+                1 - threshold <= train_ratio + val_ratio + test_ratio <= 1 + threshold):
+            raise ValueError(
+                "The sum of train_ratio, val_ratio, and test_ratio must be approximately equal to 1")
+
         self.create_C_dataset()
 
         dataset_size = self.dataset_size
         weights = self.weights
 
-        train_count = int(0.2 * 0.4 * dataset_size)
-        val_count = int(0.2 * 0.1 * dataset_size)
-        test_count = int(0.2 * 0.5 * dataset_size)
+        train_count = int(0.2 * train_ratio * dataset_size)
+        val_count = int(0.2 * val_ratio * dataset_size)
+        test_count = int(0.2 * test_ratio * dataset_size)
 
         if weights:
             train_count = int(weights['B'] * weights['B_train'] * dataset_size)
@@ -307,27 +346,47 @@ class Runner:
 
         M = self.M
 
-        if not self.discriminator:
-            C_train = M.get('C_train')
-            C_val = M.get('C_val')
+        # if not self.discriminator:
+        #     C_train = M.get('C_train')
+        #     C_val = M.get('C_val')
+        #
+        #     C_train_, C_train_ids = C_train.to_array()
+        #     X_train_images_ = C_train_[:, :, :, 0]
+        #     X_train_masks_ = C_train_[:, :, :, 1]
+        #     y_train_ = C_train_[:, 0, 0, 2]
+        #
+        #     C_val_, C_val_ids = C_val.to_array()
+        #     X_val_images_ = C_val_[:, :, :, 0]
+        #     X_val_masks_ = C_val_[:, :, :, 1]
+        #     y_val_ = C_val_[:, 0, 0, 2]
+        #
+        #     cnnd = gp2.CNNDiscriminator(verbose=self.verbose,
+        #                                 workingdir=self.workingdir)
+        #
+        #     cnnd.train(X_train_images_, X_train_masks_, y_train_, X_val_images_,
+        #                X_val_masks_, y_val_)
+        #
+        #     self.discriminator = cnnd
 
-            C_train_, C_train_ids = C_train.to_array()
-            X_train_images_ = C_train_[:, :, :, 0]
-            X_train_masks_ = C_train_[:, :, :, 1]
-            y_train_ = C_train_[:, 0, 0, 2]
+        # discriminator is now set in constructor so no need to check for it
+        cnnd = self.discriminator
 
-            C_val_, C_val_ids = C_val.to_array()
-            X_val_images_ = C_val_[:, :, :, 0]
-            X_val_masks_ = C_val_[:, :, :, 1]
-            y_val_ = C_val_[:, 0, 0, 2]
+        C_train = M.get('C_train')
+        C_val = M.get('C_val')
 
-            cnnd = gp2.CNNDiscriminator(verbose=self.verbose,
-                                        workingdir=self.workingdir)
+        C_train_, C_train_ids = C_train.to_array()
+        X_train_images_ = C_train_[:, :, :, 0]
+        X_train_masks_ = C_train_[:, :, :, 1]
+        y_train_ = C_train_[:, 0, 0, 2]
 
-            cnnd.train(X_train_images_, X_train_masks_, y_train_, X_val_images_,
-                       X_val_masks_, y_val_)
+        C_val_, C_val_ids = C_val.to_array()
+        X_val_images_ = C_val_[:, :, :, 0]
+        X_val_masks_ = C_val_[:, :, :, 1]
+        y_val_ = C_val_[:, 0, 0, 2]
 
-            self.discriminator = cnnd
+        cnnd.train(X_train_images_, X_train_masks_, y_train_, X_val_images_,
+                   X_val_masks_, y_val_)
+        self.discriminator = cnnd
 
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, 'M_step4.pickle'))
@@ -511,11 +570,11 @@ class Runner:
     # STEP 8
     #
     def update_A_train(self, balance=True, fillup=True):
-        '''
-    Update A_train with selected points from D.
-    Then, remove D from B and A_test (whereever it was!).
-    Fill-up both B and A_test.
-    '''
+        """
+        Update A_train with selected points from D.
+        Then, remove D from B and A_test (whereever it was!).
+        Fill-up both B and A_test.
+        """
         M = self.M
 
         D_relabeled = M.get('D_relabeled')
@@ -549,7 +608,7 @@ class Runner:
             #     origintext = 'C_test'
             #     origin = C_test
             else:
-                print('Lost Datapoint!!', k)  # TODO - this is a problem!
+                print('Lost Datapoint!!', k)
                 continue
 
             p = data.Point(origin.data[k])
@@ -575,13 +634,42 @@ class Runner:
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, 'M_step8.pickle'))
 
+    def run(self,
+            images,
+            masks,
+            weights,
+            runs=1,
+            patience_counter=2,
+            percent_to_replace=30):
+        # assert that len of images and masks is the same
+        assert len(images) == len(masks)
+        dataset_size = len(images)
+        self.setup_data(images=images, masks=masks,
+                        dataset_size=dataset_size,
+                        weights=weights)
+
+        for run in range(runs):
+            print('******')
+            print('Loop', run)
+            t0 = time.time()
+            self.run_classifier(patience_counter=patience_counter)
+            self.run_discriminator()
+            l = self.find_machine_labels()
+            if l == 0:
+                print('No more machine labels.')
+                print('TOOK', time.time() - t0, 'seconds')
+                break
+            self.relabel(percent_to_replace=percent_to_replace)
+            print('TOOK', time.time() - t0, 'seconds')
+            print('==== DONE LOOP', run, '====')
+
     #
     # PLOT!
     #
     def plot(self):
 
         x = range(len(self.classifier_scores))
-        y1 = C_accuracies = [v[1] for v in self.classifier_scores]
-        y2 = D_accuracies = [v[1] for v in self.discriminator_scores]
+        y1 = [v[1] for v in self.classifier_scores]
+        y2 = [v[1] for v in self.discriminator_scores]
 
         gp2.Util.plot_accuracies(x, y1, y2)
