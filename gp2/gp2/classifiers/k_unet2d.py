@@ -1,18 +1,21 @@
-from keras import losses, metrics
-from tensorflow.keras import  optimizers
+from keras import losses
+from tensorflow.keras import optimizers
 
-from .base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
+from gp2.gp2.classifiers.base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
 from keras_unet_collection import models
 import tensorflow as tf
-from .util import Util
+from gp2.gp2.util import Util
 
 policy = tf.keras.mixed_precision.Policy('mixed_float16')
 tf.keras.mixed_precision.set_global_policy(policy)
 
 
-class KUNetPlus2D(BaseKerasSegmentationClassifier):
+# set gpu device to 2
+# os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+
+class KUNet2D(BaseKerasSegmentationClassifier):
     """
-    Keras U-net++ 2D model.
+    KU-Net 2D model.
     """
 
     def __init__(self,
@@ -26,12 +29,11 @@ class KUNetPlus2D(BaseKerasSegmentationClassifier):
                  batch_norm=True,
                  pool=True,
                  unpool=True,
-                 deep_supervision=False,
                  backbone=None,
                  weights='imagenet',
                  freeze_backbone=True,
                  freeze_batch_norm=True,
-                 name='xnet',
+                 name='unet',
                  optimizer=None,
                  loss=None,
                  metric=None,
@@ -39,16 +41,15 @@ class KUNetPlus2D(BaseKerasSegmentationClassifier):
                  workingdir='/tmp',
                  ):
         """
-        U-net++ with an optional ImageNet-trained backbone.
+        U-net with an optional ImageNet-trained bakcbone.
 
-        unet_plus_2d(input_size, filter_num, n_labels, stack_num_down=2, stack_num_up=2,
-                     activation='ReLU', output_activation='Softmax', batch_norm=False, pool=True, unpool=True, deep_supervision=False,
-                     backbone=None, weights='imagenet', freeze_backbone=True, freeze_batch_norm=True, name='xnet')
+        unet_2d(input_size, filter_num, n_labels, stack_num_down=2, stack_num_up=2,
+                activation='ReLU', output_activation='Softmax', batch_norm=False, pool=True, unpool=True,
+                backbone=None, weights='imagenet', freeze_backbone=True, freeze_batch_norm=True, name='unet')
 
         ----------
-        Zhou, Z., Siddiquee, M.M.R., Tajbakhsh, N. and Liang, J., 2018. Unet++: A nested u-net architecture
-        for medical image segmentation. In Deep Learning in Medical Image Analysis and Multimodal Learning
-        for Clinical Decision Support (pp. 3-11). Springer, Cham.
+        Ronneberger, O., Fischer, P. and Brox, T., 2015, October. U-net: Convolutional networks for biomedical image segmentation.
+        In International Conference on Medical image computing and computer-assisted intervention (pp. 234-241). Springer, Cham.
 
         Input
         ----------
@@ -70,7 +71,6 @@ class KUNetPlus2D(BaseKerasSegmentationClassifier):
             unpool: True or 'bilinear' for Upsampling2D with bilinear interpolation.
                     'nearest' for Upsampling2D with nearest interpolation.
                     False for Conv2DTranspose + batch norm + activation.
-            deep_supervision: True for a model that supports deep supervision. Details see Zhou et al. (2018).
             name: prefix of the created keras model and its layers.
 
             ---------- (keywords of backbone options) ----------
@@ -95,10 +95,10 @@ class KUNetPlus2D(BaseKerasSegmentationClassifier):
         super().__init__(verbose=verbose, workingdir=workingdir)
 
         if filter_num is None:
-            filter_num = [32, 64, 128, 256, 512, 1024, 2048]
+            filter_num = [32, 64, 128, 256, 512, 1024]
 
         if optimizer is None:
-            optimizer = optimizers.Adam(learning_rate=1e-4)
+            optimizer = optimizers.Adam(learning_rate=1e-3)
 
         if loss is None:
             loss = losses.binary_crossentropy
@@ -116,7 +116,6 @@ class KUNetPlus2D(BaseKerasSegmentationClassifier):
         self.batch_norm = batch_norm
         self.pool = pool
         self.unpool = unpool
-        self.deep_supervision = deep_supervision
         self.backbone = backbone
         self.weights = weights
         self.freeze_backbone = freeze_backbone
@@ -125,27 +124,28 @@ class KUNetPlus2D(BaseKerasSegmentationClassifier):
         self.optimizer = optimizer
         self.loss = loss
         self.metric = metric
-        self.model = models.unet_plus_2d(self.input_size,
-                                         filter_num=self.filter_num,
-                                         n_labels=self.n_labels,
-                                         stack_num_down=self.stack_num_down,
-                                         stack_num_up=self.stack_num_up,
-                                         activation=self.activation,
-                                         output_activation=self.output_activation,
-                                         batch_norm=self.batch_norm,
-                                         pool=self.pool, unpool=self.unpool,
-                                         backbone=self.backbone,
-                                         weights=self.weights,
-                                         freeze_backbone=self.freeze_backbone,
-                                         freeze_batch_norm=self.freeze_batch_norm,
-                                         name=self.name)
-        print('*** GP2  KUNetPlus2D ***')
-        print('Working directory:', self.workingdir)
+        self.model = models.unet_2d(self.input_size,
+                                    filter_num=self.filter_num,
+                                    n_labels=self.n_labels,
+                                    stack_num_down=self.stack_num_down,
+                                    stack_num_up=self.stack_num_up,
+                                    activation=self.activation,
+                                    output_activation=self.output_activation,
+                                    batch_norm=self.batch_norm,
+                                    pool=self.pool, unpool=self.unpool,
+                                    backbone=self.backbone,
+                                    weights=self.weights,
+                                    freeze_backbone=self.freeze_backbone,
+                                    freeze_batch_norm=self.freeze_batch_norm,
+                                    name=self.name)
 
-        if verbose:
-            print('Verbose mode active!')
+        print('*** GP2  KUNet2D ***')
+        print('Working directory:', self.workingdir)
 
         self.build()
 
         if verbose:
+            print('Verbose mode active!')
+            print(self)
+            print('Model summary:')
             self.model.summary()

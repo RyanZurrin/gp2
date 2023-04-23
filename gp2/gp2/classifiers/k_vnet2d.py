@@ -1,10 +1,10 @@
-from keras import losses, metrics
+from keras import losses
 from tensorflow.keras import  optimizers
 
-from .base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
+from gp2.gp2.classifiers.base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
 from keras_unet_collection import models
 import tensorflow as tf
-from .util import Util
+from gp2.gp2.util import Util
 
 policy = tf.keras.mixed_precision.Policy('mixed_float16')
 tf.keras.mixed_precision.set_global_policy(policy)
@@ -122,9 +122,10 @@ class KVNet2D(BaseKerasSegmentationClassifier):
         print('*** GP2  KVNet2D ***')
         print('Working directory:', self.workingdir)
 
-        if verbose:
-            print('Verbose mode active!')
         self.build()
 
         if self.verbose:
+            print('Verbose mode active!')
+            print(self)
+            print('Model summary:')
             self.model.summary()

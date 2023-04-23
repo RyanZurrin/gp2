@@ -1,5 +1,5 @@
 from .classifier import Classifier
-from .util import Util
+from gp2.gp2.util import Util
 
 import os
 import pickle
@@ -188,7 +188,7 @@ class UNet(Classifier):
 
     def train(self, X_train, y_train, X_val, y_val,
               patience_counter=2, batch_size=64, epochs=100):
-        super().train(X_train, y_train, X_val, y_val)
+        super().train(X_train, y_train, X_val, y_val, patience_counter)
 
         checkpoint_file = os.path.join(self.workingdir, 'unet')
         checkpoint_file = Util.create_numbered_file(checkpoint_file, '.model')

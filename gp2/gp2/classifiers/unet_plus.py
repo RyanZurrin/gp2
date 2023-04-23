@@ -6,7 +6,54 @@ import tensorflow as tf
 from tensorflow.keras import layers, models, optimizers, losses, \
     callbacks
 from .classifier import Classifier
-from .util import Util
+from gp2.gp2.util import Util
+import warnings
+
+warnings.filterwarnings('ignore', category=UserWarning, module='tensorflow')
+
+
+@tf.function
+def dice_coef(y_true, y_pred, smooth=1e-9):
+    """ Calculate the dice coefficient.
+    Parameters
+    ----------
+    y_true : numpy.ndarray
+        The true masks.
+    y_pred : numpy.ndarray
+        The predicted masks.
+    smooth : float
+        The smoothing factor.
+
+    Returns
+    -------
+    float
+        The dice coefficient.
+    """
+    y_true_flat = tf.reshape(y_true, [-1])
+    y_pred_flat = tf.reshape(y_pred, [-1])
+    intersection = tf.reduce_sum(y_true_flat * y_pred_flat)
+    union = tf.reduce_sum(y_true_flat) + tf.reduce_sum(y_pred_flat)
+    dice = (2. * intersection + smooth) / (union + smooth)
+    return dice
+
+
+@tf.function
+def bce_dice_loss(y_true, y_pred):
+    """ Calculate the loss.
+    Parameters
+    ----------
+    y_true : numpy.ndarray
+        The true masks.
+    y_pred : numpy.ndarray
+        The predicted masks.
+
+    Returns
+    -------
+    float
+        The loss.
+    """
+    return tf.keras.losses.binary_crossentropy(y_true, y_pred) + \
+        (1 - dice_coef(y_true, y_pred))
 
 
 class UNetPLUS(Classifier):
@@ -78,7 +125,7 @@ class UNetPLUS(Classifier):
             self.loss = losses.binary_crossentropy
 
         if metrics is None:
-            self.metrics = [UNetPLUS.dice_coef]
+            self.metrics = [dice_coef]
 
         self.input_shape = input_shape
         self.num_classes = num_classes
@@ -96,6 +143,8 @@ class UNetPLUS(Classifier):
         self.model = self.build()
 
         if verbose:
+            print('Verbose mode active!')
+            print(str(vars(self)))
             self.model.summary()
 
     def build(self):
@@ -203,11 +252,12 @@ class UNetPLUS(Classifier):
         call_backs : list
             The list of callbacks to use.
         """
-        super().train(X_train, y_train, X_val, y_val)
+        super().train(X_train, y_train, X_val, y_val, patience_counter)
 
         # create the checkpoint files
         checkpoint_file = os.path.join(self.workingdir, 'unetplus')
-        checkpoint_file = Util.create_numbered_file(checkpoint_file, 'unetplus_model')
+        checkpoint_file = Util.create_numbered_file(checkpoint_file,
+                                                    'unetplus_model')
 
         if call_backs is None:
             call_backs = [callbacks.EarlyStopping(patience=patience_counter,
@@ -262,47 +312,3 @@ class UNetPLUS(Classifier):
         scores = self.model.evaluate(X_text, y_pred, verbose=0)
 
         return predictions, scores
-
-
-    @staticmethod
-    def dice_coef(y_true, y_pred, smooth=1e-9):
-        """ Calculate the dice coefficient.
-        Parameters
-        ----------
-        y_true : numpy.ndarray
-            The true masks.
-        y_pred : numpy.ndarray
-            The predicted masks.
-        smooth : float
-            The smoothing factor.
-
-        Returns
-        -------
-        float
-            The dice coefficient.
-        """
-        y_true_flat = tf.reshape(y_true, [-1])
-        y_pred_flat = tf.reshape(y_pred, [-1])
-        intersection = tf.reduce_sum(y_true_flat * y_pred_flat)
-        union = tf.reduce_sum(y_true_flat) + tf.reduce_sum(y_pred_flat)
-        dice = (2. * intersection + smooth) / (union + smooth)
-        return dice
-
-
-    @staticmethod
-    def bce_dice_loss(y_true, y_pred):
-        """ Calculate the loss.
-        Parameters
-        ----------
-        y_true : numpy.ndarray
-            The true masks.
-        y_pred : numpy.ndarray
-            The predicted masks.
-
-        Returns
-        -------
-        float
-            The loss.
-        """
-        return tf.keras.losses.binary_crossentropy(y_true, y_pred) + \
-            (1 - UNetPLUS.dice_coef(y_true, y_pred))
