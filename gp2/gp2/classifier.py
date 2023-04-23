@@ -9,10 +9,10 @@ class Classifier:
 
         pass
 
-    def build(self, **kwargs):
+    def build(self):
         pass
 
-    def train(self, X_train, y_train, X_val, y_val, **kwargs):
+    def train(self, X_train, y_train, X_val, y_val):
         pass
 
     def predict(self, X_test, y_pred, threshold):
