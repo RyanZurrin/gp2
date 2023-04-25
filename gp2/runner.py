@@ -48,6 +48,10 @@ def validate_weights(weights, tolerance=1e-6):
     if not np.isclose(A_mul_A_test, weights['B'], rtol=tolerance):
         raise ValueError("A * A_test must be equal to B")
 
+    # Check if Z > .1
+    if weights['Z'] < .1:
+        raise ValueError("Z must be greater than .1")
+
     print("Weights OK!")
 
 
