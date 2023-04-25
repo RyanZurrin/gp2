@@ -6,6 +6,51 @@ import os
 import tempfile
 
 
+def validate_weights(weights, tolerance=1e-6):
+    """ Validate the weights in a not quick and dirty way.
+
+    Parameters
+    ----------
+    weights : dict
+        Weights to use for training. If None, will use the default weights.
+        Weights should be a dictionary with keys 'A', 'B', 'Z', 'A_test'.
+    tolerance : float
+        Tolerance to use for the validation.
+
+    What must be verified:
+    A_train + A_val + A_test = 1
+    B_train + B_val + B_test = 1
+    A + B + Z = 1
+    A * A_test = B
+    Z > .1
+
+    Returns
+    -------
+    None
+    """
+    # Check if A_train + A_val + A_test = 1
+    A_sum = weights['A_train'] + weights['A_val'] + weights['A_test']
+    if not np.isclose(A_sum, 1, rtol=tolerance):
+        raise ValueError("A_train + A_val + A_test must be equal to 1")
+
+    # Check if B_train + B_val + B_test = 1
+    B_sum = weights['B_train'] + weights['B_val'] + weights['B_test']
+    if not np.isclose(B_sum, 1, rtol=tolerance):
+        raise ValueError("B_train + B_val + B_test must be equal to 1")
+
+    # Check if A + B + Z = 1
+    main_sum = weights['A'] + weights['B'] + weights['Z']
+    if not np.isclose(main_sum, 1, rtol=tolerance):
+        raise ValueError("A + B + Z must be equal to 1")
+
+    # Check if A * A_test = B
+    A_mul_A_test = weights['A'] * weights['A_test']
+    if not np.isclose(A_mul_A_test, weights['B'], rtol=tolerance):
+        raise ValueError("A * A_test must be equal to B")
+
+    print("Weights OK!")
+
+
 class Runner:
 
     def __init__(self,
@@ -14,6 +59,7 @@ class Runner:
                  store_after_each_step=False,
                  classifier=None,
                  discriminator=None,
+                 weights=None,
                  **kwargs):
         """ Initialize the GP2 runner with specified classifier and discriminator.
 
@@ -38,6 +84,7 @@ class Runner:
             Additional keyword arguments to pass to the classifier and discriminator.
         """
 
+        self.weights = weights
         self.store_after_each_step = store_after_each_step
 
         self.workingdir = workingdir
@@ -107,17 +154,33 @@ class Runner:
             raise ValueError('Discriminator not supported: {}'.format(
                 discriminator))
 
-
-
     #
     # STEP 0
     #
     def setup_data(self, images, masks, dataset_size=1000, weights=None):
-        """
-        Will setup:
-        A_: data to train/val/test the classifier
-        B_: expert labels to feed directly into the discriminator
+        """ Set up the data for training.
+
+       Each dataset is composed of three parts:
+        A_: data to train/val/test the classifier \n
+        B_: expert labels to feed directly into the discriminator \n
         Z_: a repository of additional data that can further train the classifier
+
+        Parameters
+        ----------
+        images : list of np.ndarray
+            List of images to use for training.
+        masks : list of np.ndarray
+            List of masks to use for training.
+        dataset_size : int
+            Number of images to use for training.
+        weights : dict
+            Weights to use for training. If None, will use the default weights.
+            Weights should be a dictionary with keys 'A', 'B', 'Z', 'A_test'.
+            The weights should sum to 1.0.
+
+        Returns
+        -------
+        None
         """
         M = self.M
 
@@ -125,11 +188,7 @@ class Runner:
         self.weights = weights
 
         if weights:
-            # quick'n'dirty validation
-            assert (weights['A'] + weights['B'] + weights['Z'] == 1)
-            assert (weights['A'] * weights['A_test'] * dataset_size == weights[
-                'B'] * dataset_size)
-            print('Weights OK!')
+            validate_weights(weights)
 
         A_, B_, Z_ = gp2.Util.create_A_B_Z_split(images, masks,
                                                  dataset_size=dataset_size,
@@ -179,8 +238,16 @@ class Runner:
     # STEP 1
     #
     def run_classifier(self, patience_counter=2):
-        """
-        (Re-)Train the classifier
+        """ (Re-)Train the classifier.
+
+        Parameters
+        ----------
+        patience_counter : int
+            Number of epochs to wait before early stopping.
+
+        Returns
+        -------
+        None
         """
         M = self.M
 
@@ -230,9 +297,8 @@ class Runner:
     #
     # STEP 2 (gets called by 4)
     #
-    def create_C_dataset(self):
-        """ Create the C dataset from the classifier predictions
-        """
+    def __create_C_dataset(self):
+        """ Create the C dataset from the classifier predictions."""
         M = self.M
 
         A_test = M.get('A_test')
@@ -278,9 +344,24 @@ class Runner:
     #
     # STEP 3 (gets called by 4)
     #
-    def create_C_train_val_test_split(self, train_count=300, val_count=100,
+    def create_C_train_val_test_split(self,
+                                      train_count=300,
+                                      val_count=100,
                                       test_count=100):
         """ Create the C train/val/test split
+
+        Parameters
+        ----------
+        train_count : int
+            Number of training samples.
+        val_count : int
+            Number of validation samples.
+        test_count : int
+            Number of test samples.
+
+        Returns
+        -------
+        None
         """
 
         M = self.M
@@ -317,10 +398,23 @@ class Runner:
     #
     def run_discriminator(self, train_ratio=0.4, val_ratio=0.1, test_ratio=0.5,
                           threshold=1e-6):
-        """
-        Train the discriminator using C_train/C_val.
-        If the discriminator was trained, this
-        will just predict.
+        """ Train the discriminator using C_train/C_val. If the discriminator was
+        trained, this will just predict.
+
+        Parameters
+        ----------
+        train_ratio : float
+            Ratio of training samples.
+        val_ratio : float
+            Ratio of validation samples.
+        test_ratio : float
+            Ratio of test samples.
+        threshold : float
+            Threshold for the sum of train_ratio, val_ratio, and test_ratio.
+
+        Returns
+        -------
+        None
         """
         # Check that the sum of the ratios is approximately equal to 1
         if not (
@@ -328,7 +422,7 @@ class Runner:
             raise ValueError(
                 "The sum of train_ratio, val_ratio, and test_ratio must be approximately equal to 1")
 
-        self.create_C_dataset()
+        self.__create_C_dataset()
 
         dataset_size = self.dataset_size
         weights = self.weights
@@ -346,29 +440,6 @@ class Runner:
 
         M = self.M
 
-        # if not self.discriminator:
-        #     C_train = M.get('C_train')
-        #     C_val = M.get('C_val')
-        #
-        #     C_train_, C_train_ids = C_train.to_array()
-        #     X_train_images_ = C_train_[:, :, :, 0]
-        #     X_train_masks_ = C_train_[:, :, :, 1]
-        #     y_train_ = C_train_[:, 0, 0, 2]
-        #
-        #     C_val_, C_val_ids = C_val.to_array()
-        #     X_val_images_ = C_val_[:, :, :, 0]
-        #     X_val_masks_ = C_val_[:, :, :, 1]
-        #     y_val_ = C_val_[:, 0, 0, 2]
-        #
-        #     cnnd = gp2.CNNDiscriminator(verbose=self.verbose,
-        #                                 workingdir=self.workingdir)
-        #
-        #     cnnd.train(X_train_images_, X_train_masks_, y_train_, X_val_images_,
-        #                X_val_masks_, y_val_)
-        #
-        #     self.discriminator = cnnd
-
-        # discriminator is now set in constructor so no need to check for it
         cnnd = self.discriminator
 
         C_train = M.get('C_train')
@@ -391,15 +462,13 @@ class Runner:
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, 'M_step4.pickle'))
 
-        self.predict_discriminator()
+        self.__predict_discriminator()
 
     #
     # STEP 5 (gets called by 4)
     #
-    def predict_discriminator(self):
-        """
-        Predict using the Discriminator (internal!)
-        """
+    def __predict_discriminator(self):
+        """ Predict using the Discriminator (internal!) """
         M = self.M
 
         C_test = M.get('C_test')

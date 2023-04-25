@@ -84,8 +84,8 @@ class KResUNet2D(BaseKerasSegmentationClassifier):
         if filter_num is None:
             filter_num = [16, 32, 64, 128]
 
-            if dilation_num is None:
-                dilation_num = [1, 3, 15, 31]
+        if dilation_num is None:
+            dilation_num = [1, 3, 15, 31]
 
         if optimizer is None:
             optimizer = optimizers.Adam(learning_rate=1e-4)

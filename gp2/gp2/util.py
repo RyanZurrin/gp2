@@ -1,7 +1,7 @@
 import numpy as np
 import os, logging
 import tensorflow as tf
-
+from keras_unet_collection import losses
 import matplotlib.pyplot as plt
 
 
@@ -9,15 +9,34 @@ class Util:
 
     @staticmethod
     def disable_tensorflow_logging():
-        """
-    """
+        """ Disables tensorflow logging """
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
         logging.getLogger('tensorflow').disabled = True
 
     @staticmethod
     def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
+        """ Creates A, B, Z split from images and labels
+
+        Parameters
+        ----------
+        images : numpy array
+            The images to split
+        labels : numpy array
+            The labels to split
+        dataset_size : int
+            The size of the dataset
+        weights : dict
+            The weights to use for the split. If None, the split is 40/40/20
+
+        Returns
+        -------
+        A : numpy array
+            The A split
+        B : numpy array
+            The B split
+        Z : numpy array
+            The Z split
         """
-    """
 
         #
         # We split as follows
@@ -60,9 +79,35 @@ class Util:
         return A, B, Z
 
     @staticmethod
-    def create_train_val_test_split(dataset, train_count=200,
+    def create_train_val_test_split(dataset,
+                                    train_count=200,
                                     val_count=300,
-                                    test_count=250, shuffle=True):
+                                    test_count=250,
+                                    shuffle=True):
+        """ Creates a train, val, test split from a dataset
+
+        Parameters
+        ----------
+        dataset : numpy array
+            The dataset to split
+        train_count : int
+            The number of training samples
+        val_count : int
+            The number of validation samples
+        test_count : int
+            The number of test samples
+        shuffle : bool
+            Whether to shuffle the dataset before splitting
+
+        Returns
+        -------
+        train : numpy array
+            The training split
+        val : numpy array
+            The validation split
+        test : numpy array
+            The test split
+        """
 
         if shuffle:
             np.random.shuffle(dataset)
@@ -76,7 +121,20 @@ class Util:
 
     @staticmethod
     def create_numbered_file(filename, extension):
+        """ Creates a numbered file
 
+        Parameters
+        ----------
+        filename : str
+            The filename
+        extension : str
+            The extension
+
+        Returns
+        -------
+        numbered_file : str
+            The numbered file
+        """
         number = 0000
         numbered_file = filename + '_' + str(number) + extension
         while os.path.exists(numbered_file):
@@ -87,6 +145,21 @@ class Util:
 
     @staticmethod
     def plot_accuracies(x, y1, y2):
+        """ Plot line chart showing accuracies of classifier and discriminator
+
+        Parameters
+        ----------
+        x : numpy.ndarray
+            The x-axis values.
+        y1 : numpy.ndarray
+            The y-axis values for the classifier.
+        y2 : numpy.ndarray
+            The y-axis values for the discriminator.
+
+        Returns
+        -------
+        None
+        """
 
         # Plot Line1 (Left Y Axis)
         fig, ax1 = plt.subplots(1, 1, figsize=(3, 3), dpi=80)
@@ -118,6 +191,7 @@ class Util:
         plt.show()
 
     @staticmethod
+    @tf.function
     def dice_coef(y_true, y_pred, smooth=1e-9):
         """ Calculate the dice coefficient.
         Parameters
@@ -142,6 +216,7 @@ class Util:
         return dice
 
     @staticmethod
+    @tf.function
     def bce_dice_loss(y_true, y_pred):
         """ Calculate the loss.
     Parameters
@@ -158,3 +233,31 @@ class Util:
     """
         return tf.keras.losses.binary_crossentropy(y_true, y_pred) + \
             (1 - Util.dice_coef(y_true, y_pred))
+
+    @staticmethod
+    @tf.function
+    def hybrid_loss(y_true, y_pred):
+        """ Calculate the loss.
+        Parameters
+        ----------
+        y_true : numpy.ndarray
+            The true masks.
+        y_pred : numpy.ndarray
+            The predicted masks.
+
+        Returns
+        -------
+        float
+            The loss.
+        """
+        # check that the types of both y_true and y_pred are the same
+        y_true = tf.cast(y_true, tf.float32)
+        y_pred = tf.cast(y_pred, tf.float32)
+
+        loss_focal = losses.focal_tversky(y_true, y_pred, alpha=0.5, gamma=4 / 3)
+        loss_iou = losses.iou_seg(y_true, y_pred)
+
+        # (x)
+        # loss_ssim = losses.ms_ssim(y_true, y_pred, max_val=1.0, filter_size=4)
+
+        return loss_focal + loss_iou  # +loss_ssim

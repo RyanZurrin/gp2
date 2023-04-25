@@ -30,6 +30,24 @@ class BaseCNNDiscriminator(Discriminator, ABC):
     def train(self, X_train_images, X_train_masks, y_train,
               X_val_images, X_val_masks, y_val,
               patience_counter=10, batch_size=64, epochs=100):
+        """ Train the discriminator
+
+        Args:
+            X_train_images:  (np.ndarray) training images
+            X_train_masks:  (np.ndarray) training masks
+            y_train:  (np.ndarray) training labels
+            X_val_images:  (np.ndarray) validation images
+            X_val_masks:  (np.ndarray) validation masks
+            y_val:  (np.ndarray) validation labels
+            patience_counter:  (int) patience counter
+            batch_size:  (int) batch size
+            epochs:  (int) number of epochs
+
+        Returns:
+            None
+        """
+        super().train(X_train_images, X_train_masks, y_train,
+                      X_val_images, X_val_masks, y_val)
         checkpoint_file = os.path.join(self.workingdir, 'cnnd')
         checkpoint_file = Util.create_numbered_file(checkpoint_file, '.model')
 
@@ -64,6 +82,16 @@ class BaseCNNDiscriminator(Discriminator, ABC):
         print('History saved to', history_file)
 
     def predict(self, X_test_images, X_test_masks, y_test):
+        """ Predict the labels for the test set
+
+        Args:
+            X_test_images: (np.ndarray) the test images
+            X_test_masks:  (np.ndarray) the test masks
+            y_test:  (np.ndarray) the test labels
+
+        Returns:
+            predictions: (np.ndarray) the predicted labels
+        """
         predictions = self.model.predict(x=[X_test_images, X_test_masks])
 
         # grab the most likely label from the categorical representation
