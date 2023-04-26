@@ -37,26 +37,34 @@ import tempfile
 
 
 def validate_weights(weights, tolerance=1e-6):
-    &#34;&#34;&#34; Validate the weights in a not quick and dirty way.
+    &#34;&#34;&#34; Validate the weights for training.
+
+    What must be verified:
+        A_train + A_val + A_test = 1. \n
+        B_train + B_val + B_test = 1. \n
+        A + B + Z = 1. \n
+        A * A_test = B. \n
+        Z &gt; .1.
 
     Parameters
     ----------
     weights : dict
         Weights to use for training. If None, will use the default weights.
-        Weights should be a dictionary with keys &#39;A&#39;, &#39;B&#39;, &#39;Z&#39;, &#39;A_test&#39;.
+        Weights should be a dictionary with keys containing the following:
+        &#39;A_train&#39;, &#39;A_val&#39;, &#39;A_test&#39;, &#39;B_train&#39;,&#39;B_val&#39;, &#39;B_test&#39;, &#39;A&#39;, &#39;B&#39;,
+        &#39;Z&#39;
     tolerance : float
         Tolerance to use for the validation.
 
-    What must be verified:
-    A_train + A_val + A_test = 1
-    B_train + B_val + B_test = 1
-    A + B + Z = 1
-    A * A_test = B
-    Z &gt; .1
-
     Returns
     -------
-    None
+    None : None
+        If the weights are valid, will return None.
+
+    Raises
+    ------
+    ValueError
+        If the weights are not valid.
     &#34;&#34;&#34;
     # Check if A_train + A_val + A_test = 1
     A_sum = weights[&#39;A_train&#39;] + weights[&#39;A_val&#39;] + weights[&#39;A_test&#39;]
@@ -95,7 +103,8 @@ class Runner:
                  discriminator=None,
                  weights=None,
                  **kwargs):
-        &#34;&#34;&#34; Initialize the GP2 runner with specified classifier and discriminator.
+        &#34;&#34;&#34; Initialize the GP2 runner with specified classifier and
+        discriminator.
 
         Parameters
         ----------
@@ -104,18 +113,19 @@ class Runner:
         workingdir : str
             Location where to store temporary files and model checkpoints.
         store_after_each_step : bool
-            If True, will store the model after each step of the training process.
+            If True, will store the model after each step of the training
+            process.
         classifier : str or Classifier
-            The classifier to use. If None, will use the default handcrafted
-            unet classifier. If &#39;unet&#39;, will use the default unet classifier.
-            Supported classifiers are: &#39;unet&#39;,&#39;unetplus&#39;, &#39;kattunet2d&#39;, &#39;kunet2d&#39;,
-            &#39;kunetplus2d&#39;, &#39;kresunet2d&#39;, &#39;kunet3plus2d&#39;, &#39;kvnet2d&#39;, &#39;kr2unet2d&#39;
+            The classifier to use. If None or &#39;unet&#39;, will use the default
+            handcrafted  unet classifier. Supported classifiers are:
+            &#39;unet&#39;,&#39;unetplus&#39;, &#39;kattunet2d&#39;, &#39;kunet2d&#39;, &#39;kunetplus2d&#39;,
+            &#39;kresunet2d&#39;, &#39;kunet3plus2d&#39;, &#39;kvnet2d&#39;, &#39;kr2unet2d&#39;
         discriminator : str or Discriminator
-            The discriminator to use. If None, will use the default handcrafted
-            discriminator. If &#39;unet&#39;, will use the default unet discriminator.
-            Supported discriminators are: DEFAULT ONLY FOR NOW.
-        **kwargs
-            Additional keyword arguments to pass to the classifier and discriminator.
+            The discriminator to use. If None or &#39;cnn&#39;, will use the default
+            handcrafted cnn discriminator.
+        **kwargs : dict
+            Additional keyword arguments to pass to the classifier and
+            discriminator.
         &#34;&#34;&#34;
 
         self.weights = weights
@@ -170,16 +180,16 @@ class Runner:
 
         # Initialize the discriminator
         self.discriminator_scores = []
-        if discriminator is None or isinstance(discriminator,
-                                               CNNDiscriminator) or discriminator == &#39;cnn&#39;:
+        if discriminator is None or isinstance(
+                discriminator, CNNDiscriminator) or discriminator == &#39;cnn&#39;:
             print(&#39;Using default discriminator (CNN)&#39;)
-            self.discriminator = CNNDiscriminator(verbose=self.verbose,
-                                                  workingdir=self.workingdir)
+            self.discriminator = CNNDiscriminator(
+                verbose=self.verbose, workingdir=self.workingdir)
         elif isinstance(discriminator,
                         CNNDiscriminatorPLUS) or discriminator == &#39;cnnplus&#39;:
             print(&#39;Using  discriminator (CNN+)&#39;)
-            self.discriminator = CNNDiscriminatorPLUS(verbose=self.verbose,
-                                                      workingdir=self.workingdir)
+            self.discriminator = CNNDiscriminatorPLUS(
+                verbose=self.verbose, workingdir=self.workingdir)
         else:
             raise ValueError(&#39;Discriminator not supported: {}&#39;.format(
                 discriminator))
@@ -190,10 +200,11 @@ class Runner:
     def setup_data(self, images, masks, dataset_size=1000, weights=None):
         &#34;&#34;&#34; Set up the data for training.
 
-       Each dataset is composed of three parts:
-        A_: data to train/val/test the classifier \n
-        B_: expert labels to feed directly into the discriminator \n
-        Z_: a repository of additional data that can further train the classifier
+        Each dataset is composed of three parts:
+            A_: data to train/val/test the classifier \n
+            B_: expert labels to feed directly into the discriminator \n
+            Z_: a repository of additional data that can further train the
+            classifier
 
         Parameters
         ----------
@@ -245,18 +256,15 @@ class Runner:
             val_count = int(weights[&#39;A&#39;] * weights[&#39;A_val&#39;] * dataset_size)
             test_count = int(weights[&#39;A&#39;] * weights[&#39;A_test&#39;] * dataset_size)
 
-        A_train_, A_val_, A_test_ = Util.create_train_val_test_split(A_,
-                                                                     train_count=train_count,
-                                                                     val_count=val_count,
-                                                                     test_count=test_count,
-                                                                     shuffle=False)
+        A_train_, A_val_, A_test_ = Util.create_train_val_test_split(
+            A_, train_count=train_count, val_count=val_count,
+            test_count=test_count, shuffle=False)
         A_train_ids = A_ids[0:train_count]
         A_val_ids = A_ids[train_count:train_count + val_count]
         A_test_ids = A_ids[
                      train_count + val_count:train_count + val_count + test_count]
 
-        A_train = Collection.from_list(A_train_,
-                                            A_train_ids)  # COLLECTION LAND
+        A_train = Collection.from_list(A_train_, A_train_ids)  # COLLECTION LAND
         A_val = Collection.from_list(A_val_, A_val_ids)
         A_test = Collection.from_list(A_test_, A_test_ids)
 
@@ -327,8 +335,8 @@ class Runner:
     #
     # STEP 2 (gets called by 4)
     #
-    def __create_C_dataset(self):
-        &#34;&#34;&#34; Create the C dataset from the classifier predictions.&#34;&#34;&#34;
+    def create_C_dataset(self):
+        &#34;&#34;&#34; Create the C dataset from the classifier predictions (internal!).&#34;&#34;&#34;
         M = self.M
 
         A_test = M.get(&#39;A_test&#39;)
@@ -378,7 +386,7 @@ class Runner:
                                       train_count=300,
                                       val_count=100,
                                       test_count=100):
-        &#34;&#34;&#34; Create the C train/val/test split
+        &#34;&#34;&#34; Create the C train/val/test split from the C dataset (internal!).
 
         Parameters
         ----------
@@ -397,20 +405,18 @@ class Runner:
         M = self.M
 
         C = M.get(&#39;C&#39;)
-
-        C.shuffle()  # we need to shuffle in connection land to keep track of the ids
+        # we need to shuffle in connection land to keep track of the ids
+        C.shuffle()
 
         C_, C_ids = C.to_array()
-        C_train_, C_val_, C_test_ = Util.create_train_val_test_split(C_,
-                                                                     train_count=train_count,
-                                                                     val_count=val_count,
-                                                                     test_count=test_count,
-                                                                     shuffle=False)
+        C_train_, C_val_, C_test_ = Util.create_train_val_test_split(
+            C_, train_count=train_count, val_count=val_count,
+            test_count=test_count, shuffle=False)
 
         C_train_ids = C_ids[0:train_count]
         C_val_ids = C_ids[train_count:train_count + val_count]
-        C_test_ids = C_ids[
-                     train_count + val_count:train_count + val_count + test_count]
+        C_test_ids = \
+            C_ids[train_count + val_count:train_count + val_count + test_count]
 
         C_train = Collection.from_list(C_train_, C_train_ids)
         C_val = Collection.from_list(C_val_, C_val_ids)
@@ -452,7 +458,7 @@ class Runner:
             raise ValueError(
                 &#34;The sum of train_ratio, val_ratio, and test_ratio must be approximately equal to 1&#34;)
 
-        self.__create_C_dataset()
+        self.create_C_dataset()
 
         dataset_size = self.dataset_size
         weights = self.weights
@@ -492,12 +498,12 @@ class Runner:
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, &#39;M_step4.pickle&#39;))
 
-        self.__predict_discriminator()
+        self.predict_discriminator()
 
     #
     # STEP 5 (gets called by 4)
     #
-    def __predict_discriminator(self):
+    def predict_discriminator(self):
         &#34;&#34;&#34; Predict using the Discriminator (internal!) &#34;&#34;&#34;
         M = self.M
 
@@ -525,11 +531,8 @@ class Runner:
     # STEP 6
     #
     def find_machine_labels(self):
-        &#34;&#34;&#34;
-        This finds all machine labels,
-        as indicated from the Discriminator
-        and create dataset D.
-        Returns number of machine labels found.
+        &#34;&#34;&#34; This finds all machine labels, as indicated from the Discriminator
+        and create dataset D.  Returns number of machine labels found.
         &#34;&#34;&#34;
         M = self.M
 
@@ -582,8 +585,16 @@ class Runner:
     # STEP 7 (calls 8)
     #
     def relabel(self, percent_to_replace=30):
-        &#34;&#34;&#34;
-        Relabels a subset of Dataset D
+        &#34;&#34;&#34; Relabels a subset of Dataset D
+
+        Parameters
+        ----------
+        percent_to_replace : int
+            Percentage of D to relabel
+
+        Returns
+        -------
+        None
         &#34;&#34;&#34;
 
         M = self.M
@@ -669,10 +680,19 @@ class Runner:
     # STEP 8
     #
     def update_A_train(self, balance=True, fillup=True):
-        &#34;&#34;&#34;
-        Update A_train with selected points from D.
-        Then, remove D from B and A_test (whereever it was!).
-        Fill-up both B and A_test.
+        &#34;&#34;&#34; Update A_train with selected points from D. Then, remove D from B
+        and A_test (wherever it was!). Fill-up both B and A_test (internal!).
+
+        Parameters
+        ----------
+        balance : bool
+            If True, balance A_train with B and A_test
+        fillup : bool
+            If True, fill-up B and A_test with points from A_train
+
+        Returns
+        -------
+        None
         &#34;&#34;&#34;
         M = self.M
 
@@ -785,51 +805,70 @@ class Runner:
 <span>def <span class="ident">validate_weights</span></span>(<span>weights, tolerance=1e-06)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Validate the weights in a not quick and dirty way.</p>
+<div class="desc"><p>Validate the weights for training.</p>
+<p>What must be verified:
+A_train + A_val + A_test = 1. </p>
+<pre><code>B_train + B_val + B_test = 1.
+
+A + B + Z = 1.
+
+A * A_test = B.
+
+Z &gt; .1.
+</code></pre>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>weights</code></strong> :&ensp;<code>dict</code></dt>
 <dd>Weights to use for training. If None, will use the default weights.
-Weights should be a dictionary with keys 'A', 'B', 'Z', 'A_test'.</dd>
+Weights should be a dictionary with keys containing the following:
+'A_train', 'A_val', 'A_test', 'B_train','B_val', 'B_test', 'A', 'B',
+'Z'</dd>
 <dt><strong><code>tolerance</code></strong> :&ensp;<code>float</code></dt>
 <dd>Tolerance to use for the validation.</dd>
 </dl>
-<p>What must be verified:
-A_train + A_val + A_test = 1
-B_train + B_val + B_test = 1
-A + B + Z = 1
-A * A_test = B
-Z &gt; .1</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>None</code></dt>
-<dd>&nbsp;</dd>
+<dt><strong><code>None</code></strong> :&ensp;<code>None</code></dt>
+<dd>If the weights are valid, will return None.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If the weights are not valid.</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_weights(weights, tolerance=1e-6):
-    &#34;&#34;&#34; Validate the weights in a not quick and dirty way.
+    &#34;&#34;&#34; Validate the weights for training.
+
+    What must be verified:
+        A_train + A_val + A_test = 1. \n
+        B_train + B_val + B_test = 1. \n
+        A + B + Z = 1. \n
+        A * A_test = B. \n
+        Z &gt; .1.
 
     Parameters
     ----------
     weights : dict
         Weights to use for training. If None, will use the default weights.
-        Weights should be a dictionary with keys &#39;A&#39;, &#39;B&#39;, &#39;Z&#39;, &#39;A_test&#39;.
+        Weights should be a dictionary with keys containing the following:
+        &#39;A_train&#39;, &#39;A_val&#39;, &#39;A_test&#39;, &#39;B_train&#39;,&#39;B_val&#39;, &#39;B_test&#39;, &#39;A&#39;, &#39;B&#39;,
+        &#39;Z&#39;
     tolerance : float
         Tolerance to use for the validation.
 
-    What must be verified:
-    A_train + A_val + A_test = 1
-    B_train + B_val + B_test = 1
-    A + B + Z = 1
-    A * A_test = B
-    Z &gt; .1
-
     Returns
     -------
-    None
+    None : None
+        If the weights are valid, will return None.
+
+    Raises
+    ------
+    ValueError
+        If the weights are not valid.
     &#34;&#34;&#34;
     # Check if A_train + A_val + A_test = 1
     A_sum = weights[&#39;A_train&#39;] + weights[&#39;A_val&#39;] + weights[&#39;A_test&#39;]
@@ -865,10 +904,11 @@ Z &gt; .1</p>
 <dl>
 <dt id="gp2.runner.Runner"><code class="flex name class">
 <span>class <span class="ident">Runner</span></span>
-<span>(</span><span>verbose=False, workingdir='/tmp/tmpqj3y6979GP2', store_after_each_step=False, classifier=None, discriminator=None, weights=None, **kwargs)</span>
+<span>(</span><span>verbose=False, workingdir='/tmp/tmp1svtwb9lGP2', store_after_each_step=False, classifier=None, discriminator=None, weights=None, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Initialize the GP2 runner with specified classifier and discriminator.</p>
+<div class="desc"><p>Initialize the GP2 runner with specified classifier and
+discriminator.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code></dt>
@@ -876,18 +916,20 @@ Z &gt; .1</p>
 <dt><strong><code>workingdir</code></strong> :&ensp;<code>str</code></dt>
 <dd>Location where to store temporary files and model checkpoints.</dd>
 <dt><strong><code>store_after_each_step</code></strong> :&ensp;<code>bool</code></dt>
-<dd>If True, will store the model after each step of the training process.</dd>
+<dd>If True, will store the model after each step of the training
+process.</dd>
 <dt><strong><code>classifier</code></strong> :&ensp;<code>str</code> or <code>Classifier</code></dt>
-<dd>The classifier to use. If None, will use the default handcrafted
-unet classifier. If 'unet', will use the default unet classifier.
-Supported classifiers are: 'unet','unetplus', 'kattunet2d', 'kunet2d',
-'kunetplus2d', 'kresunet2d', 'kunet3plus2d', 'kvnet2d', 'kr2unet2d'</dd>
+<dd>The classifier to use. If None or 'unet', will use the default
+handcrafted
+unet classifier. Supported classifiers are:
+'unet','unetplus', 'kattunet2d', 'kunet2d', 'kunetplus2d',
+'kresunet2d', 'kunet3plus2d', 'kvnet2d', 'kr2unet2d'</dd>
 <dt><strong><code>discriminator</code></strong> :&ensp;<code>str</code> or <code>Discriminator</code></dt>
-<dd>The discriminator to use. If None, will use the default handcrafted
-discriminator. If 'unet', will use the default unet discriminator.
-Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
-<dt><strong><code>**kwargs</code></strong></dt>
-<dd>Additional keyword arguments to pass to the classifier and discriminator.</dd>
+<dd>The discriminator to use. If None or 'cnn', will use the default
+handcrafted cnn discriminator.</dd>
+<dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Additional keyword arguments to pass to the classifier and
+discriminator.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -903,7 +945,8 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
                  discriminator=None,
                  weights=None,
                  **kwargs):
-        &#34;&#34;&#34; Initialize the GP2 runner with specified classifier and discriminator.
+        &#34;&#34;&#34; Initialize the GP2 runner with specified classifier and
+        discriminator.
 
         Parameters
         ----------
@@ -912,18 +955,19 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
         workingdir : str
             Location where to store temporary files and model checkpoints.
         store_after_each_step : bool
-            If True, will store the model after each step of the training process.
+            If True, will store the model after each step of the training
+            process.
         classifier : str or Classifier
-            The classifier to use. If None, will use the default handcrafted
-            unet classifier. If &#39;unet&#39;, will use the default unet classifier.
-            Supported classifiers are: &#39;unet&#39;,&#39;unetplus&#39;, &#39;kattunet2d&#39;, &#39;kunet2d&#39;,
-            &#39;kunetplus2d&#39;, &#39;kresunet2d&#39;, &#39;kunet3plus2d&#39;, &#39;kvnet2d&#39;, &#39;kr2unet2d&#39;
+            The classifier to use. If None or &#39;unet&#39;, will use the default
+            handcrafted  unet classifier. Supported classifiers are:
+            &#39;unet&#39;,&#39;unetplus&#39;, &#39;kattunet2d&#39;, &#39;kunet2d&#39;, &#39;kunetplus2d&#39;,
+            &#39;kresunet2d&#39;, &#39;kunet3plus2d&#39;, &#39;kvnet2d&#39;, &#39;kr2unet2d&#39;
         discriminator : str or Discriminator
-            The discriminator to use. If None, will use the default handcrafted
-            discriminator. If &#39;unet&#39;, will use the default unet discriminator.
-            Supported discriminators are: DEFAULT ONLY FOR NOW.
-        **kwargs
-            Additional keyword arguments to pass to the classifier and discriminator.
+            The discriminator to use. If None or &#39;cnn&#39;, will use the default
+            handcrafted cnn discriminator.
+        **kwargs : dict
+            Additional keyword arguments to pass to the classifier and
+            discriminator.
         &#34;&#34;&#34;
 
         self.weights = weights
@@ -978,16 +1022,16 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
 
         # Initialize the discriminator
         self.discriminator_scores = []
-        if discriminator is None or isinstance(discriminator,
-                                               CNNDiscriminator) or discriminator == &#39;cnn&#39;:
+        if discriminator is None or isinstance(
+                discriminator, CNNDiscriminator) or discriminator == &#39;cnn&#39;:
             print(&#39;Using default discriminator (CNN)&#39;)
-            self.discriminator = CNNDiscriminator(verbose=self.verbose,
-                                                  workingdir=self.workingdir)
+            self.discriminator = CNNDiscriminator(
+                verbose=self.verbose, workingdir=self.workingdir)
         elif isinstance(discriminator,
                         CNNDiscriminatorPLUS) or discriminator == &#39;cnnplus&#39;:
             print(&#39;Using  discriminator (CNN+)&#39;)
-            self.discriminator = CNNDiscriminatorPLUS(verbose=self.verbose,
-                                                      workingdir=self.workingdir)
+            self.discriminator = CNNDiscriminatorPLUS(
+                verbose=self.verbose, workingdir=self.workingdir)
         else:
             raise ValueError(&#39;Discriminator not supported: {}&#39;.format(
                 discriminator))
@@ -998,10 +1042,11 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
     def setup_data(self, images, masks, dataset_size=1000, weights=None):
         &#34;&#34;&#34; Set up the data for training.
 
-       Each dataset is composed of three parts:
-        A_: data to train/val/test the classifier \n
-        B_: expert labels to feed directly into the discriminator \n
-        Z_: a repository of additional data that can further train the classifier
+        Each dataset is composed of three parts:
+            A_: data to train/val/test the classifier \n
+            B_: expert labels to feed directly into the discriminator \n
+            Z_: a repository of additional data that can further train the
+            classifier
 
         Parameters
         ----------
@@ -1053,18 +1098,15 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
             val_count = int(weights[&#39;A&#39;] * weights[&#39;A_val&#39;] * dataset_size)
             test_count = int(weights[&#39;A&#39;] * weights[&#39;A_test&#39;] * dataset_size)
 
-        A_train_, A_val_, A_test_ = Util.create_train_val_test_split(A_,
-                                                                     train_count=train_count,
-                                                                     val_count=val_count,
-                                                                     test_count=test_count,
-                                                                     shuffle=False)
+        A_train_, A_val_, A_test_ = Util.create_train_val_test_split(
+            A_, train_count=train_count, val_count=val_count,
+            test_count=test_count, shuffle=False)
         A_train_ids = A_ids[0:train_count]
         A_val_ids = A_ids[train_count:train_count + val_count]
         A_test_ids = A_ids[
                      train_count + val_count:train_count + val_count + test_count]
 
-        A_train = Collection.from_list(A_train_,
-                                            A_train_ids)  # COLLECTION LAND
+        A_train = Collection.from_list(A_train_, A_train_ids)  # COLLECTION LAND
         A_val = Collection.from_list(A_val_, A_val_ids)
         A_test = Collection.from_list(A_test_, A_test_ids)
 
@@ -1135,8 +1177,8 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
     #
     # STEP 2 (gets called by 4)
     #
-    def __create_C_dataset(self):
-        &#34;&#34;&#34; Create the C dataset from the classifier predictions.&#34;&#34;&#34;
+    def create_C_dataset(self):
+        &#34;&#34;&#34; Create the C dataset from the classifier predictions (internal!).&#34;&#34;&#34;
         M = self.M
 
         A_test = M.get(&#39;A_test&#39;)
@@ -1186,7 +1228,7 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
                                       train_count=300,
                                       val_count=100,
                                       test_count=100):
-        &#34;&#34;&#34; Create the C train/val/test split
+        &#34;&#34;&#34; Create the C train/val/test split from the C dataset (internal!).
 
         Parameters
         ----------
@@ -1205,20 +1247,18 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
         M = self.M
 
         C = M.get(&#39;C&#39;)
-
-        C.shuffle()  # we need to shuffle in connection land to keep track of the ids
+        # we need to shuffle in connection land to keep track of the ids
+        C.shuffle()
 
         C_, C_ids = C.to_array()
-        C_train_, C_val_, C_test_ = Util.create_train_val_test_split(C_,
-                                                                     train_count=train_count,
-                                                                     val_count=val_count,
-                                                                     test_count=test_count,
-                                                                     shuffle=False)
+        C_train_, C_val_, C_test_ = Util.create_train_val_test_split(
+            C_, train_count=train_count, val_count=val_count,
+            test_count=test_count, shuffle=False)
 
         C_train_ids = C_ids[0:train_count]
         C_val_ids = C_ids[train_count:train_count + val_count]
-        C_test_ids = C_ids[
-                     train_count + val_count:train_count + val_count + test_count]
+        C_test_ids = \
+            C_ids[train_count + val_count:train_count + val_count + test_count]
 
         C_train = Collection.from_list(C_train_, C_train_ids)
         C_val = Collection.from_list(C_val_, C_val_ids)
@@ -1260,7 +1300,7 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
             raise ValueError(
                 &#34;The sum of train_ratio, val_ratio, and test_ratio must be approximately equal to 1&#34;)
 
-        self.__create_C_dataset()
+        self.create_C_dataset()
 
         dataset_size = self.dataset_size
         weights = self.weights
@@ -1300,12 +1340,12 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, &#39;M_step4.pickle&#39;))
 
-        self.__predict_discriminator()
+        self.predict_discriminator()
 
     #
     # STEP 5 (gets called by 4)
     #
-    def __predict_discriminator(self):
+    def predict_discriminator(self):
         &#34;&#34;&#34; Predict using the Discriminator (internal!) &#34;&#34;&#34;
         M = self.M
 
@@ -1333,11 +1373,8 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
     # STEP 6
     #
     def find_machine_labels(self):
-        &#34;&#34;&#34;
-        This finds all machine labels,
-        as indicated from the Discriminator
-        and create dataset D.
-        Returns number of machine labels found.
+        &#34;&#34;&#34; This finds all machine labels, as indicated from the Discriminator
+        and create dataset D.  Returns number of machine labels found.
         &#34;&#34;&#34;
         M = self.M
 
@@ -1390,8 +1427,16 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
     # STEP 7 (calls 8)
     #
     def relabel(self, percent_to_replace=30):
-        &#34;&#34;&#34;
-        Relabels a subset of Dataset D
+        &#34;&#34;&#34; Relabels a subset of Dataset D
+
+        Parameters
+        ----------
+        percent_to_replace : int
+            Percentage of D to relabel
+
+        Returns
+        -------
+        None
         &#34;&#34;&#34;
 
         M = self.M
@@ -1477,10 +1522,19 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
     # STEP 8
     #
     def update_A_train(self, balance=True, fillup=True):
-        &#34;&#34;&#34;
-        Update A_train with selected points from D.
-        Then, remove D from B and A_test (whereever it was!).
-        Fill-up both B and A_test.
+        &#34;&#34;&#34; Update A_train with selected points from D. Then, remove D from B
+        and A_test (wherever it was!). Fill-up both B and A_test (internal!).
+
+        Parameters
+        ----------
+        balance : bool
+            If True, balance A_train with B and A_test
+        fillup : bool
+            If True, fill-up B and A_test with points from A_train
+
+        Returns
+        -------
+        None
         &#34;&#34;&#34;
         M = self.M
 
@@ -1583,11 +1637,65 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
 </details>
 <h3>Methods</h3>
 <dl>
+<dt id="gp2.runner.Runner.create_C_dataset"><code class="name flex">
+<span>def <span class="ident">create_C_dataset</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create the C dataset from the classifier predictions (internal!).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_C_dataset(self):
+    &#34;&#34;&#34; Create the C dataset from the classifier predictions (internal!).&#34;&#34;&#34;
+    M = self.M
+
+    A_test = M.get(&#39;A_test&#39;)
+    A_test_pred = M.get(&#39;A_test_pred&#39;)
+    B = M.get(&#39;B&#39;)
+
+    A_test_images_only_, A_test_images_only_ids = A_test.to_array()
+    A_test_images_only_ = A_test_images_only_[:, :, :, 0].astype(np.uint8)
+
+    A_test_pred_, A_test_pred_ids = A_test_pred.to_array()
+    A_test_pred_ = A_test_pred_.astype(np.uint8)
+
+    A_test_with_pred_ = np.stack(
+        (A_test_images_only_, A_test_pred_[:, :, :, 0]), axis=-1)
+
+    #
+    # CREATE C DATASET
+    #
+    B_, B_ids = B.to_array()
+
+    C_size = (2 * B_.shape[0], B_.shape[1], B_.shape[2])
+    C_images_ = np.zeros((C_size + (B_.shape[3],)), dtype=B_.dtype)
+
+    C_images_[0:A_test_with_pred_.shape[0]] = A_test_with_pred_
+    C_images_[A_test_with_pred_.shape[0]:] = B_
+
+    C_labels_ = np.empty((C_size + (1,)), dtype=np.bool)
+    C_labels_[0:B_.shape[0], 0, 0, 0] = 1
+    C_labels_[B_.shape[0]:, 0, 0, 0] = 0
+
+    C_ = np.concatenate((C_images_, C_labels_), axis=-1)
+
+    # combine the uniq ids from A_test_pred and B
+    C_ids = A_test_pred_ids + B_ids
+
+    C = Collection.from_list(C_, C_ids)
+
+    M.register(C, &#39;C&#39;)
+
+    if self.store_after_each_step:
+        M.save(os.path.join(self.workingdir, &#39;M_step2.pickle&#39;))</code></pre>
+</details>
+</dd>
 <dt id="gp2.runner.Runner.create_C_train_val_test_split"><code class="name flex">
 <span>def <span class="ident">create_C_train_val_test_split</span></span>(<span>self, train_count=300, val_count=100, test_count=100)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Create the C train/val/test split</p>
+<div class="desc"><p>Create the C train/val/test split from the C dataset (internal!).</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>train_count</code></strong> :&ensp;<code>int</code></dt>
@@ -1610,7 +1718,7 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
                                   train_count=300,
                                   val_count=100,
                                   test_count=100):
-    &#34;&#34;&#34; Create the C train/val/test split
+    &#34;&#34;&#34; Create the C train/val/test split from the C dataset (internal!).
 
     Parameters
     ----------
@@ -1629,20 +1737,18 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
     M = self.M
 
     C = M.get(&#39;C&#39;)
-
-    C.shuffle()  # we need to shuffle in connection land to keep track of the ids
+    # we need to shuffle in connection land to keep track of the ids
+    C.shuffle()
 
     C_, C_ids = C.to_array()
-    C_train_, C_val_, C_test_ = Util.create_train_val_test_split(C_,
-                                                                 train_count=train_count,
-                                                                 val_count=val_count,
-                                                                 test_count=test_count,
-                                                                 shuffle=False)
+    C_train_, C_val_, C_test_ = Util.create_train_val_test_split(
+        C_, train_count=train_count, val_count=val_count,
+        test_count=test_count, shuffle=False)
 
     C_train_ids = C_ids[0:train_count]
     C_val_ids = C_ids[train_count:train_count + val_count]
-    C_test_ids = C_ids[
-                 train_count + val_count:train_count + val_count + test_count]
+    C_test_ids = \
+        C_ids[train_count + val_count:train_count + val_count + test_count]
 
     C_train = Collection.from_list(C_train_, C_train_ids)
     C_val = Collection.from_list(C_val_, C_val_ids)
@@ -1660,8 +1766,7 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
 <span>def <span class="ident">find_machine_labels</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This finds all machine labels,
-as indicated from the Discriminator
+<div class="desc"><p>This finds all machine labels, as indicated from the Discriminator
 and create dataset D.
 Returns number of machine labels found.</p></div>
 <details class="source">
@@ -1669,11 +1774,8 @@ Returns number of machine labels found.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def find_machine_labels(self):
-    &#34;&#34;&#34;
-    This finds all machine labels,
-    as indicated from the Discriminator
-    and create dataset D.
-    Returns number of machine labels found.
+    &#34;&#34;&#34; This finds all machine labels, as indicated from the Discriminator
+    and create dataset D.  Returns number of machine labels found.
     &#34;&#34;&#34;
     M = self.M
 
@@ -1741,18 +1843,70 @@ Returns number of machine labels found.</p></div>
     Util.plot_accuracies(x, y1, y2)</code></pre>
 </details>
 </dd>
+<dt id="gp2.runner.Runner.predict_discriminator"><code class="name flex">
+<span>def <span class="ident">predict_discriminator</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Predict using the Discriminator (internal!)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def predict_discriminator(self):
+    &#34;&#34;&#34; Predict using the Discriminator (internal!) &#34;&#34;&#34;
+    M = self.M
+
+    C_test = M.get(&#39;C_test&#39;)
+    C_test_, C_test_ids = C_test.to_array()
+    X_test_images_ = C_test_[:, :, :, 0]
+    X_test_masks_ = C_test_[:, :, :, 1]
+    y_test_ = C_test_[:, 0, 0, 2]
+
+    cnnd = self.discriminator
+    print(&#39;Testing the discriminator...&#39;)
+    predictions, scores = cnnd.predict(X_test_images_, X_test_masks_,
+                                       y_test_)
+
+    self.discriminator_scores.append(scores)
+
+    C_test_pred = Collection.from_list(predictions, C_test_ids)
+
+    M.register(C_test_pred, &#39;C_test_pred&#39;)
+
+    if self.store_after_each_step:
+        M.save(os.path.join(self.workingdir, &#39;M_step5.pickle&#39;))</code></pre>
+</details>
+</dd>
 <dt id="gp2.runner.Runner.relabel"><code class="name flex">
 <span>def <span class="ident">relabel</span></span>(<span>self, percent_to_replace=30)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Relabels a subset of Dataset D</p></div>
+<div class="desc"><p>Relabels a subset of Dataset D</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>percent_to_replace</code></strong> :&ensp;<code>int</code></dt>
+<dd>Percentage of D to relabel</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def relabel(self, percent_to_replace=30):
-    &#34;&#34;&#34;
-    Relabels a subset of Dataset D
+    &#34;&#34;&#34; Relabels a subset of Dataset D
+
+    Parameters
+    ----------
+    percent_to_replace : int
+        Percentage of D to relabel
+
+    Returns
+    -------
+    None
     &#34;&#34;&#34;
 
     M = self.M
@@ -2003,7 +2157,7 @@ trained, this will just predict.</p>
         raise ValueError(
             &#34;The sum of train_ratio, val_ratio, and test_ratio must be approximately equal to 1&#34;)
 
-    self.__create_C_dataset()
+    self.create_C_dataset()
 
     dataset_size = self.dataset_size
     weights = self.weights
@@ -2043,7 +2197,7 @@ trained, this will just predict.</p>
     if self.store_after_each_step:
         M.save(os.path.join(self.workingdir, &#39;M_step4.pickle&#39;))
 
-    self.__predict_discriminator()</code></pre>
+    self.predict_discriminator()</code></pre>
 </details>
 </dd>
 <dt id="gp2.runner.Runner.setup_data"><code class="name flex">
@@ -2053,23 +2207,29 @@ trained, this will just predict.</p>
 <div class="desc"><p>Set up the data for training.</p>
 <p>Each dataset is composed of three parts:
 A_: data to train/val/test the classifier </p>
-<p>B_: expert labels to feed directly into the discriminator </p>
-<p>Z_: a repository of additional data that can further train the classifier</p>
-<p>Parameters</p>
-<hr>
-<p>images : list of np.ndarray
-List of images to use for training.
-masks : list of np.ndarray
-List of masks to use for training.
-dataset_size : int
-Number of images to use for training.
-weights : dict
-Weights to use for training. If None, will use the default weights.
+<pre><code>B_: expert labels to feed directly into the discriminator
+
+Z_: a repository of additional data that can further train the
+classifier
+</code></pre>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>images</code></strong> :&ensp;<code>list</code> of <code>np.ndarray</code></dt>
+<dd>List of images to use for training.</dd>
+<dt><strong><code>masks</code></strong> :&ensp;<code>list</code> of <code>np.ndarray</code></dt>
+<dd>List of masks to use for training.</dd>
+<dt><strong><code>dataset_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of images to use for training.</dd>
+<dt><strong><code>weights</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Weights to use for training. If None, will use the default weights.
 Weights should be a dictionary with keys 'A', 'B', 'Z', 'A_test'.
-The weights should sum to 1.0.</p>
-<p>Returns</p>
-<hr>
-<p>None</p></div>
+The weights should sum to 1.0.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2077,10 +2237,11 @@ The weights should sum to 1.0.</p>
 <pre><code class="python">def setup_data(self, images, masks, dataset_size=1000, weights=None):
     &#34;&#34;&#34; Set up the data for training.
 
-   Each dataset is composed of three parts:
-    A_: data to train/val/test the classifier \n
-    B_: expert labels to feed directly into the discriminator \n
-    Z_: a repository of additional data that can further train the classifier
+    Each dataset is composed of three parts:
+        A_: data to train/val/test the classifier \n
+        B_: expert labels to feed directly into the discriminator \n
+        Z_: a repository of additional data that can further train the
+        classifier
 
     Parameters
     ----------
@@ -2132,18 +2293,15 @@ The weights should sum to 1.0.</p>
         val_count = int(weights[&#39;A&#39;] * weights[&#39;A_val&#39;] * dataset_size)
         test_count = int(weights[&#39;A&#39;] * weights[&#39;A_test&#39;] * dataset_size)
 
-    A_train_, A_val_, A_test_ = Util.create_train_val_test_split(A_,
-                                                                 train_count=train_count,
-                                                                 val_count=val_count,
-                                                                 test_count=test_count,
-                                                                 shuffle=False)
+    A_train_, A_val_, A_test_ = Util.create_train_val_test_split(
+        A_, train_count=train_count, val_count=val_count,
+        test_count=test_count, shuffle=False)
     A_train_ids = A_ids[0:train_count]
     A_val_ids = A_ids[train_count:train_count + val_count]
     A_test_ids = A_ids[
                  train_count + val_count:train_count + val_count + test_count]
 
-    A_train = Collection.from_list(A_train_,
-                                        A_train_ids)  # COLLECTION LAND
+    A_train = Collection.from_list(A_train_, A_train_ids)  # COLLECTION LAND
     A_val = Collection.from_list(A_val_, A_val_ids)
     A_test = Collection.from_list(A_test_, A_test_ids)
 
@@ -2156,18 +2314,38 @@ The weights should sum to 1.0.</p>
 <span>def <span class="ident">update_A_train</span></span>(<span>self, balance=True, fillup=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Update A_train with selected points from D.
-Then, remove D from B and A_test (whereever it was!).
-Fill-up both B and A_test.</p></div>
+<div class="desc"><p>Update A_train with selected points from D. Then, remove D from B
+and A_test (wherever it was!). Fill-up both B and A_test (internal!).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>balance</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, balance A_train with B and A_test</dd>
+<dt><strong><code>fillup</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, fill-up B and A_test with points from A_train</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def update_A_train(self, balance=True, fillup=True):
-    &#34;&#34;&#34;
-    Update A_train with selected points from D.
-    Then, remove D from B and A_test (whereever it was!).
-    Fill-up both B and A_test.
+    &#34;&#34;&#34; Update A_train with selected points from D. Then, remove D from B
+    and A_test (wherever it was!). Fill-up both B and A_test (internal!).
+
+    Parameters
+    ----------
+    balance : bool
+        If True, balance A_train with B and A_test
+    fillup : bool
+        If True, fill-up B and A_test with points from A_train
+
+    Returns
+    -------
+    None
     &#34;&#34;&#34;
     M = self.M
 
@@ -2255,9 +2433,11 @@ Fill-up both B and A_test.</p></div>
 <li>
 <h4><code><a title="gp2.runner.Runner" href="#gp2.runner.Runner">Runner</a></code></h4>
 <ul class="">
+<li><code><a title="gp2.runner.Runner.create_C_dataset" href="#gp2.runner.Runner.create_C_dataset">create_C_dataset</a></code></li>
 <li><code><a title="gp2.runner.Runner.create_C_train_val_test_split" href="#gp2.runner.Runner.create_C_train_val_test_split">create_C_train_val_test_split</a></code></li>
 <li><code><a title="gp2.runner.Runner.find_machine_labels" href="#gp2.runner.Runner.find_machine_labels">find_machine_labels</a></code></li>
 <li><code><a title="gp2.runner.Runner.plot" href="#gp2.runner.Runner.plot">plot</a></code></li>
+<li><code><a title="gp2.runner.Runner.predict_discriminator" href="#gp2.runner.Runner.predict_discriminator">predict_discriminator</a></code></li>
 <li><code><a title="gp2.runner.Runner.relabel" href="#gp2.runner.Runner.relabel">relabel</a></code></li>
 <li><code><a title="gp2.runner.Runner.run" href="#gp2.runner.Runner.run">run</a></code></li>
 <li><code><a title="gp2.runner.Runner.run_classifier" href="#gp2.runner.Runner.run_classifier">run_classifier</a></code></li>

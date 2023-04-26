@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
+    <!-- <add favicon> -->
+<link rel="icon" href="favicon.ico" type="image" />
 <title>gp2 API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -94,7 +96,11 @@ from gp2 import Runner
 </code></pre>
 <h2>To get info about the model, run the following</h2>
 <pre><code class="python">help(gp2.KUNetPlus2D)</code></pre>
-<h3>To use the Keras <b>UnetPlus2D</b>, specify it as the classifier argument to the Runner instance when creating it and pass in any other arguments you wish to change for the model. Each model may not have exactly the same arguments, so be sure to check the documentation for each model which can be done my use the <b>help(gp2.ModelName)</b> function as shown above.</h3>
+<h3>To use the Keras <b>UnetPlus2D</b>, specify it as the classifier argument to
+    the Runner instance when creating it and pass in any other arguments you wish
+    to change for the model. Each model may not have exactly the same arguments,
+    so be sure to check the documentation for each model which can be done by
+    using the <b>help(gp2.ModelName)</b> function as shown above.</h3>
 <pre><code class="python">R = Runner(
     verbose=True,
     classifier='kunetplus2d',
