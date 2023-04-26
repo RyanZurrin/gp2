@@ -26,8 +26,10 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import gp2.data as data
-import gp2
+<pre><code class="python">from .data import *
+from .classifiers import *
+from .discriminators import *
+from .util import *
 import time
 import numpy as np
 import os
@@ -76,6 +78,10 @@ def validate_weights(weights, tolerance=1e-6):
     if not np.isclose(A_mul_A_test, weights[&#39;B&#39;], rtol=tolerance):
         raise ValueError(&#34;A * A_test must be equal to B&#34;)
 
+    # Check if Z &gt; .1
+    if weights[&#39;Z&#39;] &lt; .1:
+        raise ValueError(&#34;Z must be greater than .1&#34;)
+
     print(&#34;Weights OK!&#34;)
 
 
@@ -99,12 +105,12 @@ class Runner:
             Location where to store temporary files and model checkpoints.
         store_after_each_step : bool
             If True, will store the model after each step of the training process.
-        classifier : str or gp2.Classifier
+        classifier : str or Classifier
             The classifier to use. If None, will use the default handcrafted
             unet classifier. If &#39;unet&#39;, will use the default unet classifier.
             Supported classifiers are: &#39;unet&#39;,&#39;unetplus&#39;, &#39;kattunet2d&#39;, &#39;kunet2d&#39;,
             &#39;kunetplus2d&#39;, &#39;kresunet2d&#39;, &#39;kunet3plus2d&#39;, &#39;kvnet2d&#39;, &#39;kr2unet2d&#39;
-        discriminator : str or gp2.Discriminator
+        discriminator : str or Discriminator
             The discriminator to use. If None, will use the default handcrafted
             discriminator. If &#39;unet&#39;, will use the default unet discriminator.
             Supported discriminators are: DEFAULT ONLY FOR NOW.
@@ -119,65 +125,61 @@ class Runner:
 
         self.verbose = verbose
 
-        self.M = data.Manager()
+        self.M = Manager()
 
         self.dataset_size = None
 
         # Initialize the classifier
         self.classifier_scores = []
         if classifier is None or isinstance(classifier,
-                                            gp2.UNet) or classifier == &#39;unet&#39;:
-            self.classifier = gp2.UNet(verbose=self.verbose,
-                                       workingdir=self.workingdir)
-        elif isinstance(classifier, gp2.UNetPLUS) or classifier == &#39;unetplus&#39;:
-            self.classifier = gp2.UNetPLUS(verbose=self.verbose,
-                                           workingdir=self.workingdir, **kwargs)
+                                            UNet) or classifier == &#39;unet&#39;:
+            self.classifier = UNet(verbose=self.verbose,
+                                   workingdir=self.workingdir)
+        elif isinstance(classifier, UNetPLUS) or classifier == &#39;unetplus&#39;:
+            self.classifier = UNetPLUS(verbose=self.verbose,
+                                       workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier, KATTUnet2D) or classifier == &#39;kattunet2d&#39;:
+            self.classifier = KATTUnet2D(verbose=self.verbose,
+                                         workingdir=self.workingdir,
+                                         **kwargs)
+        elif isinstance(classifier, KUNet2D) or classifier == &#39;kunet2d&#39;:
+            self.classifier = KUNet2D(verbose=self.verbose,
+                                      workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier, KUNetPlus2D) or classifier == &#39;kunetplus2d&#39;:
+            self.classifier = KUNetPlus2D(verbose=self.verbose,
+                                          workingdir=self.workingdir,
+                                          **kwargs)
+        elif isinstance(classifier, KResUNet2D) or classifier == &#39;kresunet2d&#39;:
+            self.classifier = KResUNet2D(verbose=self.verbose,
+                                         workingdir=self.workingdir,
+                                         **kwargs)
         elif isinstance(classifier,
-                        gp2.gp2.classifiers.k_att_unet2d.KATTUnet2D) or classifier == &#39;kattunet2d&#39;:
-            self.classifier = gp2.KATTUnet2D(verbose=self.verbose,
-                                             workingdir=self.workingdir,
-                                             **kwargs)
-        elif isinstance(classifier, gp2.KUNet2D) or classifier == &#39;kunet2d&#39;:
-            self.classifier = gp2.KUNet2D(verbose=self.verbose,
-                                          workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier,
-                        gp2.KUNetPlus2D) or classifier == &#39;kunetplus2d&#39;:
-            self.classifier = gp2.KUNetPlus2D(verbose=self.verbose,
-                                              workingdir=self.workingdir,
-                                              **kwargs)
-        elif isinstance(classifier,
-                        gp2.KResUNet2D) or classifier == &#39;kresunet2d&#39;:
-            self.classifier = gp2.KResUNet2D(verbose=self.verbose,
-                                             workingdir=self.workingdir,
-                                             **kwargs)
-        elif isinstance(classifier,
-                        gp2.KUNet3Plus2D) or classifier == &#39;kunet3plus2d&#39;:
-            self.classifier = gp2.KUNet3Plus2D(verbose=self.verbose,
-                                               workingdir=self.workingdir,
-                                               **kwargs)
-        elif isinstance(classifier, gp2.KVNet2D) or classifier == &#39;kvnet2d&#39;:
-            self.classifier = gp2.KVNet2D(verbose=self.verbose,
-                                          workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier,
-                        gp2.KR2UNet2dD) or classifier == &#39;kr2unet2d&#39;:
-            self.classifier = gp2.KR2UNet2dD(verbose=self.verbose,
-                                             workingdir=self.workingdir,
-                                             **kwargs)
+                        KUNet3Plus2D) or classifier == &#39;kunet3plus2d&#39;:
+            self.classifier = KUNet3Plus2D(verbose=self.verbose,
+                                           workingdir=self.workingdir,
+                                           **kwargs)
+        elif isinstance(classifier, KVNet2D) or classifier == &#39;kvnet2d&#39;:
+            self.classifier = KVNet2D(verbose=self.verbose,
+                                      workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier, KR2UNet2dD) or classifier == &#39;kr2unet2d&#39;:
+            self.classifier = KR2UNet2dD(verbose=self.verbose,
+                                         workingdir=self.workingdir,
+                                         **kwargs)
         else:
             raise ValueError(&#39;Classifier not supported: {}&#39;.format(classifier))
 
         # Initialize the discriminator
         self.discriminator_scores = []
         if discriminator is None or isinstance(discriminator,
-                                               gp2.CNNDiscriminator) or discriminator == &#39;cnn&#39;:
+                                               CNNDiscriminator) or discriminator == &#39;cnn&#39;:
             print(&#39;Using default discriminator (CNN)&#39;)
-            self.discriminator = gp2.CNNDiscriminator(verbose=self.verbose,
-                                                      workingdir=self.workingdir)
+            self.discriminator = CNNDiscriminator(verbose=self.verbose,
+                                                  workingdir=self.workingdir)
         elif isinstance(discriminator,
-                        gp2.CNNDiscriminatorPLUS) or discriminator == &#39;cnnplus&#39;:
+                        CNNDiscriminatorPLUS) or discriminator == &#39;cnnplus&#39;:
             print(&#39;Using  discriminator (CNN+)&#39;)
-            self.discriminator = gp2.CNNDiscriminatorPLUS(verbose=self.verbose,
-                                                          workingdir=self.workingdir)
+            self.discriminator = CNNDiscriminatorPLUS(verbose=self.verbose,
+                                                      workingdir=self.workingdir)
         else:
             raise ValueError(&#39;Discriminator not supported: {}&#39;.format(
                 discriminator))
@@ -218,13 +220,13 @@ class Runner:
         if weights:
             validate_weights(weights)
 
-        A_, B_, Z_ = gp2.Util.create_A_B_Z_split(images, masks,
-                                                 dataset_size=dataset_size,
-                                                 weights=weights)
+        A_, B_, Z_ = Util.create_A_B_Z_split(images, masks,
+                                             dataset_size=dataset_size,
+                                             weights=weights)
 
-        A = data.Collection.from_list(A_)
-        B = data.Collection.from_list(B_)
-        Z = data.Collection.from_list(Z_)
+        A = Collection.from_list(A_)
+        B = Collection.from_list(B_)
+        Z = Collection.from_list(Z_)
 
         M.register(A, &#39;A&#39;)  # we might not need to save this one here
         M.register(B, &#39;B&#39;)
@@ -243,20 +245,20 @@ class Runner:
             val_count = int(weights[&#39;A&#39;] * weights[&#39;A_val&#39;] * dataset_size)
             test_count = int(weights[&#39;A&#39;] * weights[&#39;A_test&#39;] * dataset_size)
 
-        A_train_, A_val_, A_test_ = gp2.Util.create_train_val_test_split(A_,
-                                                                         train_count=train_count,
-                                                                         val_count=val_count,
-                                                                         test_count=test_count,
-                                                                         shuffle=False)
+        A_train_, A_val_, A_test_ = Util.create_train_val_test_split(A_,
+                                                                     train_count=train_count,
+                                                                     val_count=val_count,
+                                                                     test_count=test_count,
+                                                                     shuffle=False)
         A_train_ids = A_ids[0:train_count]
         A_val_ids = A_ids[train_count:train_count + val_count]
         A_test_ids = A_ids[
                      train_count + val_count:train_count + val_count + test_count]
 
-        A_train = data.Collection.from_list(A_train_,
+        A_train = Collection.from_list(A_train_,
                                             A_train_ids)  # COLLECTION LAND
-        A_val = data.Collection.from_list(A_val_, A_val_ids)
-        A_test = data.Collection.from_list(A_test_, A_test_ids)
+        A_val = Collection.from_list(A_val_, A_val_ids)
+        A_test = Collection.from_list(A_test_, A_test_ids)
 
         M.register(A_train, &#39;A_train&#39;)
         M.register(A_val, &#39;A_val&#39;)
@@ -313,7 +315,7 @@ class Runner:
         #
         # A_TEST PREDICTION
         #
-        A_test_pred = data.Collection.from_list(predictions, X_test_ids)
+        A_test_pred = Collection.from_list(predictions, X_test_ids)
 
         M.register(A_test_pred, &#39;A_test_pred&#39;)
 
@@ -362,7 +364,7 @@ class Runner:
         # combine the uniq ids from A_test_pred and B
         C_ids = A_test_pred_ids + B_ids
 
-        C = data.Collection.from_list(C_, C_ids)
+        C = Collection.from_list(C_, C_ids)
 
         M.register(C, &#39;C&#39;)
 
@@ -399,20 +401,20 @@ class Runner:
         C.shuffle()  # we need to shuffle in connection land to keep track of the ids
 
         C_, C_ids = C.to_array()
-        C_train_, C_val_, C_test_ = gp2.Util.create_train_val_test_split(C_,
-                                                                         train_count=train_count,
-                                                                         val_count=val_count,
-                                                                         test_count=test_count,
-                                                                         shuffle=False)
+        C_train_, C_val_, C_test_ = Util.create_train_val_test_split(C_,
+                                                                     train_count=train_count,
+                                                                     val_count=val_count,
+                                                                     test_count=test_count,
+                                                                     shuffle=False)
 
         C_train_ids = C_ids[0:train_count]
         C_val_ids = C_ids[train_count:train_count + val_count]
         C_test_ids = C_ids[
                      train_count + val_count:train_count + val_count + test_count]
 
-        C_train = data.Collection.from_list(C_train_, C_train_ids)
-        C_val = data.Collection.from_list(C_val_, C_val_ids)
-        C_test = data.Collection.from_list(C_test_, C_test_ids)
+        C_train = Collection.from_list(C_train_, C_train_ids)
+        C_val = Collection.from_list(C_val_, C_val_ids)
+        C_test = Collection.from_list(C_test_, C_test_ids)
 
         M.register(C_train, &#39;C_train&#39;)
         M.register(C_val, &#39;C_val&#39;)
@@ -512,7 +514,7 @@ class Runner:
 
         self.discriminator_scores.append(scores)
 
-        C_test_pred = data.Collection.from_list(predictions, C_test_ids)
+        C_test_pred = Collection.from_list(predictions, C_test_ids)
 
         M.register(C_test_pred, &#39;C_test_pred&#39;)
 
@@ -567,7 +569,7 @@ class Runner:
 
         print(&#39;D_ids&#39;, D_ids)
 
-        D = data.Collection.from_list(D_, D_ids)
+        D = Collection.from_list(D_, D_ids)
 
         M.register(D, &#39;D&#39;)
 
@@ -651,7 +653,7 @@ class Runner:
         print(&#39;D_relabeled_&#39;, D_relabeled_.shape[0])
         print(&#39;selected_ids&#39;, selected_ids)
 
-        D_relabeled = data.Collection.from_list(D_relabeled_, selected_ids)
+        D_relabeled = Collection.from_list(D_relabeled_, selected_ids)
 
         print(D_relabeled.data.keys())
 
@@ -708,7 +710,7 @@ class Runner:
                 print(&#39;Lost Datapoint!!&#39;, k)
                 continue
 
-            p = data.Point(origin.data[k])
+            p = Point(origin.data[k])
             p.id = k
 
             M.remove_and_add(origin, A_train, p)
@@ -720,7 +722,7 @@ class Runner:
                 Z_uniq_ids = list(Z.data.keys())
                 Z_uniq_id = np.random.choice(Z_uniq_ids, replace=False)
 
-                p = data.Point(Z.data[Z_uniq_id])
+                p = Point(Z.data[Z_uniq_id])
                 p.id = Z_uniq_id
 
                 M.remove_and_add(Z, origin, p)
@@ -769,7 +771,7 @@ class Runner:
         y1 = [v[1] for v in self.classifier_scores]
         y2 = [v[1] for v in self.discriminator_scores]
 
-        gp2.Util.plot_accuracies(x, y1, y2)</code></pre>
+        Util.plot_accuracies(x, y1, y2)</code></pre>
 </details>
 </section>
 <section>
@@ -849,6 +851,10 @@ Z &gt; .1</p>
     if not np.isclose(A_mul_A_test, weights[&#39;B&#39;], rtol=tolerance):
         raise ValueError(&#34;A * A_test must be equal to B&#34;)
 
+    # Check if Z &gt; .1
+    if weights[&#39;Z&#39;] &lt; .1:
+        raise ValueError(&#34;Z must be greater than .1&#34;)
+
     print(&#34;Weights OK!&#34;)</code></pre>
 </details>
 </dd>
@@ -859,7 +865,7 @@ Z &gt; .1</p>
 <dl>
 <dt id="gp2.runner.Runner"><code class="flex name class">
 <span>class <span class="ident">Runner</span></span>
-<span>(</span><span>verbose=False, workingdir='/tmp/tmp8r8zs68zGP2', store_after_each_step=False, classifier=None, discriminator=None, weights=None, **kwargs)</span>
+<span>(</span><span>verbose=False, workingdir='/tmp/tmpvrjd4at7GP2', store_after_each_step=False, classifier=None, discriminator=None, weights=None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initialize the GP2 runner with specified classifier and discriminator.</p>
@@ -871,12 +877,12 @@ Z &gt; .1</p>
 <dd>Location where to store temporary files and model checkpoints.</dd>
 <dt><strong><code>store_after_each_step</code></strong> :&ensp;<code>bool</code></dt>
 <dd>If True, will store the model after each step of the training process.</dd>
-<dt><strong><code>classifier</code></strong> :&ensp;<code>str</code> or <code>gp2.Classifier</code></dt>
+<dt><strong><code>classifier</code></strong> :&ensp;<code>str</code> or <code>Classifier</code></dt>
 <dd>The classifier to use. If None, will use the default handcrafted
 unet classifier. If 'unet', will use the default unet classifier.
 Supported classifiers are: 'unet','unetplus', 'kattunet2d', 'kunet2d',
 'kunetplus2d', 'kresunet2d', 'kunet3plus2d', 'kvnet2d', 'kr2unet2d'</dd>
-<dt><strong><code>discriminator</code></strong> :&ensp;<code>str</code> or <code>gp2.Discriminator</code></dt>
+<dt><strong><code>discriminator</code></strong> :&ensp;<code>str</code> or <code>Discriminator</code></dt>
 <dd>The discriminator to use. If None, will use the default handcrafted
 discriminator. If 'unet', will use the default unet discriminator.
 Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
@@ -907,12 +913,12 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
             Location where to store temporary files and model checkpoints.
         store_after_each_step : bool
             If True, will store the model after each step of the training process.
-        classifier : str or gp2.Classifier
+        classifier : str or Classifier
             The classifier to use. If None, will use the default handcrafted
             unet classifier. If &#39;unet&#39;, will use the default unet classifier.
             Supported classifiers are: &#39;unet&#39;,&#39;unetplus&#39;, &#39;kattunet2d&#39;, &#39;kunet2d&#39;,
             &#39;kunetplus2d&#39;, &#39;kresunet2d&#39;, &#39;kunet3plus2d&#39;, &#39;kvnet2d&#39;, &#39;kr2unet2d&#39;
-        discriminator : str or gp2.Discriminator
+        discriminator : str or Discriminator
             The discriminator to use. If None, will use the default handcrafted
             discriminator. If &#39;unet&#39;, will use the default unet discriminator.
             Supported discriminators are: DEFAULT ONLY FOR NOW.
@@ -927,65 +933,61 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
 
         self.verbose = verbose
 
-        self.M = data.Manager()
+        self.M = Manager()
 
         self.dataset_size = None
 
         # Initialize the classifier
         self.classifier_scores = []
         if classifier is None or isinstance(classifier,
-                                            gp2.UNet) or classifier == &#39;unet&#39;:
-            self.classifier = gp2.UNet(verbose=self.verbose,
-                                       workingdir=self.workingdir)
-        elif isinstance(classifier, gp2.UNetPLUS) or classifier == &#39;unetplus&#39;:
-            self.classifier = gp2.UNetPLUS(verbose=self.verbose,
-                                           workingdir=self.workingdir, **kwargs)
+                                            UNet) or classifier == &#39;unet&#39;:
+            self.classifier = UNet(verbose=self.verbose,
+                                   workingdir=self.workingdir)
+        elif isinstance(classifier, UNetPLUS) or classifier == &#39;unetplus&#39;:
+            self.classifier = UNetPLUS(verbose=self.verbose,
+                                       workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier, KATTUnet2D) or classifier == &#39;kattunet2d&#39;:
+            self.classifier = KATTUnet2D(verbose=self.verbose,
+                                         workingdir=self.workingdir,
+                                         **kwargs)
+        elif isinstance(classifier, KUNet2D) or classifier == &#39;kunet2d&#39;:
+            self.classifier = KUNet2D(verbose=self.verbose,
+                                      workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier, KUNetPlus2D) or classifier == &#39;kunetplus2d&#39;:
+            self.classifier = KUNetPlus2D(verbose=self.verbose,
+                                          workingdir=self.workingdir,
+                                          **kwargs)
+        elif isinstance(classifier, KResUNet2D) or classifier == &#39;kresunet2d&#39;:
+            self.classifier = KResUNet2D(verbose=self.verbose,
+                                         workingdir=self.workingdir,
+                                         **kwargs)
         elif isinstance(classifier,
-                        gp2.gp2.classifiers.k_att_unet2d.KATTUnet2D) or classifier == &#39;kattunet2d&#39;:
-            self.classifier = gp2.KATTUnet2D(verbose=self.verbose,
-                                             workingdir=self.workingdir,
-                                             **kwargs)
-        elif isinstance(classifier, gp2.KUNet2D) or classifier == &#39;kunet2d&#39;:
-            self.classifier = gp2.KUNet2D(verbose=self.verbose,
-                                          workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier,
-                        gp2.KUNetPlus2D) or classifier == &#39;kunetplus2d&#39;:
-            self.classifier = gp2.KUNetPlus2D(verbose=self.verbose,
-                                              workingdir=self.workingdir,
-                                              **kwargs)
-        elif isinstance(classifier,
-                        gp2.KResUNet2D) or classifier == &#39;kresunet2d&#39;:
-            self.classifier = gp2.KResUNet2D(verbose=self.verbose,
-                                             workingdir=self.workingdir,
-                                             **kwargs)
-        elif isinstance(classifier,
-                        gp2.KUNet3Plus2D) or classifier == &#39;kunet3plus2d&#39;:
-            self.classifier = gp2.KUNet3Plus2D(verbose=self.verbose,
-                                               workingdir=self.workingdir,
-                                               **kwargs)
-        elif isinstance(classifier, gp2.KVNet2D) or classifier == &#39;kvnet2d&#39;:
-            self.classifier = gp2.KVNet2D(verbose=self.verbose,
-                                          workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier,
-                        gp2.KR2UNet2dD) or classifier == &#39;kr2unet2d&#39;:
-            self.classifier = gp2.KR2UNet2dD(verbose=self.verbose,
-                                             workingdir=self.workingdir,
-                                             **kwargs)
+                        KUNet3Plus2D) or classifier == &#39;kunet3plus2d&#39;:
+            self.classifier = KUNet3Plus2D(verbose=self.verbose,
+                                           workingdir=self.workingdir,
+                                           **kwargs)
+        elif isinstance(classifier, KVNet2D) or classifier == &#39;kvnet2d&#39;:
+            self.classifier = KVNet2D(verbose=self.verbose,
+                                      workingdir=self.workingdir, **kwargs)
+        elif isinstance(classifier, KR2UNet2dD) or classifier == &#39;kr2unet2d&#39;:
+            self.classifier = KR2UNet2dD(verbose=self.verbose,
+                                         workingdir=self.workingdir,
+                                         **kwargs)
         else:
             raise ValueError(&#39;Classifier not supported: {}&#39;.format(classifier))
 
         # Initialize the discriminator
         self.discriminator_scores = []
         if discriminator is None or isinstance(discriminator,
-                                               gp2.CNNDiscriminator) or discriminator == &#39;cnn&#39;:
+                                               CNNDiscriminator) or discriminator == &#39;cnn&#39;:
             print(&#39;Using default discriminator (CNN)&#39;)
-            self.discriminator = gp2.CNNDiscriminator(verbose=self.verbose,
-                                                      workingdir=self.workingdir)
+            self.discriminator = CNNDiscriminator(verbose=self.verbose,
+                                                  workingdir=self.workingdir)
         elif isinstance(discriminator,
-                        gp2.CNNDiscriminatorPLUS) or discriminator == &#39;cnnplus&#39;:
+                        CNNDiscriminatorPLUS) or discriminator == &#39;cnnplus&#39;:
             print(&#39;Using  discriminator (CNN+)&#39;)
-            self.discriminator = gp2.CNNDiscriminatorPLUS(verbose=self.verbose,
-                                                          workingdir=self.workingdir)
+            self.discriminator = CNNDiscriminatorPLUS(verbose=self.verbose,
+                                                      workingdir=self.workingdir)
         else:
             raise ValueError(&#39;Discriminator not supported: {}&#39;.format(
                 discriminator))
@@ -1026,13 +1028,13 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
         if weights:
             validate_weights(weights)
 
-        A_, B_, Z_ = gp2.Util.create_A_B_Z_split(images, masks,
-                                                 dataset_size=dataset_size,
-                                                 weights=weights)
+        A_, B_, Z_ = Util.create_A_B_Z_split(images, masks,
+                                             dataset_size=dataset_size,
+                                             weights=weights)
 
-        A = data.Collection.from_list(A_)
-        B = data.Collection.from_list(B_)
-        Z = data.Collection.from_list(Z_)
+        A = Collection.from_list(A_)
+        B = Collection.from_list(B_)
+        Z = Collection.from_list(Z_)
 
         M.register(A, &#39;A&#39;)  # we might not need to save this one here
         M.register(B, &#39;B&#39;)
@@ -1051,20 +1053,20 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
             val_count = int(weights[&#39;A&#39;] * weights[&#39;A_val&#39;] * dataset_size)
             test_count = int(weights[&#39;A&#39;] * weights[&#39;A_test&#39;] * dataset_size)
 
-        A_train_, A_val_, A_test_ = gp2.Util.create_train_val_test_split(A_,
-                                                                         train_count=train_count,
-                                                                         val_count=val_count,
-                                                                         test_count=test_count,
-                                                                         shuffle=False)
+        A_train_, A_val_, A_test_ = Util.create_train_val_test_split(A_,
+                                                                     train_count=train_count,
+                                                                     val_count=val_count,
+                                                                     test_count=test_count,
+                                                                     shuffle=False)
         A_train_ids = A_ids[0:train_count]
         A_val_ids = A_ids[train_count:train_count + val_count]
         A_test_ids = A_ids[
                      train_count + val_count:train_count + val_count + test_count]
 
-        A_train = data.Collection.from_list(A_train_,
+        A_train = Collection.from_list(A_train_,
                                             A_train_ids)  # COLLECTION LAND
-        A_val = data.Collection.from_list(A_val_, A_val_ids)
-        A_test = data.Collection.from_list(A_test_, A_test_ids)
+        A_val = Collection.from_list(A_val_, A_val_ids)
+        A_test = Collection.from_list(A_test_, A_test_ids)
 
         M.register(A_train, &#39;A_train&#39;)
         M.register(A_val, &#39;A_val&#39;)
@@ -1121,7 +1123,7 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
         #
         # A_TEST PREDICTION
         #
-        A_test_pred = data.Collection.from_list(predictions, X_test_ids)
+        A_test_pred = Collection.from_list(predictions, X_test_ids)
 
         M.register(A_test_pred, &#39;A_test_pred&#39;)
 
@@ -1170,7 +1172,7 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
         # combine the uniq ids from A_test_pred and B
         C_ids = A_test_pred_ids + B_ids
 
-        C = data.Collection.from_list(C_, C_ids)
+        C = Collection.from_list(C_, C_ids)
 
         M.register(C, &#39;C&#39;)
 
@@ -1207,20 +1209,20 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
         C.shuffle()  # we need to shuffle in connection land to keep track of the ids
 
         C_, C_ids = C.to_array()
-        C_train_, C_val_, C_test_ = gp2.Util.create_train_val_test_split(C_,
-                                                                         train_count=train_count,
-                                                                         val_count=val_count,
-                                                                         test_count=test_count,
-                                                                         shuffle=False)
+        C_train_, C_val_, C_test_ = Util.create_train_val_test_split(C_,
+                                                                     train_count=train_count,
+                                                                     val_count=val_count,
+                                                                     test_count=test_count,
+                                                                     shuffle=False)
 
         C_train_ids = C_ids[0:train_count]
         C_val_ids = C_ids[train_count:train_count + val_count]
         C_test_ids = C_ids[
                      train_count + val_count:train_count + val_count + test_count]
 
-        C_train = data.Collection.from_list(C_train_, C_train_ids)
-        C_val = data.Collection.from_list(C_val_, C_val_ids)
-        C_test = data.Collection.from_list(C_test_, C_test_ids)
+        C_train = Collection.from_list(C_train_, C_train_ids)
+        C_val = Collection.from_list(C_val_, C_val_ids)
+        C_test = Collection.from_list(C_test_, C_test_ids)
 
         M.register(C_train, &#39;C_train&#39;)
         M.register(C_val, &#39;C_val&#39;)
@@ -1320,7 +1322,7 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
 
         self.discriminator_scores.append(scores)
 
-        C_test_pred = data.Collection.from_list(predictions, C_test_ids)
+        C_test_pred = Collection.from_list(predictions, C_test_ids)
 
         M.register(C_test_pred, &#39;C_test_pred&#39;)
 
@@ -1375,7 +1377,7 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
 
         print(&#39;D_ids&#39;, D_ids)
 
-        D = data.Collection.from_list(D_, D_ids)
+        D = Collection.from_list(D_, D_ids)
 
         M.register(D, &#39;D&#39;)
 
@@ -1459,7 +1461,7 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
         print(&#39;D_relabeled_&#39;, D_relabeled_.shape[0])
         print(&#39;selected_ids&#39;, selected_ids)
 
-        D_relabeled = data.Collection.from_list(D_relabeled_, selected_ids)
+        D_relabeled = Collection.from_list(D_relabeled_, selected_ids)
 
         print(D_relabeled.data.keys())
 
@@ -1516,7 +1518,7 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
                 print(&#39;Lost Datapoint!!&#39;, k)
                 continue
 
-            p = data.Point(origin.data[k])
+            p = Point(origin.data[k])
             p.id = k
 
             M.remove_and_add(origin, A_train, p)
@@ -1528,7 +1530,7 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
                 Z_uniq_ids = list(Z.data.keys())
                 Z_uniq_id = np.random.choice(Z_uniq_ids, replace=False)
 
-                p = data.Point(Z.data[Z_uniq_id])
+                p = Point(Z.data[Z_uniq_id])
                 p.id = Z_uniq_id
 
                 M.remove_and_add(Z, origin, p)
@@ -1577,7 +1579,7 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
         y1 = [v[1] for v in self.classifier_scores]
         y2 = [v[1] for v in self.discriminator_scores]
 
-        gp2.Util.plot_accuracies(x, y1, y2)</code></pre>
+        Util.plot_accuracies(x, y1, y2)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -1631,20 +1633,20 @@ Supported discriminators are: DEFAULT ONLY FOR NOW.</dd>
     C.shuffle()  # we need to shuffle in connection land to keep track of the ids
 
     C_, C_ids = C.to_array()
-    C_train_, C_val_, C_test_ = gp2.Util.create_train_val_test_split(C_,
-                                                                     train_count=train_count,
-                                                                     val_count=val_count,
-                                                                     test_count=test_count,
-                                                                     shuffle=False)
+    C_train_, C_val_, C_test_ = Util.create_train_val_test_split(C_,
+                                                                 train_count=train_count,
+                                                                 val_count=val_count,
+                                                                 test_count=test_count,
+                                                                 shuffle=False)
 
     C_train_ids = C_ids[0:train_count]
     C_val_ids = C_ids[train_count:train_count + val_count]
     C_test_ids = C_ids[
                  train_count + val_count:train_count + val_count + test_count]
 
-    C_train = data.Collection.from_list(C_train_, C_train_ids)
-    C_val = data.Collection.from_list(C_val_, C_val_ids)
-    C_test = data.Collection.from_list(C_test_, C_test_ids)
+    C_train = Collection.from_list(C_train_, C_train_ids)
+    C_val = Collection.from_list(C_val_, C_val_ids)
+    C_test = Collection.from_list(C_test_, C_test_ids)
 
     M.register(C_train, &#39;C_train&#39;)
     M.register(C_val, &#39;C_val&#39;)
@@ -1711,7 +1713,7 @@ Returns number of machine labels found.</p></div>
 
     print(&#39;D_ids&#39;, D_ids)
 
-    D = data.Collection.from_list(D_, D_ids)
+    D = Collection.from_list(D_, D_ids)
 
     M.register(D, &#39;D&#39;)
 
@@ -1736,7 +1738,7 @@ Returns number of machine labels found.</p></div>
     y1 = [v[1] for v in self.classifier_scores]
     y2 = [v[1] for v in self.discriminator_scores]
 
-    gp2.Util.plot_accuracies(x, y1, y2)</code></pre>
+    Util.plot_accuracies(x, y1, y2)</code></pre>
 </details>
 </dd>
 <dt id="gp2.runner.Runner.relabel"><code class="name flex">
@@ -1820,7 +1822,7 @@ Returns number of machine labels found.</p></div>
     print(&#39;D_relabeled_&#39;, D_relabeled_.shape[0])
     print(&#39;selected_ids&#39;, selected_ids)
 
-    D_relabeled = data.Collection.from_list(D_relabeled_, selected_ids)
+    D_relabeled = Collection.from_list(D_relabeled_, selected_ids)
 
     print(D_relabeled.data.keys())
 
@@ -1939,7 +1941,7 @@ Returns number of machine labels found.</p></div>
     #
     # A_TEST PREDICTION
     #
-    A_test_pred = data.Collection.from_list(predictions, X_test_ids)
+    A_test_pred = Collection.from_list(predictions, X_test_ids)
 
     M.register(A_test_pred, &#39;A_test_pred&#39;)
 
@@ -2105,13 +2107,13 @@ The weights should sum to 1.0.</p>
     if weights:
         validate_weights(weights)
 
-    A_, B_, Z_ = gp2.Util.create_A_B_Z_split(images, masks,
-                                             dataset_size=dataset_size,
-                                             weights=weights)
+    A_, B_, Z_ = Util.create_A_B_Z_split(images, masks,
+                                         dataset_size=dataset_size,
+                                         weights=weights)
 
-    A = data.Collection.from_list(A_)
-    B = data.Collection.from_list(B_)
-    Z = data.Collection.from_list(Z_)
+    A = Collection.from_list(A_)
+    B = Collection.from_list(B_)
+    Z = Collection.from_list(Z_)
 
     M.register(A, &#39;A&#39;)  # we might not need to save this one here
     M.register(B, &#39;B&#39;)
@@ -2130,20 +2132,20 @@ The weights should sum to 1.0.</p>
         val_count = int(weights[&#39;A&#39;] * weights[&#39;A_val&#39;] * dataset_size)
         test_count = int(weights[&#39;A&#39;] * weights[&#39;A_test&#39;] * dataset_size)
 
-    A_train_, A_val_, A_test_ = gp2.Util.create_train_val_test_split(A_,
-                                                                     train_count=train_count,
-                                                                     val_count=val_count,
-                                                                     test_count=test_count,
-                                                                     shuffle=False)
+    A_train_, A_val_, A_test_ = Util.create_train_val_test_split(A_,
+                                                                 train_count=train_count,
+                                                                 val_count=val_count,
+                                                                 test_count=test_count,
+                                                                 shuffle=False)
     A_train_ids = A_ids[0:train_count]
     A_val_ids = A_ids[train_count:train_count + val_count]
     A_test_ids = A_ids[
                  train_count + val_count:train_count + val_count + test_count]
 
-    A_train = data.Collection.from_list(A_train_,
+    A_train = Collection.from_list(A_train_,
                                         A_train_ids)  # COLLECTION LAND
-    A_val = data.Collection.from_list(A_val_, A_val_ids)
-    A_test = data.Collection.from_list(A_test_, A_test_ids)
+    A_val = Collection.from_list(A_val_, A_val_ids)
+    A_test = Collection.from_list(A_test_, A_test_ids)
 
     M.register(A_train, &#39;A_train&#39;)
     M.register(A_val, &#39;A_val&#39;)
@@ -2203,7 +2205,7 @@ Fill-up both B and A_test.</p></div>
             print(&#39;Lost Datapoint!!&#39;, k)
             continue
 
-        p = data.Point(origin.data[k])
+        p = Point(origin.data[k])
         p.id = k
 
         M.remove_and_add(origin, A_train, p)
@@ -2215,7 +2217,7 @@ Fill-up both B and A_test.</p></div>
             Z_uniq_ids = list(Z.data.keys())
             Z_uniq_id = np.random.choice(Z_uniq_ids, replace=False)
 
-            p = data.Point(Z.data[Z_uniq_id])
+            p = Point(Z.data[Z_uniq_id])
             p.id = Z_uniq_id
 
             M.remove_and_add(Z, origin, p)
