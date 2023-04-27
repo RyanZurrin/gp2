@@ -8,7 +8,6 @@ from keras_unet_collection import losses
 
 
 class Util:
-
     @staticmethod
     def disable_tensorflow_logging():
         """ Disables tensorflow logging """
@@ -252,3 +251,24 @@ class Util:
         # loss_ssim = losses.ms_ssim(y_true, y_pred, max_val=1.0, filter_size=4)
 
         return loss_focal + loss_iou  # +loss_ssim
+
+    @staticmethod
+    @tf.function
+    def dice_loss(y_true, y_pred, smooth=1):
+        """ Calculate the dice loss.
+
+        Parameters
+        ----------
+        y_true : numpy.ndarray
+            The true masks.
+        y_pred : numpy.ndarray
+            The predicted masks.
+        smooth : float
+            The smoothing factor.
+
+        Returns
+        -------
+        float
+            The dice loss.
+        """
+        return 1 - Util.dice_coeff(y_true, y_pred, smooth)

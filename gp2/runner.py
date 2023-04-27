@@ -110,6 +110,10 @@ class Runner:
                                             UNet) or classifier == 'unet':
             self.classifier = UNet(verbose=self.verbose,
                                    workingdir=self.workingdir)
+        elif isinstance(classifier, KUNet) or classifier == 'kvanillaunet':
+            self.classifier = KUNet(verbose=self.verbose,
+                                    workingdir=self.workingdir,
+                                    **kwargs)
         elif isinstance(classifier, UNetPLUS) or classifier == 'unetplus':
             self.classifier = UNetPLUS(verbose=self.verbose,
                                        workingdir=self.workingdir, **kwargs)
@@ -150,11 +154,11 @@ class Runner:
             print('Using default discriminator (CNN)')
             self.discriminator = CNNDiscriminator(
                 verbose=self.verbose, workingdir=self.workingdir)
-        # elif isinstance(discriminator,
-        #                 CNNDiscriminatorPLUS) or discriminator == 'cnnplus':
-        #     print('Using  discriminator (CNN+)')
-        #     self.discriminator = CNNDiscriminatorPLUS(
-        #         verbose=self.verbose, workingdir=self.workingdir)
+        elif isinstance(discriminator,
+                        CNNDiscriminatorPLUS) or discriminator == 'cnnplus':
+            print('Using  discriminator (CNN+)')
+            self.discriminator = CNNDiscriminatorPLUS(
+                verbose=self.verbose, workingdir=self.workingdir)
         else:
             raise ValueError('Discriminator not supported: {}'.format(
                 discriminator))

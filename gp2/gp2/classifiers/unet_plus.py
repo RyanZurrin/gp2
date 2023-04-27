@@ -66,15 +66,6 @@ class UNetPLUS(BaseKerasSegmentationClassifier):
             """
         super().__init__(verbose=verbose, workingdir=workingdir)
 
-        if optimizer is None:
-            self.optimizer = optimizers.Adam(lr=1e-4)
-
-        if loss is None:
-            self.loss = losses.binary_crossentropy
-
-        if metrics is None:
-            self.metrics = [Util.dice_coef]
-
         self.input_shape = input_shape
         self.num_classes = num_classes
         self.base_filters = base_filters
@@ -87,6 +78,9 @@ class UNetPLUS(BaseKerasSegmentationClassifier):
         self.depth = depth
         self.num_layers = num_layers
         self.name = name
+        self.optimizer = optimizer or optimizers.Adam(learning_rate=1e-4)
+        self.loss = loss or losses.binary_crossentropy
+        self.metrics = metrics or [Util.dice_coeff]
 
         self.model = self.build()
 

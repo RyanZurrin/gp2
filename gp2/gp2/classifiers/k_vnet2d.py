@@ -78,20 +78,8 @@ class KVNet2D(BaseKerasSegmentationClassifier):
         """
         super().__init__(verbose=verbose, workingdir=workingdir)
 
-        if filter_num is None:
-            filter_num = [32, 64, 128, 256]
-
-        if optimizer is None:
-            optimizer = optimizers.Adam(learning_rate=1e-4)
-
-        if loss is None:
-            loss = losses.binary_crossentropy
-
-        if metric is None:
-            metric = [Util.dice_coeff]
-
         self.input_size = input_size
-        self.filter_num = filter_num
+        self.filter_num = filter_num or [32, 64, 128, 256]
         self.n_labels = n_labels
         self.res_num_ini = res_num_ini
         self.res_num_max = res_num_max
@@ -101,9 +89,9 @@ class KVNet2D(BaseKerasSegmentationClassifier):
         self.pool = pool
         self.unpool = unpool
         self.name = name
-        self.optimizer = optimizer
-        self.loss = loss
-        self.metric = metric
+        self.optimizer = optimizer or optimizers.Adam(learning_rate=1e-4)
+        self.loss = loss or losses.binary_crossentropy
+        self.metric = metric or [Util.dice_coeff]
 
         self.model = models.vnet_2d(input_size=self.input_size,
                                     filter_num=self.filter_num,

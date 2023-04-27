@@ -20,5 +20,6 @@ from .k_unet2d import KUNet2D
 from .k_unet3_plus2d import KUNet3Plus2D
 from .k_unet_plus2d import KUNetPlus2D
 from .k_vnet2d import KVNet2D
+from .k_unet import KUNet
 from .unet import UNet
 from .unet_plus import UNetPLUS
