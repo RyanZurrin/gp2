@@ -12,6 +12,5 @@ from tensorflow.python.keras.utils.generic_utils import CustomMaskWarning
 warnings.filterwarnings('ignore', category=CustomMaskWarning)
 from .data import *
 from .runner import *
-from .util import *
-from .classifiers import *
-from .discriminators import *
+from .gp2.util import *
+from .gp2 import *

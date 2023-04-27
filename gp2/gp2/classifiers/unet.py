@@ -1,5 +1,5 @@
 from .classifier import Classifier
-from gp2.util import Util
+from gp2.gp2.util import Util
 
 import os
 import pickle
@@ -9,20 +9,16 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, concatenate, Conv2D, MaxPooling2D, \
     Activation, UpSampling2D, BatchNormalization
 from tensorflow.keras.optimizers import RMSprop
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras import backend as K
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, \
+    ReduceLROnPlateau
+from tensorflow.keras.losses import binary_crossentropy
 
 
 class UNet(Classifier):
 
     def __init__(self, verbose=True, workingdir='/tmp'):
         super().__init__(verbose, workingdir)
-
-        print('*** GP2 UNet ***')
-        print('Working directory:', self.workingdir)
-
-        if verbose:
-            print('Verbose mode active!')
-
 
         self.model = self.build()
 

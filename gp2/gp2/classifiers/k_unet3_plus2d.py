@@ -1,10 +1,10 @@
 from keras import losses
 from tensorflow.keras import optimizers
 
-from gp2.classifiers.base_keras_segmentation_classifier import \
+from .base_keras_segmentation_classifier import \
     BaseKerasSegmentationClassifier
 from keras_unet_collection import models
-from gp2.util import Util
+from gp2.gp2.util import Util
 
 
 class KUNet3Plus2D(BaseKerasSegmentationClassifier):
@@ -114,7 +114,7 @@ class KUNet3Plus2D(BaseKerasSegmentationClassifier):
         if loss is None:
             loss = losses.binary_crossentropy
         if metric is None:
-            metric = [Util.dice_coef]
+            metric = [Util.dice_coeff]
 
         print(f'KUNet3Plus2D: {optimizer}, {loss}, {metric}')
 

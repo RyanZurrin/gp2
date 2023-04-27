@@ -1,10 +1,10 @@
-from keras import losses, metrics
+from keras import losses
 from tensorflow.keras import optimizers
 
-from gp2.classifiers.base_keras_segmentation_classifier import \
+from .base_keras_segmentation_classifier import \
     BaseKerasSegmentationClassifier
 from keras_unet_collection import models
-from gp2.util import Util
+from gp2.gp2.util import Util
 
 
 class KR2UNet2dD(BaseKerasSegmentationClassifier):
@@ -84,7 +84,7 @@ class KR2UNet2dD(BaseKerasSegmentationClassifier):
             loss = losses.binary_crossentropy
 
         if metric is None:
-            metric = [Util.dice_coef]
+            metric = [Util.dice_coeff]
 
         self.input_size = input_size
         self.filter_num = filter_num

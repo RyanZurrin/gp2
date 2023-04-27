@@ -1,7 +1,7 @@
 
 from tensorflow.keras import layers, models, optimizers, losses
 from .base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
-from gp2.util import Util
+from gp2.gp2.util import Util
 
 
 class UNetPLUS(BaseKerasSegmentationClassifier):

@@ -1,7 +1,5 @@
 from .data import *
-from .classifiers import *
-from .discriminators import *
-from .util import *
+from .gp2 import *
 import time
 import numpy as np
 import os
@@ -10,14 +8,12 @@ import tempfile
 
 def validate_weights(weights, tolerance=1e-6):
     """ Validate the weights for training.
-
     What must be verified:
         A_train + A_val + A_test = 1. \n
         B_train + B_val + B_test = 1. \n
         A + B + Z = 1. \n
         A * A_test = B. \n
         Z > .1.
-
     Parameters
     ----------
     weights : dict
@@ -27,12 +23,10 @@ def validate_weights(weights, tolerance=1e-6):
         'Z'
     tolerance : float
         Tolerance to use for the validation.
-
     Returns
     -------
     None : None
         If the weights are valid, will return None.
-
     Raises
     ------
     ValueError
@@ -77,7 +71,6 @@ class Runner:
                  **kwargs):
         """ Initialize the GP2 runner with specified classifier and
         discriminator.
-
         Parameters
         ----------
         verbose : bool
@@ -157,11 +150,11 @@ class Runner:
             print('Using default discriminator (CNN)')
             self.discriminator = CNNDiscriminator(
                 verbose=self.verbose, workingdir=self.workingdir)
-        elif isinstance(discriminator,
-                        CNNDiscriminatorPLUS) or discriminator == 'cnnplus':
-            print('Using  discriminator (CNN+)')
-            self.discriminator = CNNDiscriminatorPLUS(
-                verbose=self.verbose, workingdir=self.workingdir)
+        # elif isinstance(discriminator,
+        #                 CNNDiscriminatorPLUS) or discriminator == 'cnnplus':
+        #     print('Using  discriminator (CNN+)')
+        #     self.discriminator = CNNDiscriminatorPLUS(
+        #         verbose=self.verbose, workingdir=self.workingdir)
         else:
             raise ValueError('Discriminator not supported: {}'.format(
                 discriminator))
@@ -171,13 +164,11 @@ class Runner:
     #
     def setup_data(self, images, masks, dataset_size=1000, weights=None):
         """ Set up the data for training.
-
         Each dataset is composed of three parts:
             A_: data to train/val/test the classifier \n
             B_: expert labels to feed directly into the discriminator \n
             Z_: a repository of additional data that can further train the
             classifier
-
         Parameters
         ----------
         images : list of np.ndarray
@@ -190,7 +181,6 @@ class Runner:
             Weights to use for training. If None, will use the default weights.
             Weights should be a dictionary with keys 'A', 'B', 'Z', 'A_test'.
             The weights should sum to 1.0.
-
         Returns
         -------
         None
@@ -249,12 +239,10 @@ class Runner:
     #
     def run_classifier(self, patience_counter=2):
         """ (Re-)Train the classifier.
-
         Parameters
         ----------
         patience_counter : int
             Number of epochs to wait before early stopping.
-
         Returns
         -------
         None
@@ -359,7 +347,6 @@ class Runner:
                                       val_count=100,
                                       test_count=100):
         """ Create the C train/val/test split from the C dataset (internal!).
-
         Parameters
         ----------
         train_count : int
@@ -368,7 +355,6 @@ class Runner:
             Number of validation samples.
         test_count : int
             Number of test samples.
-
         Returns
         -------
         None
@@ -408,7 +394,6 @@ class Runner:
                           threshold=1e-6):
         """ Train the discriminator using C_train/C_val. If the discriminator was
         trained, this will just predict.
-
         Parameters
         ----------
         train_ratio : float
@@ -419,7 +404,6 @@ class Runner:
             Ratio of test samples.
         threshold : float
             Threshold for the sum of train_ratio, val_ratio, and test_ratio.
-
         Returns
         -------
         None
@@ -552,12 +536,10 @@ class Runner:
     #
     def relabel(self, percent_to_replace=30):
         """ Relabels a subset of Dataset D
-
         Parameters
         ----------
         percent_to_replace : int
             Percentage of D to relabel
-
         Returns
         -------
         None
@@ -637,14 +619,12 @@ class Runner:
     def update_A_train(self, balance=True, fillup=True):
         """ Update A_train with selected points from D. Then, remove D from B
         and A_test (wherever it was!). Fill-up both B and A_test (internal!).
-
         Parameters
         ----------
         balance : bool
             If True, balance A_train with B and A_test
         fillup : bool
             If True, fill-up B and A_test with points from A_train
-
         Returns
         -------
         None

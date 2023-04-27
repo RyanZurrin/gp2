@@ -18,7 +18,6 @@ class Util:
     @staticmethod
     def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
         """ Creates A, B, Z split from images and labels
-
         Parameters
         ----------
         images : numpy array
@@ -29,7 +28,6 @@ class Util:
             The size of the dataset
         weights : dict
             The weights to use for the split. If None, the split is 40/40/20
-
         Returns
         -------
         A : numpy array
@@ -87,7 +85,6 @@ class Util:
                                     test_count=250,
                                     shuffle=True):
         """ Creates a train, val, test split from a dataset
-
         Parameters
         ----------
         dataset : numpy array
@@ -100,7 +97,6 @@ class Util:
             The number of test samples
         shuffle : bool
             Whether to shuffle the dataset before splitting
-
         Returns
         -------
         train : numpy array
@@ -124,14 +120,12 @@ class Util:
     @staticmethod
     def create_numbered_file(filename, extension):
         """ Creates a numbered file
-
         Parameters
         ----------
         filename : str
             The filename
         extension : str
             The extension
-
         Returns
         -------
         numbered_file : str
@@ -148,7 +142,6 @@ class Util:
     @staticmethod
     def plot_accuracies(x, y1, y2):
         """ Plot line chart showing accuracies of classifier and discriminator
-
         Parameters
         ----------
         x : numpy.ndarray
@@ -157,7 +150,6 @@ class Util:
             The y-axis values for the classifier.
         y2 : numpy.ndarray
             The y-axis values for the discriminator.
-
         Returns
         -------
         None
@@ -194,7 +186,7 @@ class Util:
 
     @staticmethod
     @tf.function
-    def dice_coef(y_true, y_pred, smooth=1e-9):
+    def dice_coeff(y_true, y_pred, smooth=1e-9):
         """ Calculate the dice coefficient.
         Parameters
         ----------
@@ -204,7 +196,6 @@ class Util:
             The predicted masks.
         smooth : float
             The smoothing factor.
-
         Returns
         -------
         float
@@ -227,7 +218,6 @@ class Util:
         The true masks.
     y_pred : numpy.ndarray
         The predicted masks.
-
     Returns
     -------
     float
@@ -246,7 +236,6 @@ class Util:
             The true masks.
         y_pred : numpy.ndarray
             The predicted masks.
-
         Returns
         -------
         float

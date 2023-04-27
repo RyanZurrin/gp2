@@ -1,12 +1,8 @@
 import os
 import pickle
 from tensorflow.keras import callbacks
-from gp2.classifiers.classifier import Classifier
-from gp2.util import Util
-
-import tensorflow as tf
-policy = tf.keras.mixed_precision.Policy('mixed_float16')
-tf.keras.mixed_precision.set_global_policy(policy)
+from .classifier import Classifier
+from gp2.gp2.util import Util
 
 
 class BaseKerasSegmentationClassifier(Classifier):
@@ -14,6 +10,7 @@ class BaseKerasSegmentationClassifier(Classifier):
         super().__init__(*args, **kwargs)
 
     def build(self):
+        """ Build the model. """
         self.model.compile(optimizer=self.optimizer,
                            loss=self.loss,
                            metrics=self.metric)
@@ -97,8 +94,8 @@ class BaseKerasSegmentationClassifier(Classifier):
         """
         predictions = self.model.predict(X_test)
 
-        predictions[predictions >= threshold] = 1
-        predictions[predictions < threshold] = 0
+        predictions[predictions >= threshold] = 1.0
+        predictions[predictions < threshold] = 0.0
 
         scores = self.model.evaluate(X_test, y_pred, verbose=0)
 

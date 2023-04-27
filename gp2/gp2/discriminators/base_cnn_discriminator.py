@@ -1,5 +1,5 @@
 from .discriminator import Discriminator
-from gp2.util import Util
+from gp2.gp2.util import Util
 from abc import ABC, abstractmethod
 
 import numpy as np
