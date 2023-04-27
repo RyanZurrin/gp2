@@ -3,6 +3,7 @@ channels:
   - anaconda
   - conda-forge
   - defaults
+  - comit_ml
 dependencies:
   - libxml2==2.9.12=h03d6c58_0
   - setproctitle==1.2.2=py39h3811e60_0
