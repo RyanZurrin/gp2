@@ -110,7 +110,7 @@ class Runner:
                                             UNet) or classifier == 'unet':
             self.classifier = UNet(verbose=self.verbose,
                                    workingdir=self.workingdir)
-        elif isinstance(classifier, KUNet) or classifier == 'kvanillaunet':
+        elif isinstance(classifier, KUNet) or classifier == 'kunet':
             self.classifier = KUNet(verbose=self.verbose,
                                     workingdir=self.workingdir,
                                     **kwargs)

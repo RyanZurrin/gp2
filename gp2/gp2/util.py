@@ -223,7 +223,7 @@ class Util:
         The loss.
     """
         return tf.keras.losses.binary_crossentropy(y_true, y_pred) + \
-            (1 - Util.dice_coef(y_true, y_pred))
+            (1 - Util.dice_coeff(y_true, y_pred))
 
     @staticmethod
     @tf.function
