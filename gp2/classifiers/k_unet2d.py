@@ -1,17 +1,11 @@
 from keras import losses
 from tensorflow.keras import optimizers
 
-from gp2.classifiers.base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
+from gp2.classifiers.base_keras_segmentation_classifier import \
+    BaseKerasSegmentationClassifier
 from keras_unet_collection import models
-import tensorflow as tf
 from gp2.util import Util
 
-policy = tf.keras.mixed_precision.Policy('mixed_float16')
-tf.keras.mixed_precision.set_global_policy(policy)
-
-
-# set gpu device to 2
-# os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 class KUNet2D(BaseKerasSegmentationClassifier):
     """

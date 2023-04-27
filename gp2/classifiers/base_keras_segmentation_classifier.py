@@ -4,6 +4,10 @@ from tensorflow.keras import callbacks
 from gp2.classifiers.classifier import Classifier
 from gp2.util import Util
 
+import tensorflow as tf
+policy = tf.keras.mixed_precision.Policy('mixed_float16')
+tf.keras.mixed_precision.set_global_policy(policy)
+
 
 class BaseKerasSegmentationClassifier(Classifier):
     def __init__(self, *args, **kwargs):
@@ -24,6 +28,26 @@ class BaseKerasSegmentationClassifier(Classifier):
               epochs=100,
               call_backs=None,
               ):
+        """ Train the model.
+        Parameters
+        ----------
+        X_train : numpy.ndarray
+            The training images.
+        y_train : numpy.ndarray
+            The training masks.
+        X_val : numpy.ndarray
+            The validation images.
+        y_val : numpy.ndarray
+            The validation masks.
+        patience_counter : int
+            The number of epochs to wait before early stopping.
+        batch_size : int
+            The batch size to use.
+        epochs : int
+            The number of epochs to train for.
+        call_backs : list
+            The list of callbacks to use.
+        """
         super().train(X_train, y_train, X_val, y_val, patience_counter)
         checkpoint_file = os.path.join(self.workingdir, self.name)
         checkpoint_file = Util.create_numbered_file(checkpoint_file,
@@ -61,6 +85,16 @@ class BaseKerasSegmentationClassifier(Classifier):
         return history
 
     def predict(self, X_test, y_pred, threshold=0.5):
+        """ Predict the masks for the given images.
+        Parameters
+        ----------
+        X_text : numpy.ndarray
+            The images to predict the masks for.
+        y_pred : numpy.ndarray
+            The predicted masks.
+        threshold : float
+            The threshold to use for the predictions.
+        """
         predictions = self.model.predict(X_test)
 
         predictions[predictions >= threshold] = 1

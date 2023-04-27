@@ -1,4 +1,7 @@
 from abc import ABC, abstractmethod
+import warnings
+
+warnings.filterwarnings('ignore', category=UserWarning, module='tensorflow')
 
 
 class Classifier(ABC):

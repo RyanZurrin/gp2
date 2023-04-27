@@ -516,10 +516,6 @@ class Runner:
 
         all_machine_labels_indices = np.where(C_test_pred_ == 1)[0]
 
-        print('Found', len(all_machine_labels_indices), 'machine labels.')
-
-        print('Machine labels', all_machine_labels_indices)
-
         assert (C_test_ids == C_test_pred_ids)  # must be the same
 
         #
@@ -533,7 +529,7 @@ class Runner:
             D_[i] = C_test_[p]
             D_ids.append(C_test_ids[p])
 
-        if (len(all_machine_labels_indices) == 0):
+        if len(all_machine_labels_indices) == 0:
             print('No machine labels found. Skipping step 6.')
             return 0
 
@@ -541,8 +537,6 @@ class Runner:
             D_[0] == C_test_[all_machine_labels_indices[0]]))  # quick check
 
         assert (D_ids[1] == C_test_ids[all_machine_labels_indices[1]])
-
-        print('D_ids', D_ids)
 
         D = Collection.from_list(D_, D_ids)
 
@@ -586,18 +580,13 @@ class Runner:
 
         selected_ids = list(np.random.choice(D_ids, len(D_ids) // int(
             100 / percent_to_replace), replace=False))
-        # selected_ids = D_ids[:len(D_ids)//int(100/PERCENT_TO_REPLACE)] ### for debugging
 
         print('Replacing', len(selected_ids), 'from', len(D_ids), '!')
 
-        # print(len(D_ids))
 
         D_relabeled_ = np.empty((len(selected_ids),) + D_.shape[1:],
                                 dtype=D_.dtype)
 
-        # print(D_relabeled_.shape)
-
-        # prefill array with image and labels, then replace labels with groundtruth!!
         A_test = M.get('A_test')
         B = M.get('B')
 
@@ -634,18 +623,14 @@ class Runner:
             D_relabeled_[i, 0, 0, 2] = label
 
         print('D_relabeled_', D_relabeled_.shape[0])
-        print('selected_ids', selected_ids)
 
         D_relabeled = Collection.from_list(D_relabeled_, selected_ids)
-
-        print(D_relabeled.data.keys())
 
         M.register(D_relabeled, 'D_relabeled')
 
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, 'M_step7.pickle'))
 
-        # print('update_A_train')
         self.update_A_train()
 
     #

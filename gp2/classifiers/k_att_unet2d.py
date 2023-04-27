@@ -4,10 +4,6 @@ from gp2.util import Util
 from gp2.classifiers.base_keras_segmentation_classifier import \
     BaseKerasSegmentationClassifier
 from keras_unet_collection import models
-import tensorflow as tf
-
-policy = tf.keras.mixed_precision.Policy('mixed_float16')
-tf.keras.mixed_precision.set_global_policy(policy)
 
 
 class KATTUnet2D(BaseKerasSegmentationClassifier):

@@ -1,3 +1,11 @@
+import warnings
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+warnings.filterwarnings('ignore', category=UserWarning, module='tensorflow')
+import logging
+import tensorflow as tf
+logger = tf.get_logger()
+logger.setLevel(logging.ERROR)
 from .classifier import Classifier
 from .base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
 from .k_att_unet2d import KATTUnet2D

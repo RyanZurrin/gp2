@@ -1,12 +1,10 @@
 from keras import losses, metrics
 from tensorflow.keras import optimizers
 
-from gp2.classifiers.base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
+from gp2.classifiers.base_keras_segmentation_classifier import \
+    BaseKerasSegmentationClassifier
 from keras_unet_collection import models
-import tensorflow as tf
-
-policy = tf.keras.mixed_precision.Policy('mixed_float16')
-tf.keras.mixed_precision.set_global_policy(policy)
+from gp2.util import Util
 
 
 class KR2UNet2dD(BaseKerasSegmentationClassifier):
@@ -86,7 +84,7 @@ class KR2UNet2dD(BaseKerasSegmentationClassifier):
             loss = losses.binary_crossentropy
 
         if metric is None:
-            metric = [metrics.binary_accuracy]
+            metric = [Util.dice_coef]
 
         self.input_size = input_size
         self.filter_num = filter_num

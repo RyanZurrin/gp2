@@ -1,62 +1,10 @@
-# keras unet class for adding support for keras unet
-import os
-import pickle
 
-import tensorflow as tf
-from tensorflow.keras import layers, models, optimizers, losses, \
-    callbacks
-from .classifier import Classifier
+from tensorflow.keras import layers, models, optimizers, losses
+from .base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
 from gp2.util import Util
-import warnings
-
-warnings.filterwarnings('ignore', category=UserWarning, module='tensorflow')
 
 
-@tf.function
-def dice_coef(y_true, y_pred, smooth=1e-9):
-    """ Calculate the dice coefficient.
-    Parameters
-    ----------
-    y_true : numpy.ndarray
-        The true masks.
-    y_pred : numpy.ndarray
-        The predicted masks.
-    smooth : float
-        The smoothing factor.
-
-    Returns
-    -------
-    float
-        The dice coefficient.
-    """
-    y_true_flat = tf.reshape(y_true, [-1])
-    y_pred_flat = tf.reshape(y_pred, [-1])
-    intersection = tf.reduce_sum(y_true_flat * y_pred_flat)
-    union = tf.reduce_sum(y_true_flat) + tf.reduce_sum(y_pred_flat)
-    dice = (2. * intersection + smooth) / (union + smooth)
-    return dice
-
-
-@tf.function
-def bce_dice_loss(y_true, y_pred):
-    """ Calculate the loss.
-    Parameters
-    ----------
-    y_true : numpy.ndarray
-        The true masks.
-    y_pred : numpy.ndarray
-        The predicted masks.
-
-    Returns
-    -------
-    float
-        The loss.
-    """
-    return tf.keras.losses.binary_crossentropy(y_true, y_pred) + \
-        (1 - dice_coef(y_true, y_pred))
-
-
-class UNetPLUS(Classifier):
+class UNetPLUS(BaseKerasSegmentationClassifier):
 
     def __init__(self,
                  input_shape=(512, 512, 1),
@@ -125,7 +73,7 @@ class UNetPLUS(Classifier):
             self.loss = losses.binary_crossentropy
 
         if metrics is None:
-            self.metrics = [dice_coef]
+            self.metrics = [Util.dice_coef]
 
         self.input_shape = input_shape
         self.num_classes = num_classes
@@ -223,92 +171,3 @@ class UNetPLUS(Classifier):
 
         return model
 
-    def train(self,
-              X_train,
-              y_train,
-              X_val,
-              y_val,
-              patience_counter=2,
-              batch_size=64,
-              epochs=100,
-              call_backs=None):
-        """ Train the model.
-        Parameters
-        ----------
-        X_train : numpy.ndarray
-            The training images.
-        y_train : numpy.ndarray
-            The training masks.
-        X_val : numpy.ndarray
-            The validation images.
-        y_val : numpy.ndarray
-            The validation masks.
-        patience_counter : int
-            The number of epochs to wait before early stopping.
-        batch_size : int
-            The batch size to use.
-        epochs : int
-            The number of epochs to train for.
-        call_backs : list
-            The list of callbacks to use.
-        """
-        super().train(X_train, y_train, X_val, y_val, patience_counter)
-
-        # create the checkpoint files
-        checkpoint_file = os.path.join(self.workingdir, 'unetplus')
-        checkpoint_file = Util.create_numbered_file(checkpoint_file,
-                                                    'unetplus_model')
-
-        if call_backs is None:
-            call_backs = [callbacks.EarlyStopping(patience=patience_counter,
-                                                  monitor='loss',
-                                                  verbose=0),
-                          callbacks.ModelCheckpoint(checkpoint_file,
-                                                    save_weights_only=False,
-                                                    monitor='val_loss',
-                                                    mode='min',
-                                                    verbose=0,
-                                                    save_best_only=True)]
-        else:
-            call_backs = call_backs
-
-        # get the history
-        history = self.model.fit(X_train, y_train,
-                                 batch_size=batch_size,
-                                 epochs=epochs,
-                                 callbacks=call_backs,
-                                 validation_data=(X_val, y_val),
-                                 verbose=int(self.verbose))
-
-        # save the history
-        history_file = os.path.join(self.workingdir, 'unetplut_history')
-        history_file = Util.create_numbered_file(history_file, '.pkl')
-        with open(history_file, 'wb') as f:
-            pickle.dump(history.history, f)
-
-        print('Model saved to: {}'.format(checkpoint_file))
-        print('History saved to: {}'.format(history_file))
-
-        return history
-
-    def predict(self, X_text, y_pred, threshold=0.5):
-        """ Predict the masks for the given images.
-        Parameters
-        ----------
-        X_text : numpy.ndarray
-            The images to predict the masks for.
-        y_pred : numpy.ndarray
-            The predicted masks.
-        threshold : float
-            The threshold to use for the predictions.
-        """
-        predictions = self.model.predict(X_text)
-
-        # threshold the predictions
-        predictions[predictions >= threshold] = 1
-        predictions[predictions < threshold] = 0
-
-        # get the predicted masks
-        scores = self.model.evaluate(X_text, y_pred, verbose=0)
-
-        return predictions, scores
