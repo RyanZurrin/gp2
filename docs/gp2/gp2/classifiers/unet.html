@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>gp2.classifiers.unet API documentation</title>
+<title>gp2.gp2.classifiers.unet API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>gp2.classifiers.unet</code></h1>
+<h1 class="title">Module <code>gp2.gp2.classifiers.unet</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -27,7 +27,7 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">from .classifier import Classifier
-from gp2.util import Util
+from gp2.gp2.util import Util
 
 import os
 import pickle
@@ -37,20 +37,16 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, concatenate, Conv2D, MaxPooling2D, \
     Activation, UpSampling2D, BatchNormalization
 from tensorflow.keras.optimizers import RMSprop
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras import backend as K
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, \
+    ReduceLROnPlateau
+from tensorflow.keras.losses import binary_crossentropy
 
 
 class UNet(Classifier):
 
     def __init__(self, verbose=True, workingdir=&#39;/tmp&#39;):
         super().__init__(verbose, workingdir)
-
-        print(&#39;*** GP2 UNet ***&#39;)
-        print(&#39;Working directory:&#39;, self.workingdir)
-
-        if verbose:
-            print(&#39;Verbose mode active!&#39;)
-
 
         self.model = self.build()
 
@@ -283,7 +279,7 @@ class UNet(Classifier):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="gp2.classifiers.unet.UNet"><code class="flex name class">
+<dt id="gp2.gp2.classifiers.unet.UNet"><code class="flex name class">
 <span>class <span class="ident">UNet</span></span>
 <span>(</span><span>verbose=True, workingdir='/tmp')</span>
 </code></dt>
@@ -306,13 +302,6 @@ class UNet(Classifier):
 
     def __init__(self, verbose=True, workingdir=&#39;/tmp&#39;):
         super().__init__(verbose, workingdir)
-
-        print(&#39;*** GP2 UNet ***&#39;)
-        print(&#39;Working directory:&#39;, self.workingdir)
-
-        if verbose:
-            print(&#39;Verbose mode active!&#39;)
-
 
         self.model = self.build()
 
@@ -537,12 +526,12 @@ class UNet(Classifier):
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="gp2.classifiers.classifier.Classifier" href="classifier.html#gp2.classifiers.classifier.Classifier">Classifier</a></li>
+<li><a title="gp2.gp2.classifiers.classifier.Classifier" href="classifier.html#gp2.gp2.classifiers.classifier.Classifier">Classifier</a></li>
 <li>abc.ABC</li>
 </ul>
 <h3>Static methods</h3>
 <dl>
-<dt id="gp2.classifiers.unet.UNet.bce_dice_loss"><code class="name flex">
+<dt id="gp2.gp2.classifiers.unet.UNet.bce_dice_loss"><code class="name flex">
 <span>def <span class="ident">bce_dice_loss</span></span>(<span>y_true, y_pred)</span>
 </code></dt>
 <dd>
@@ -559,7 +548,7 @@ def bce_dice_loss(y_true, y_pred):
                 1 - UNet.dice_coeff(y_true, y_pred))</code></pre>
 </details>
 </dd>
-<dt id="gp2.classifiers.unet.UNet.dice_coeff"><code class="name flex">
+<dt id="gp2.gp2.classifiers.unet.UNet.dice_coeff"><code class="name flex">
 <span>def <span class="ident">dice_coeff</span></span>(<span>y_true, y_pred)</span>
 </code></dt>
 <dd>
@@ -582,7 +571,7 @@ def dice_coeff(y_true, y_pred):
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="gp2.classifiers.unet.UNet.build"><code class="name flex">
+<dt id="gp2.gp2.classifiers.unet.UNet.build"><code class="name flex">
 <span>def <span class="ident">build</span></span>(<span>self, input_shape=(512, 512, 1), num_classes=1)</span>
 </code></dt>
 <dd>
@@ -749,7 +738,7 @@ def dice_coeff(y_true, y_pred):
     return model</code></pre>
 </details>
 </dd>
-<dt id="gp2.classifiers.unet.UNet.predict"><code class="name flex">
+<dt id="gp2.gp2.classifiers.unet.UNet.predict"><code class="name flex">
 <span>def <span class="ident">predict</span></span>(<span>self, X_test, y_test)</span>
 </code></dt>
 <dd>
@@ -769,7 +758,7 @@ def dice_coeff(y_true, y_pred):
     return predictions, scores</code></pre>
 </details>
 </dd>
-<dt id="gp2.classifiers.unet.UNet.train"><code class="name flex">
+<dt id="gp2.gp2.classifiers.unet.UNet.train"><code class="name flex">
 <span>def <span class="ident">train</span></span>(<span>self, X_train, y_train, X_val, y_val, patience_counter=2, batch_size=64, epochs=100)</span>
 </code></dt>
 <dd>
@@ -827,19 +816,19 @@ def dice_coeff(y_true, y_pred):
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="gp2.classifiers" href="index.html">gp2.classifiers</a></code></li>
+<li><code><a title="gp2.gp2.classifiers" href="index.html">gp2.gp2.classifiers</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="gp2.classifiers.unet.UNet" href="#gp2.classifiers.unet.UNet">UNet</a></code></h4>
+<h4><code><a title="gp2.gp2.classifiers.unet.UNet" href="#gp2.gp2.classifiers.unet.UNet">UNet</a></code></h4>
 <ul class="">
-<li><code><a title="gp2.classifiers.unet.UNet.bce_dice_loss" href="#gp2.classifiers.unet.UNet.bce_dice_loss">bce_dice_loss</a></code></li>
-<li><code><a title="gp2.classifiers.unet.UNet.build" href="#gp2.classifiers.unet.UNet.build">build</a></code></li>
-<li><code><a title="gp2.classifiers.unet.UNet.dice_coeff" href="#gp2.classifiers.unet.UNet.dice_coeff">dice_coeff</a></code></li>
-<li><code><a title="gp2.classifiers.unet.UNet.predict" href="#gp2.classifiers.unet.UNet.predict">predict</a></code></li>
-<li><code><a title="gp2.classifiers.unet.UNet.train" href="#gp2.classifiers.unet.UNet.train">train</a></code></li>
+<li><code><a title="gp2.gp2.classifiers.unet.UNet.bce_dice_loss" href="#gp2.gp2.classifiers.unet.UNet.bce_dice_loss">bce_dice_loss</a></code></li>
+<li><code><a title="gp2.gp2.classifiers.unet.UNet.build" href="#gp2.gp2.classifiers.unet.UNet.build">build</a></code></li>
+<li><code><a title="gp2.gp2.classifiers.unet.UNet.dice_coeff" href="#gp2.gp2.classifiers.unet.UNet.dice_coeff">dice_coeff</a></code></li>
+<li><code><a title="gp2.gp2.classifiers.unet.UNet.predict" href="#gp2.gp2.classifiers.unet.UNet.predict">predict</a></code></li>
+<li><code><a title="gp2.gp2.classifiers.unet.UNet.train" href="#gp2.gp2.classifiers.unet.UNet.train">train</a></code></li>
 </ul>
 </li>
 </ul>

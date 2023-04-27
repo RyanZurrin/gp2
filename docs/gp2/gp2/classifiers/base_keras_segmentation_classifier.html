@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>gp2.classifiers.base_keras_segmentation_classifier API documentation</title>
+<title>gp2.gp2.classifiers.base_keras_segmentation_classifier API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>gp2.classifiers.base_keras_segmentation_classifier</code></h1>
+<h1 class="title">Module <code>gp2.gp2.classifiers.base_keras_segmentation_classifier</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -29,8 +29,8 @@
 <pre><code class="python">import os
 import pickle
 from tensorflow.keras import callbacks
-from gp2.classifiers.classifier import Classifier
-from gp2.util import Util
+from .classifier import Classifier
+from gp2.gp2.util import Util
 
 
 class BaseKerasSegmentationClassifier(Classifier):
@@ -38,6 +38,7 @@ class BaseKerasSegmentationClassifier(Classifier):
         super().__init__(*args, **kwargs)
 
     def build(self):
+        &#34;&#34;&#34; Build the model. &#34;&#34;&#34;
         self.model.compile(optimizer=self.optimizer,
                            loss=self.loss,
                            metrics=self.metric)
@@ -52,6 +53,26 @@ class BaseKerasSegmentationClassifier(Classifier):
               epochs=100,
               call_backs=None,
               ):
+        &#34;&#34;&#34; Train the model.
+        Parameters
+        ----------
+        X_train : numpy.ndarray
+            The training images.
+        y_train : numpy.ndarray
+            The training masks.
+        X_val : numpy.ndarray
+            The validation images.
+        y_val : numpy.ndarray
+            The validation masks.
+        patience_counter : int
+            The number of epochs to wait before early stopping.
+        batch_size : int
+            The batch size to use.
+        epochs : int
+            The number of epochs to train for.
+        call_backs : list
+            The list of callbacks to use.
+        &#34;&#34;&#34;
         super().train(X_train, y_train, X_val, y_val, patience_counter)
         checkpoint_file = os.path.join(self.workingdir, self.name)
         checkpoint_file = Util.create_numbered_file(checkpoint_file,
@@ -89,10 +110,20 @@ class BaseKerasSegmentationClassifier(Classifier):
         return history
 
     def predict(self, X_test, y_pred, threshold=0.5):
+        &#34;&#34;&#34; Predict the masks for the given images.
+        Parameters
+        ----------
+        X_text : numpy.ndarray
+            The images to predict the masks for.
+        y_pred : numpy.ndarray
+            The predicted masks.
+        threshold : float
+            The threshold to use for the predictions.
+        &#34;&#34;&#34;
         predictions = self.model.predict(X_test)
 
-        predictions[predictions &gt;= threshold] = 1
-        predictions[predictions &lt; threshold] = 0
+        predictions[predictions &gt;= threshold] = 1.0
+        predictions[predictions &lt; threshold] = 0.0
 
         scores = self.model.evaluate(X_test, y_pred, verbose=0)
 
@@ -112,7 +143,7 @@ class BaseKerasSegmentationClassifier(Classifier):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier"><code class="flex name class">
+<dt id="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier"><code class="flex name class">
 <span>class <span class="ident">BaseKerasSegmentationClassifier</span></span>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
@@ -136,6 +167,7 @@ class BaseKerasSegmentationClassifier(Classifier):
         super().__init__(*args, **kwargs)
 
     def build(self):
+        &#34;&#34;&#34; Build the model. &#34;&#34;&#34;
         self.model.compile(optimizer=self.optimizer,
                            loss=self.loss,
                            metrics=self.metric)
@@ -150,6 +182,26 @@ class BaseKerasSegmentationClassifier(Classifier):
               epochs=100,
               call_backs=None,
               ):
+        &#34;&#34;&#34; Train the model.
+        Parameters
+        ----------
+        X_train : numpy.ndarray
+            The training images.
+        y_train : numpy.ndarray
+            The training masks.
+        X_val : numpy.ndarray
+            The validation images.
+        y_val : numpy.ndarray
+            The validation masks.
+        patience_counter : int
+            The number of epochs to wait before early stopping.
+        batch_size : int
+            The batch size to use.
+        epochs : int
+            The number of epochs to train for.
+        call_backs : list
+            The list of callbacks to use.
+        &#34;&#34;&#34;
         super().train(X_train, y_train, X_val, y_val, patience_counter)
         checkpoint_file = os.path.join(self.workingdir, self.name)
         checkpoint_file = Util.create_numbered_file(checkpoint_file,
@@ -187,10 +239,20 @@ class BaseKerasSegmentationClassifier(Classifier):
         return history
 
     def predict(self, X_test, y_pred, threshold=0.5):
+        &#34;&#34;&#34; Predict the masks for the given images.
+        Parameters
+        ----------
+        X_text : numpy.ndarray
+            The images to predict the masks for.
+        y_pred : numpy.ndarray
+            The predicted masks.
+        threshold : float
+            The threshold to use for the predictions.
+        &#34;&#34;&#34;
         predictions = self.model.predict(X_test)
 
-        predictions[predictions &gt;= threshold] = 1
-        predictions[predictions &lt; threshold] = 0
+        predictions[predictions &gt;= threshold] = 1.0
+        predictions[predictions &lt; threshold] = 0.0
 
         scores = self.model.evaluate(X_test, y_pred, verbose=0)
 
@@ -202,61 +264,104 @@ class BaseKerasSegmentationClassifier(Classifier):
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="gp2.classifiers.classifier.Classifier" href="classifier.html#gp2.classifiers.classifier.Classifier">Classifier</a></li>
+<li><a title="gp2.gp2.classifiers.classifier.Classifier" href="classifier.html#gp2.gp2.classifiers.classifier.Classifier">Classifier</a></li>
 <li>abc.ABC</li>
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="gp2.classifiers.k_att_unet2d.KATTUnet2D" href="k_att_unet2d.html#gp2.classifiers.k_att_unet2d.KATTUnet2D">KATTUnet2D</a></li>
-<li><a title="gp2.classifiers.k_r2_unet2d.KR2UNet2dD" href="k_r2_unet2d.html#gp2.classifiers.k_r2_unet2d.KR2UNet2dD">KR2UNet2dD</a></li>
-<li><a title="gp2.classifiers.k_res_unet2d.KResUNet2D" href="k_res_unet2d.html#gp2.classifiers.k_res_unet2d.KResUNet2D">KResUNet2D</a></li>
-<li><a title="gp2.classifiers.k_unet2d.KUNet2D" href="k_unet2d.html#gp2.classifiers.k_unet2d.KUNet2D">KUNet2D</a></li>
-<li><a title="gp2.classifiers.k_unet3_plus2d.KUNet3Plus2D" href="k_unet3_plus2d.html#gp2.classifiers.k_unet3_plus2d.KUNet3Plus2D">KUNet3Plus2D</a></li>
-<li><a title="gp2.classifiers.k_unet_plus2d.KUNetPlus2D" href="k_unet_plus2d.html#gp2.classifiers.k_unet_plus2d.KUNetPlus2D">KUNetPlus2D</a></li>
-<li><a title="gp2.classifiers.k_vnet2d.KVNet2D" href="k_vnet2d.html#gp2.classifiers.k_vnet2d.KVNet2D">KVNet2D</a></li>
+<li><a title="gp2.gp2.classifiers.k_att_unet2d.KATTUnet2D" href="k_att_unet2d.html#gp2.gp2.classifiers.k_att_unet2d.KATTUnet2D">KATTUnet2D</a></li>
+<li><a title="gp2.gp2.classifiers.k_r2_unet2d.KR2UNet2dD" href="k_r2_unet2d.html#gp2.gp2.classifiers.k_r2_unet2d.KR2UNet2dD">KR2UNet2dD</a></li>
+<li><a title="gp2.gp2.classifiers.k_res_unet2d.KResUNet2D" href="k_res_unet2d.html#gp2.gp2.classifiers.k_res_unet2d.KResUNet2D">KResUNet2D</a></li>
+<li><a title="gp2.gp2.classifiers.k_unet.KUNet" href="k_unet.html#gp2.gp2.classifiers.k_unet.KUNet">KUNet</a></li>
+<li><a title="gp2.gp2.classifiers.k_unet2d.KUNet2D" href="k_unet2d.html#gp2.gp2.classifiers.k_unet2d.KUNet2D">KUNet2D</a></li>
+<li><a title="gp2.gp2.classifiers.k_unet3_plus2d.KUNet3Plus2D" href="k_unet3_plus2d.html#gp2.gp2.classifiers.k_unet3_plus2d.KUNet3Plus2D">KUNet3Plus2D</a></li>
+<li><a title="gp2.gp2.classifiers.k_unet_plus2d.KUNetPlus2D" href="k_unet_plus2d.html#gp2.gp2.classifiers.k_unet_plus2d.KUNetPlus2D">KUNetPlus2D</a></li>
+<li><a title="gp2.gp2.classifiers.k_vnet2d.KVNet2D" href="k_vnet2d.html#gp2.gp2.classifiers.k_vnet2d.KVNet2D">KVNet2D</a></li>
+<li><a title="gp2.gp2.classifiers.unet_plus.UNetPLUS" href="unet_plus.html#gp2.gp2.classifiers.unet_plus.UNetPLUS">UNetPLUS</a></li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.build"><code class="name flex">
+<dt id="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.build"><code class="name flex">
 <span>def <span class="ident">build</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Build the model.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def build(self):
+    &#34;&#34;&#34; Build the model. &#34;&#34;&#34;
     self.model.compile(optimizer=self.optimizer,
                        loss=self.loss,
                        metrics=self.metric)</code></pre>
 </details>
 </dd>
-<dt id="gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.predict"><code class="name flex">
+<dt id="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.predict"><code class="name flex">
 <span>def <span class="ident">predict</span></span>(<span>self, X_test, y_pred, threshold=0.5)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Predict the masks for the given images.
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>X_text</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>The images to predict the masks for.</dd>
+<dt><strong><code>y_pred</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>The predicted masks.</dd>
+<dt><strong><code>threshold</code></strong> :&ensp;<code>float</code></dt>
+<dd>The threshold to use for the predictions.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def predict(self, X_test, y_pred, threshold=0.5):
+    &#34;&#34;&#34; Predict the masks for the given images.
+    Parameters
+    ----------
+    X_text : numpy.ndarray
+        The images to predict the masks for.
+    y_pred : numpy.ndarray
+        The predicted masks.
+    threshold : float
+        The threshold to use for the predictions.
+    &#34;&#34;&#34;
     predictions = self.model.predict(X_test)
 
-    predictions[predictions &gt;= threshold] = 1
-    predictions[predictions &lt; threshold] = 0
+    predictions[predictions &gt;= threshold] = 1.0
+    predictions[predictions &lt; threshold] = 0.0
 
     scores = self.model.evaluate(X_test, y_pred, verbose=0)
 
     return predictions, scores</code></pre>
 </details>
 </dd>
-<dt id="gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.train"><code class="name flex">
+<dt id="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.train"><code class="name flex">
 <span>def <span class="ident">train</span></span>(<span>self, X_train, y_train, X_val, y_val, patience_counter=2, batch_size=64, epochs=100, call_backs=None)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Train the model.
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>X_train</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>The training images.</dd>
+<dt><strong><code>y_train</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>The training masks.</dd>
+<dt><strong><code>X_val</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>The validation images.</dd>
+<dt><strong><code>y_val</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>The validation masks.</dd>
+<dt><strong><code>patience_counter</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of epochs to wait before early stopping.</dd>
+<dt><strong><code>batch_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>The batch size to use.</dd>
+<dt><strong><code>epochs</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of epochs to train for.</dd>
+<dt><strong><code>call_backs</code></strong> :&ensp;<code>list</code></dt>
+<dd>The list of callbacks to use.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -271,6 +376,26 @@ class BaseKerasSegmentationClassifier(Classifier):
           epochs=100,
           call_backs=None,
           ):
+    &#34;&#34;&#34; Train the model.
+    Parameters
+    ----------
+    X_train : numpy.ndarray
+        The training images.
+    y_train : numpy.ndarray
+        The training masks.
+    X_val : numpy.ndarray
+        The validation images.
+    y_val : numpy.ndarray
+        The validation masks.
+    patience_counter : int
+        The number of epochs to wait before early stopping.
+    batch_size : int
+        The batch size to use.
+    epochs : int
+        The number of epochs to train for.
+    call_backs : list
+        The list of callbacks to use.
+    &#34;&#34;&#34;
     super().train(X_train, y_train, X_val, y_val, patience_counter)
     checkpoint_file = os.path.join(self.workingdir, self.name)
     checkpoint_file = Util.create_numbered_file(checkpoint_file,
@@ -321,17 +446,17 @@ class BaseKerasSegmentationClassifier(Classifier):
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="gp2.classifiers" href="index.html">gp2.classifiers</a></code></li>
+<li><code><a title="gp2.gp2.classifiers" href="index.html">gp2.gp2.classifiers</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier" href="#gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier">BaseKerasSegmentationClassifier</a></code></h4>
+<h4><code><a title="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier" href="#gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier">BaseKerasSegmentationClassifier</a></code></h4>
 <ul class="">
-<li><code><a title="gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.build" href="#gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.build">build</a></code></li>
-<li><code><a title="gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.predict" href="#gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.predict">predict</a></code></li>
-<li><code><a title="gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.train" href="#gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.train">train</a></code></li>
+<li><code><a title="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.build" href="#gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.build">build</a></code></li>
+<li><code><a title="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.predict" href="#gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.predict">predict</a></code></li>
+<li><code><a title="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.train" href="#gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.train">train</a></code></li>
 </ul>
 </li>
 </ul>

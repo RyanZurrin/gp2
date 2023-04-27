@@ -26,7 +26,20 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from .point import Point
+<pre><code class="python">import warnings
+import os
+# os.environ[&#39;TF_CPP_MIN_LOG_LEVEL&#39;] = &#39;2&#39;
+# warnings.filterwarnings(&#39;ignore&#39;, category=UserWarning, module=&#39;tensorflow&#39;)
+# warnings.filterwarnings(&#34;ignore&#34;, category=DeprecationWarning)
+# warnings.filterwarnings(&#34;ignore&#34;, category=FutureWarning)
+# warnings.filterwarnings(&#34;ignore&#34;, category=RuntimeWarning)
+# import logging
+# import tensorflow as tf
+# logger = tf.get_logger()
+# logger.setLevel(logging.ERROR)
+# from tensorflow.python.keras.utils.generic_utils import CustomMaskWarning
+# warnings.filterwarnings(&#39;ignore&#39;, category=CustomMaskWarning)
+from .point import Point
 from .collection import Collection
 from .manager import Manager</code></pre>
 </details>

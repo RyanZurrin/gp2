@@ -30,8 +30,12 @@ class KUNet(BaseKerasSegmentationClassifier):
                  verbose=False,
                  workingdir='/tmp',
                  ):
-        """ Keras Vanilla U-Net model.
-        valilla_unet(input_shape, num_classes=1, dropout=0.5, filters=64, num_layers=4, output_activation='sigmoid')
+        """ Keras Custom U-Net model.
+
+        custom_unet(input_shape, num_classes=1, activation='sigmoid', use_batch_norm=True,
+        upsample_mode='deconv', dropout=0.5, dropout_change_per_layer=0.0,
+        dropout_type='spatial', use_dropout_on_upsampling=False, use_attention=False,
+        filters=16, num_layers=4, output_activation='sigmoid')
 
 
         Parameters

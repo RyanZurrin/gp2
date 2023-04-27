@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>gp2.classifiers API documentation</title>
+<title>gp2.gp2 API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,70 +19,34 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>gp2.classifiers</code></h1>
+<h1 class="title">Module <code>gp2.gp2</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from .classifier import Classifier
-from .base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
-from .k_att_unet2d import KATTUnet2D
-from .k_r2_unet2d import KR2UNet2dD
-from .k_res_unet2d import KResUNet2D
-from .k_unet2d import KUNet2D
-from .k_unet3_plus2d import KUNet3Plus2D
-from .k_unet_plus2d import KUNetPlus2D
-from .k_vnet2d import KVNet2D
-from .unet import UNet
-from .unet_plus import UNetPLUS</code></pre>
+<pre><code class="python">from .util import Util
+Util.disable_tensorflow_logging()
+
+from gp2.gp2.classifiers.classifier import Classifier
+from gp2.gp2.discriminators.cnndiscriminator import CNNDiscriminator
+from .classifiers import *
+from .discriminators import *</code></pre>
 </details>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="gp2.classifiers.base_keras_segmentation_classifier" href="base_keras_segmentation_classifier.html">gp2.classifiers.base_keras_segmentation_classifier</a></code></dt>
+<dt><code class="name"><a title="gp2.gp2.classifiers" href="classifiers/index.html">gp2.gp2.classifiers</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt><code class="name"><a title="gp2.classifiers.classifier" href="classifier.html">gp2.classifiers.classifier</a></code></dt>
+<dt><code class="name"><a title="gp2.gp2.discriminators" href="discriminators/index.html">gp2.gp2.discriminators</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt><code class="name"><a title="gp2.classifiers.k_att_unet2d" href="k_att_unet2d.html">gp2.classifiers.k_att_unet2d</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="gp2.classifiers.k_r2_unet2d" href="k_r2_unet2d.html">gp2.classifiers.k_r2_unet2d</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="gp2.classifiers.k_res_unet2d" href="k_res_unet2d.html">gp2.classifiers.k_res_unet2d</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="gp2.classifiers.k_unet2d" href="k_unet2d.html">gp2.classifiers.k_unet2d</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="gp2.classifiers.k_unet3_plus2d" href="k_unet3_plus2d.html">gp2.classifiers.k_unet3_plus2d</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="gp2.classifiers.k_unet_plus2d" href="k_unet_plus2d.html">gp2.classifiers.k_unet_plus2d</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="gp2.classifiers.k_vnet2d" href="k_vnet2d.html">gp2.classifiers.k_vnet2d</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="gp2.classifiers.unet" href="unet.html">gp2.classifiers.unet</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="gp2.classifiers.unet_plus" href="unet_plus.html">gp2.classifiers.unet_plus</a></code></dt>
+<dt><code class="name"><a title="gp2.gp2.util" href="util.html">gp2.gp2.util</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -108,17 +72,9 @@ from .unet_plus import UNetPLUS</code></pre>
 </li>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="gp2.classifiers.base_keras_segmentation_classifier" href="base_keras_segmentation_classifier.html">gp2.classifiers.base_keras_segmentation_classifier</a></code></li>
-<li><code><a title="gp2.classifiers.classifier" href="classifier.html">gp2.classifiers.classifier</a></code></li>
-<li><code><a title="gp2.classifiers.k_att_unet2d" href="k_att_unet2d.html">gp2.classifiers.k_att_unet2d</a></code></li>
-<li><code><a title="gp2.classifiers.k_r2_unet2d" href="k_r2_unet2d.html">gp2.classifiers.k_r2_unet2d</a></code></li>
-<li><code><a title="gp2.classifiers.k_res_unet2d" href="k_res_unet2d.html">gp2.classifiers.k_res_unet2d</a></code></li>
-<li><code><a title="gp2.classifiers.k_unet2d" href="k_unet2d.html">gp2.classifiers.k_unet2d</a></code></li>
-<li><code><a title="gp2.classifiers.k_unet3_plus2d" href="k_unet3_plus2d.html">gp2.classifiers.k_unet3_plus2d</a></code></li>
-<li><code><a title="gp2.classifiers.k_unet_plus2d" href="k_unet_plus2d.html">gp2.classifiers.k_unet_plus2d</a></code></li>
-<li><code><a title="gp2.classifiers.k_vnet2d" href="k_vnet2d.html">gp2.classifiers.k_vnet2d</a></code></li>
-<li><code><a title="gp2.classifiers.unet" href="unet.html">gp2.classifiers.unet</a></code></li>
-<li><code><a title="gp2.classifiers.unet_plus" href="unet_plus.html">gp2.classifiers.unet_plus</a></code></li>
+<li><code><a title="gp2.gp2.classifiers" href="classifiers/index.html">gp2.gp2.classifiers</a></code></li>
+<li><code><a title="gp2.gp2.discriminators" href="discriminators/index.html">gp2.gp2.discriminators</a></code></li>
+<li><code><a title="gp2.gp2.util" href="util.html">gp2.gp2.util</a></code></li>
 </ul>
 </li>
 </ul>

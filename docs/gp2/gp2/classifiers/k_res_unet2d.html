@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>gp2.classifiers.k_r2_unet2d API documentation</title>
+<title>gp2.gp2.classifiers.k_res_unet2d API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,42 +19,40 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>gp2.classifiers.k_r2_unet2d</code></h1>
+<h1 class="title">Module <code>gp2.gp2.classifiers.k_res_unet2d</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from keras import losses, metrics
+<pre><code class="python">from keras import losses
 from tensorflow.keras import optimizers
 
-from gp2.classifiers.base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
+from .base_keras_segmentation_classifier import \
+    BaseKerasSegmentationClassifier
 from keras_unet_collection import models
-import tensorflow as tf
-
-policy = tf.keras.mixed_precision.Policy(&#39;mixed_float16&#39;)
-tf.keras.mixed_precision.set_global_policy(policy)
+from gp2.gp2.util import Util
 
 
-class KR2UNet2dD(BaseKerasSegmentationClassifier):
+class KResUNet2D(BaseKerasSegmentationClassifier):
     &#34;&#34;&#34;
-    Keras UNet2D
+    KResUNet2D
     &#34;&#34;&#34;
 
     def __init__(self,
                  input_size=(512, 512, 1),
                  filter_num=None,
+                 dilation_num=None,
                  n_labels=1,
-                 stack_num_down=2,
-                 stack_num_up=2,
-                 recur_num=2,
+                 aspp_num_down=16,
+                 aspp_num_up=8,
                  activation=&#39;PReLU&#39;,
                  output_activation=&#39;Sigmoid&#39;,
                  batch_norm=False,
                  pool=False,
                  unpool=False,
-                 name=&#39;r2_unet&#39;,
+                 name=&#39;resunet&#39;,
                  optimizer=None,
                  loss=None,
                  metric=None,
@@ -62,16 +60,15 @@ class KR2UNet2dD(BaseKerasSegmentationClassifier):
                  workingdir=&#39;/tmp&#39;,
                  ):
         &#34;&#34;&#34;
-        Recurrent Residual (R2) U-Net
+        ResUNet-a
 
-        r2_unet_2d(input_size, filter_num, n_labels,
-                   stack_num_down=2, stack_num_up=2, recur_num=2,
-                   activation=&#39;ReLU&#39;, output_activation=&#39;Softmax&#39;,
-                   batch_norm=False, pool=True, unpool=True, name=&#39;r2_unet&#39;)
+        resunet_a_2d(input_size, filter_num, dilation_num, n_labels,
+                     aspp_num_down=256, aspp_num_up=128, activation=&#39;ReLU&#39;, output_activation=&#39;Softmax&#39;,
+                     batch_norm=True, pool=True, unpool=True, name=&#39;resunet&#39;)
 
         ----------
-        Alom, M.Z., Hasan, M., Yakopcic, C., Taha, T.M. and Asari, V.K., 2018. Recurrent residual convolutional neural network
-        based on u-net (r2u-net) for medical image segmentation. arXiv preprint arXiv:1802.06955.
+        Diakogiannis, F.I., Waldner, F., Caccetta, P. and Wu, C., 2020. Resunet-a: a deep learning framework for
+        semantic segmentation of remotely sensed data. ISPRS Journal of Photogrammetry and Remote Sensing, 162, pp.94-114.
 
         Input
         ----------
@@ -79,18 +76,21 @@ class KR2UNet2dD(BaseKerasSegmentationClassifier):
             filter_num: a list that defines the number of filters for each \
                         down- and upsampling levels. e.g., `[64, 128, 256, 512]`.
                         The depth is expected as `len(filter_num)`.
+            dilation_num: an iterable that defines the dilation rates of convolutional layers.
+                          Diakogiannis et al. (2020) suggested `[1, 3, 15, 31]`.
+                          * `dilation_num` can be provided as 2d iterables, with the second dimension matches
+                          the model depth. e.g., for len(filter_num) = 4; dilation_num can be provided as:
+                          `[[1, 3, 15, 31], [1, 3, 15], [1,], [1,]]`.
+                          * If `dilation_num` is not provided per down-/upsampling level, then the automated
+                          determinations will be applied.
             n_labels: number of output labels.
-            stack_num_down: number of stacked recurrent convolutional layers per downsampling level/block.
-            stack_num_down: number of stacked recurrent convolutional layers per upsampling level/block.
-            recur_num: number of recurrent iterations.
+            aspp_num_down: number of Atrous Spatial Pyramid Pooling (ASPP) layer filters after the last downsampling block.
+            aspp_num_up: number of ASPP layer filters after the last upsampling block.
             activation: one of the `tensorflow.keras.layers` or `keras_unet_collection.activations` interfaces, e.g., &#39;ReLU&#39;.
             output_activation: one of the `tensorflow.keras.layers` or `keras_unet_collection.activations` interface or &#39;Sigmoid&#39;.
                                Default option is &#39;Softmax&#39;.
                                if None is received, then linear activation is applied.
             batch_norm: True for batch normalization.
-            pool: True or &#39;max&#39; for MaxPooling2D.
-                  &#39;ave&#39; for AveragePooling2D.
-                  False for strided conv + batch norm + activation.
             unpool: True or &#39;bilinear&#39; for Upsampling2D with bilinear interpolation.
                     &#39;nearest&#39; for Upsampling2D with nearest interpolation.
                     False for Conv2DTranspose + batch norm + activation.
@@ -100,51 +100,41 @@ class KR2UNet2dD(BaseKerasSegmentationClassifier):
         ----------
             model: a keras model.
 
-        &#34;&#34;&#34;
+        * Downsampling is achieved through strided convolutional layers with 1-by-1 kernels in Diakogiannis et al., (2020),
+          and is here is achieved either with pooling layers or strided convolutional layers with 2-by-2 kernels.
+        * `resunet_a_2d` does not support NoneType input shape.
 
+        &#34;&#34;&#34;
         super().__init__(verbose=verbose, workingdir=workingdir)
 
-        if filter_num is None:
-            filter_num = [64, 128, 256, 512]
-
-        if optimizer is None:
-            optimizer = optimizers.Adam(learning_rate=1e-4)
-
-        if loss is None:
-            loss = losses.binary_crossentropy
-
-        if metric is None:
-            metric = [metrics.binary_accuracy]
-
         self.input_size = input_size
-        self.filter_num = filter_num
-        self.stack_num_down = stack_num_down
-        self.stack_num_up = stack_num_up
-        self.recur_num = recur_num
+        self.filter_num = filter_num or [16, 32, 64, 128]
+        self.dilation_num = dilation_num or [[1, 3, 15, 31], [1, 3, 15], [1, ],
+                                             [1, ]]
         self.n_labels = n_labels
+        self.aspp_num_down = aspp_num_down
+        self.aspp_num_up = aspp_num_up
         self.activation = activation
         self.output_activation = output_activation
         self.batch_norm = batch_norm
         self.pool = pool
         self.unpool = unpool
         self.name = name
-        self.optimizer = optimizer
-        self.loss = loss
-        self.metric = metric
-        self.model = models.r2_unet_2d(input_size=self.input_size,
-                                       filter_num=self.filter_num,
-                                       n_labels=self.n_labels,
-                                       stack_num_down=self.stack_num_down,
-                                       stack_num_up=self.stack_num_up,
-                                       recur_num=self.recur_num,
-                                       activation=self.activation,
-                                       output_activation=self.output_activation,
-                                       batch_norm=self.batch_norm,
-                                       pool=self.pool,
-                                       unpool=self.unpool,
-                                       name=self.name)
-
-        print(&#39;*** GP2 R2UNet2dD ***&#39;)
+        self.optimizer = optimizer or optimizers.Adam(learning_rate=1e-4)
+        self.loss = loss or losses.binary_crossentropy
+        self.metric = metric or [Util.dice_coeff]
+        self.model = models.resunet_a_2d(input_size=self.input_size,
+                                         filter_num=self.filter_num,
+                                         dilation_num=self.dilation_num,
+                                         n_labels=self.n_labels,
+                                         aspp_num_down=self.aspp_num_down,
+                                         aspp_num_up=self.aspp_num_up,
+                                         activation=self.activation,
+                                         output_activation=self.output_activation,
+                                         batch_norm=self.batch_norm,
+                                         pool=self.pool, unpool=self.unpool,
+                                         name=self.name)
+        print(&#39;*** GP2  KResUNet2D ***&#39;)
         print(&#39;Working directory:&#39;, self.workingdir)
 
         self.build()
@@ -165,36 +155,38 @@ class KR2UNet2dD(BaseKerasSegmentationClassifier):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="gp2.classifiers.k_r2_unet2d.KR2UNet2dD"><code class="flex name class">
-<span>class <span class="ident">KR2UNet2dD</span></span>
-<span>(</span><span>input_size=(512, 512, 1), filter_num=None, n_labels=1, stack_num_down=2, stack_num_up=2, recur_num=2, activation='PReLU', output_activation='Sigmoid', batch_norm=False, pool=False, unpool=False, name='r2_unet', optimizer=None, loss=None, metric=None, verbose=False, workingdir='/tmp')</span>
+<dt id="gp2.gp2.classifiers.k_res_unet2d.KResUNet2D"><code class="flex name class">
+<span>class <span class="ident">KResUNet2D</span></span>
+<span>(</span><span>input_size=(512, 512, 1), filter_num=None, dilation_num=None, n_labels=1, aspp_num_down=16, aspp_num_up=8, activation='PReLU', output_activation='Sigmoid', batch_norm=False, pool=False, unpool=False, name='resunet', optimizer=None, loss=None, metric=None, verbose=False, workingdir='/tmp')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Keras UNet2D</p>
-<p>Recurrent Residual (R2) U-Net</p>
-<p>r2_unet_2d(input_size, filter_num, n_labels,
-stack_num_down=2, stack_num_up=2, recur_num=2,
-activation='ReLU', output_activation='Softmax',
-batch_norm=False, pool=True, unpool=True, name='r2_unet')</p>
+<div class="desc"><p>KResUNet2D</p>
+<p>ResUNet-a</p>
+<p>resunet_a_2d(input_size, filter_num, dilation_num, n_labels,
+aspp_num_down=256, aspp_num_up=128, activation='ReLU', output_activation='Softmax',
+batch_norm=True, pool=True, unpool=True, name='resunet')</p>
 <hr>
-<p>Alom, M.Z., Hasan, M., Yakopcic, C., Taha, T.M. and Asari, V.K., 2018. Recurrent residual convolutional neural network
-based on u-net (r2u-net) for medical image segmentation. arXiv preprint arXiv:1802.06955.</p>
+<p>Diakogiannis, F.I., Waldner, F., Caccetta, P. and Wu, C., 2020. Resunet-a: a deep learning framework for
+semantic segmentation of remotely sensed data. ISPRS Journal of Photogrammetry and Remote Sensing, 162, pp.94-114.</p>
 <h2 id="input">Input</h2>
 <pre><code>input_size: the size/shape of network input, e.g., &lt;code&gt;(128, 128, 3)&lt;/code&gt;.
 filter_num: a list that defines the number of filters for each                         down- and upsampling levels. e.g., &lt;code&gt;\[64, 128, 256, 512]&lt;/code&gt;.
             The depth is expected as &lt;code&gt;len(filter\_num)&lt;/code&gt;.
+dilation_num: an iterable that defines the dilation rates of convolutional layers.
+              Diakogiannis et al. (2020) suggested &lt;code&gt;\[1, 3, 15, 31]&lt;/code&gt;.
+              * &lt;code&gt;dilation\_num&lt;/code&gt; can be provided as 2d iterables, with the second dimension matches
+              the model depth. e.g., for len(filter_num) = 4; dilation_num can be provided as:
+              &lt;code&gt;\[\[1, 3, 15, 31], \[1, 3, 15], \[1,], \[1,]]&lt;/code&gt;.
+              * If &lt;code&gt;dilation\_num&lt;/code&gt; is not provided per down-/upsampling level, then the automated
+              determinations will be applied.
 n_labels: number of output labels.
-stack_num_down: number of stacked recurrent convolutional layers per downsampling level/block.
-stack_num_down: number of stacked recurrent convolutional layers per upsampling level/block.
-recur_num: number of recurrent iterations.
+aspp_num_down: number of Atrous Spatial Pyramid Pooling (ASPP) layer filters after the last downsampling block.
+aspp_num_up: number of ASPP layer filters after the last upsampling block.
 activation: one of the &lt;code&gt;tensorflow.keras.layers&lt;/code&gt; or &lt;code&gt;keras\_unet\_collection.activations&lt;/code&gt; interfaces, e.g., 'ReLU'.
 output_activation: one of the &lt;code&gt;tensorflow.keras.layers&lt;/code&gt; or &lt;code&gt;keras\_unet\_collection.activations&lt;/code&gt; interface or 'Sigmoid'.
                    Default option is 'Softmax'.
                    if None is received, then linear activation is applied.
 batch_norm: True for batch normalization.
-pool: True or 'max' for MaxPooling2D.
-      'ave' for AveragePooling2D.
-      False for strided conv + batch norm + activation.
 unpool: True or 'bilinear' for Upsampling2D with bilinear interpolation.
         'nearest' for Upsampling2D with nearest interpolation.
         False for Conv2DTranspose + batch norm + activation.
@@ -202,29 +194,34 @@ name: prefix of the created keras layers.
 </code></pre>
 <h2 id="output">Output</h2>
 <pre><code>model: a keras model.
-</code></pre></div>
+</code></pre>
+<ul>
+<li>Downsampling is achieved through strided convolutional layers with 1-by-1 kernels in Diakogiannis et al., (2020),
+and is here is achieved either with pooling layers or strided convolutional layers with 2-by-2 kernels.</li>
+<li><code>resunet_a_2d</code> does not support NoneType input shape.</li>
+</ul></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class KR2UNet2dD(BaseKerasSegmentationClassifier):
+<pre><code class="python">class KResUNet2D(BaseKerasSegmentationClassifier):
     &#34;&#34;&#34;
-    Keras UNet2D
+    KResUNet2D
     &#34;&#34;&#34;
 
     def __init__(self,
                  input_size=(512, 512, 1),
                  filter_num=None,
+                 dilation_num=None,
                  n_labels=1,
-                 stack_num_down=2,
-                 stack_num_up=2,
-                 recur_num=2,
+                 aspp_num_down=16,
+                 aspp_num_up=8,
                  activation=&#39;PReLU&#39;,
                  output_activation=&#39;Sigmoid&#39;,
                  batch_norm=False,
                  pool=False,
                  unpool=False,
-                 name=&#39;r2_unet&#39;,
+                 name=&#39;resunet&#39;,
                  optimizer=None,
                  loss=None,
                  metric=None,
@@ -232,16 +229,15 @@ name: prefix of the created keras layers.
                  workingdir=&#39;/tmp&#39;,
                  ):
         &#34;&#34;&#34;
-        Recurrent Residual (R2) U-Net
+        ResUNet-a
 
-        r2_unet_2d(input_size, filter_num, n_labels,
-                   stack_num_down=2, stack_num_up=2, recur_num=2,
-                   activation=&#39;ReLU&#39;, output_activation=&#39;Softmax&#39;,
-                   batch_norm=False, pool=True, unpool=True, name=&#39;r2_unet&#39;)
+        resunet_a_2d(input_size, filter_num, dilation_num, n_labels,
+                     aspp_num_down=256, aspp_num_up=128, activation=&#39;ReLU&#39;, output_activation=&#39;Softmax&#39;,
+                     batch_norm=True, pool=True, unpool=True, name=&#39;resunet&#39;)
 
         ----------
-        Alom, M.Z., Hasan, M., Yakopcic, C., Taha, T.M. and Asari, V.K., 2018. Recurrent residual convolutional neural network
-        based on u-net (r2u-net) for medical image segmentation. arXiv preprint arXiv:1802.06955.
+        Diakogiannis, F.I., Waldner, F., Caccetta, P. and Wu, C., 2020. Resunet-a: a deep learning framework for
+        semantic segmentation of remotely sensed data. ISPRS Journal of Photogrammetry and Remote Sensing, 162, pp.94-114.
 
         Input
         ----------
@@ -249,18 +245,21 @@ name: prefix of the created keras layers.
             filter_num: a list that defines the number of filters for each \
                         down- and upsampling levels. e.g., `[64, 128, 256, 512]`.
                         The depth is expected as `len(filter_num)`.
+            dilation_num: an iterable that defines the dilation rates of convolutional layers.
+                          Diakogiannis et al. (2020) suggested `[1, 3, 15, 31]`.
+                          * `dilation_num` can be provided as 2d iterables, with the second dimension matches
+                          the model depth. e.g., for len(filter_num) = 4; dilation_num can be provided as:
+                          `[[1, 3, 15, 31], [1, 3, 15], [1,], [1,]]`.
+                          * If `dilation_num` is not provided per down-/upsampling level, then the automated
+                          determinations will be applied.
             n_labels: number of output labels.
-            stack_num_down: number of stacked recurrent convolutional layers per downsampling level/block.
-            stack_num_down: number of stacked recurrent convolutional layers per upsampling level/block.
-            recur_num: number of recurrent iterations.
+            aspp_num_down: number of Atrous Spatial Pyramid Pooling (ASPP) layer filters after the last downsampling block.
+            aspp_num_up: number of ASPP layer filters after the last upsampling block.
             activation: one of the `tensorflow.keras.layers` or `keras_unet_collection.activations` interfaces, e.g., &#39;ReLU&#39;.
             output_activation: one of the `tensorflow.keras.layers` or `keras_unet_collection.activations` interface or &#39;Sigmoid&#39;.
                                Default option is &#39;Softmax&#39;.
                                if None is received, then linear activation is applied.
             batch_norm: True for batch normalization.
-            pool: True or &#39;max&#39; for MaxPooling2D.
-                  &#39;ave&#39; for AveragePooling2D.
-                  False for strided conv + batch norm + activation.
             unpool: True or &#39;bilinear&#39; for Upsampling2D with bilinear interpolation.
                     &#39;nearest&#39; for Upsampling2D with nearest interpolation.
                     False for Conv2DTranspose + batch norm + activation.
@@ -270,51 +269,41 @@ name: prefix of the created keras layers.
         ----------
             model: a keras model.
 
-        &#34;&#34;&#34;
+        * Downsampling is achieved through strided convolutional layers with 1-by-1 kernels in Diakogiannis et al., (2020),
+          and is here is achieved either with pooling layers or strided convolutional layers with 2-by-2 kernels.
+        * `resunet_a_2d` does not support NoneType input shape.
 
+        &#34;&#34;&#34;
         super().__init__(verbose=verbose, workingdir=workingdir)
 
-        if filter_num is None:
-            filter_num = [64, 128, 256, 512]
-
-        if optimizer is None:
-            optimizer = optimizers.Adam(learning_rate=1e-4)
-
-        if loss is None:
-            loss = losses.binary_crossentropy
-
-        if metric is None:
-            metric = [metrics.binary_accuracy]
-
         self.input_size = input_size
-        self.filter_num = filter_num
-        self.stack_num_down = stack_num_down
-        self.stack_num_up = stack_num_up
-        self.recur_num = recur_num
+        self.filter_num = filter_num or [16, 32, 64, 128]
+        self.dilation_num = dilation_num or [[1, 3, 15, 31], [1, 3, 15], [1, ],
+                                             [1, ]]
         self.n_labels = n_labels
+        self.aspp_num_down = aspp_num_down
+        self.aspp_num_up = aspp_num_up
         self.activation = activation
         self.output_activation = output_activation
         self.batch_norm = batch_norm
         self.pool = pool
         self.unpool = unpool
         self.name = name
-        self.optimizer = optimizer
-        self.loss = loss
-        self.metric = metric
-        self.model = models.r2_unet_2d(input_size=self.input_size,
-                                       filter_num=self.filter_num,
-                                       n_labels=self.n_labels,
-                                       stack_num_down=self.stack_num_down,
-                                       stack_num_up=self.stack_num_up,
-                                       recur_num=self.recur_num,
-                                       activation=self.activation,
-                                       output_activation=self.output_activation,
-                                       batch_norm=self.batch_norm,
-                                       pool=self.pool,
-                                       unpool=self.unpool,
-                                       name=self.name)
-
-        print(&#39;*** GP2 R2UNet2dD ***&#39;)
+        self.optimizer = optimizer or optimizers.Adam(learning_rate=1e-4)
+        self.loss = loss or losses.binary_crossentropy
+        self.metric = metric or [Util.dice_coeff]
+        self.model = models.resunet_a_2d(input_size=self.input_size,
+                                         filter_num=self.filter_num,
+                                         dilation_num=self.dilation_num,
+                                         n_labels=self.n_labels,
+                                         aspp_num_down=self.aspp_num_down,
+                                         aspp_num_up=self.aspp_num_up,
+                                         activation=self.activation,
+                                         output_activation=self.output_activation,
+                                         batch_norm=self.batch_norm,
+                                         pool=self.pool, unpool=self.unpool,
+                                         name=self.name)
+        print(&#39;*** GP2  KResUNet2D ***&#39;)
         print(&#39;Working directory:&#39;, self.workingdir)
 
         self.build()
@@ -327,9 +316,19 @@ name: prefix of the created keras layers.
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier" href="base_keras_segmentation_classifier.html#gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier">BaseKerasSegmentationClassifier</a></li>
-<li><a title="gp2.classifiers.classifier.Classifier" href="classifier.html#gp2.classifiers.classifier.Classifier">Classifier</a></li>
+<li><a title="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier" href="base_keras_segmentation_classifier.html#gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier">BaseKerasSegmentationClassifier</a></li>
+<li><a title="gp2.gp2.classifiers.classifier.Classifier" href="classifier.html#gp2.gp2.classifiers.classifier.Classifier">Classifier</a></li>
 <li>abc.ABC</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier" href="base_keras_segmentation_classifier.html#gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier">BaseKerasSegmentationClassifier</a></b></code>:
+<ul class="hlist">
+<li><code><a title="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.build" href="base_keras_segmentation_classifier.html#gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.build">build</a></code></li>
+<li><code><a title="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.predict" href="base_keras_segmentation_classifier.html#gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.predict">predict</a></code></li>
+<li><code><a title="gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.train" href="base_keras_segmentation_classifier.html#gp2.gp2.classifiers.base_keras_segmentation_classifier.BaseKerasSegmentationClassifier.train">train</a></code></li>
+</ul>
+</li>
 </ul>
 </dd>
 </dl>
@@ -343,13 +342,13 @@ name: prefix of the created keras layers.
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="gp2.classifiers" href="index.html">gp2.classifiers</a></code></li>
+<li><code><a title="gp2.gp2.classifiers" href="index.html">gp2.gp2.classifiers</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="gp2.classifiers.k_r2_unet2d.KR2UNet2dD" href="#gp2.classifiers.k_r2_unet2d.KR2UNet2dD">KR2UNet2dD</a></code></h4>
+<h4><code><a title="gp2.gp2.classifiers.k_res_unet2d.KResUNet2D" href="#gp2.gp2.classifiers.k_res_unet2d.KResUNet2D">KResUNet2D</a></code></h4>
 </li>
 </ul>
 </li>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>gp2.util API documentation</title>
+<title>gp2.gp2.util API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>gp2.util</code></h1>
+<h1 class="title">Module <code>gp2.gp2.util</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -36,7 +36,6 @@ from keras_unet_collection import losses
 
 
 class Util:
-
     @staticmethod
     def disable_tensorflow_logging():
         &#34;&#34;&#34; Disables tensorflow logging &#34;&#34;&#34;
@@ -46,7 +45,6 @@ class Util:
     @staticmethod
     def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
         &#34;&#34;&#34; Creates A, B, Z split from images and labels
-
         Parameters
         ----------
         images : numpy array
@@ -57,7 +55,6 @@ class Util:
             The size of the dataset
         weights : dict
             The weights to use for the split. If None, the split is 40/40/20
-
         Returns
         -------
         A : numpy array
@@ -115,7 +112,6 @@ class Util:
                                     test_count=250,
                                     shuffle=True):
         &#34;&#34;&#34; Creates a train, val, test split from a dataset
-
         Parameters
         ----------
         dataset : numpy array
@@ -128,7 +124,6 @@ class Util:
             The number of test samples
         shuffle : bool
             Whether to shuffle the dataset before splitting
-
         Returns
         -------
         train : numpy array
@@ -152,14 +147,12 @@ class Util:
     @staticmethod
     def create_numbered_file(filename, extension):
         &#34;&#34;&#34; Creates a numbered file
-
         Parameters
         ----------
         filename : str
             The filename
         extension : str
             The extension
-
         Returns
         -------
         numbered_file : str
@@ -176,7 +169,6 @@ class Util:
     @staticmethod
     def plot_accuracies(x, y1, y2):
         &#34;&#34;&#34; Plot line chart showing accuracies of classifier and discriminator
-
         Parameters
         ----------
         x : numpy.ndarray
@@ -185,7 +177,6 @@ class Util:
             The y-axis values for the classifier.
         y2 : numpy.ndarray
             The y-axis values for the discriminator.
-
         Returns
         -------
         None
@@ -222,7 +213,7 @@ class Util:
 
     @staticmethod
     @tf.function
-    def dice_coef(y_true, y_pred, smooth=1e-9):
+    def dice_coeff(y_true, y_pred, smooth=1e-9):
         &#34;&#34;&#34; Calculate the dice coefficient.
         Parameters
         ----------
@@ -232,7 +223,6 @@ class Util:
             The predicted masks.
         smooth : float
             The smoothing factor.
-
         Returns
         -------
         float
@@ -255,7 +245,6 @@ class Util:
         The true masks.
     y_pred : numpy.ndarray
         The predicted masks.
-
     Returns
     -------
     float
@@ -274,7 +263,6 @@ class Util:
             The true masks.
         y_pred : numpy.ndarray
             The predicted masks.
-
         Returns
         -------
         float
@@ -290,7 +278,28 @@ class Util:
         # (x)
         # loss_ssim = losses.ms_ssim(y_true, y_pred, max_val=1.0, filter_size=4)
 
-        return loss_focal + loss_iou  # +loss_ssim</code></pre>
+        return loss_focal + loss_iou  # +loss_ssim
+
+    @staticmethod
+    @tf.function
+    def dice_loss(y_true, y_pred, smooth=1):
+        &#34;&#34;&#34; Calculate the dice loss.
+
+        Parameters
+        ----------
+        y_true : numpy.ndarray
+            The true masks.
+        y_pred : numpy.ndarray
+            The predicted masks.
+        smooth : float
+            The smoothing factor.
+
+        Returns
+        -------
+        float
+            The dice loss.
+        &#34;&#34;&#34;
+        return 1 - Util.dice_coeff(y_true, y_pred, smooth)</code></pre>
 </details>
 </section>
 <section>
@@ -302,7 +311,7 @@ class Util:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="gp2.util.Util"><code class="flex name class">
+<dt id="gp2.gp2.util.Util"><code class="flex name class">
 <span>class <span class="ident">Util</span></span>
 </code></dt>
 <dd>
@@ -312,7 +321,6 @@ class Util:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Util:
-
     @staticmethod
     def disable_tensorflow_logging():
         &#34;&#34;&#34; Disables tensorflow logging &#34;&#34;&#34;
@@ -322,7 +330,6 @@ class Util:
     @staticmethod
     def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
         &#34;&#34;&#34; Creates A, B, Z split from images and labels
-
         Parameters
         ----------
         images : numpy array
@@ -333,7 +340,6 @@ class Util:
             The size of the dataset
         weights : dict
             The weights to use for the split. If None, the split is 40/40/20
-
         Returns
         -------
         A : numpy array
@@ -391,7 +397,6 @@ class Util:
                                     test_count=250,
                                     shuffle=True):
         &#34;&#34;&#34; Creates a train, val, test split from a dataset
-
         Parameters
         ----------
         dataset : numpy array
@@ -404,7 +409,6 @@ class Util:
             The number of test samples
         shuffle : bool
             Whether to shuffle the dataset before splitting
-
         Returns
         -------
         train : numpy array
@@ -428,14 +432,12 @@ class Util:
     @staticmethod
     def create_numbered_file(filename, extension):
         &#34;&#34;&#34; Creates a numbered file
-
         Parameters
         ----------
         filename : str
             The filename
         extension : str
             The extension
-
         Returns
         -------
         numbered_file : str
@@ -452,7 +454,6 @@ class Util:
     @staticmethod
     def plot_accuracies(x, y1, y2):
         &#34;&#34;&#34; Plot line chart showing accuracies of classifier and discriminator
-
         Parameters
         ----------
         x : numpy.ndarray
@@ -461,7 +462,6 @@ class Util:
             The y-axis values for the classifier.
         y2 : numpy.ndarray
             The y-axis values for the discriminator.
-
         Returns
         -------
         None
@@ -498,7 +498,7 @@ class Util:
 
     @staticmethod
     @tf.function
-    def dice_coef(y_true, y_pred, smooth=1e-9):
+    def dice_coeff(y_true, y_pred, smooth=1e-9):
         &#34;&#34;&#34; Calculate the dice coefficient.
         Parameters
         ----------
@@ -508,7 +508,6 @@ class Util:
             The predicted masks.
         smooth : float
             The smoothing factor.
-
         Returns
         -------
         float
@@ -531,7 +530,6 @@ class Util:
         The true masks.
     y_pred : numpy.ndarray
         The predicted masks.
-
     Returns
     -------
     float
@@ -550,7 +548,6 @@ class Util:
             The true masks.
         y_pred : numpy.ndarray
             The predicted masks.
-
         Returns
         -------
         float
@@ -566,11 +563,32 @@ class Util:
         # (x)
         # loss_ssim = losses.ms_ssim(y_true, y_pred, max_val=1.0, filter_size=4)
 
-        return loss_focal + loss_iou  # +loss_ssim</code></pre>
+        return loss_focal + loss_iou  # +loss_ssim
+
+    @staticmethod
+    @tf.function
+    def dice_loss(y_true, y_pred, smooth=1):
+        &#34;&#34;&#34; Calculate the dice loss.
+
+        Parameters
+        ----------
+        y_true : numpy.ndarray
+            The true masks.
+        y_pred : numpy.ndarray
+            The predicted masks.
+        smooth : float
+            The smoothing factor.
+
+        Returns
+        -------
+        float
+            The dice loss.
+        &#34;&#34;&#34;
+        return 1 - Util.dice_coeff(y_true, y_pred, smooth)</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
-<dt id="gp2.util.Util.bce_dice_loss"><code class="name flex">
+<dt id="gp2.gp2.util.Util.bce_dice_loss"><code class="name flex">
 <span>def <span class="ident">bce_dice_loss</span></span>(<span>y_true, y_pred)</span>
 </code></dt>
 <dd>
@@ -602,7 +620,6 @@ y_true : numpy.ndarray
     The true masks.
 y_pred : numpy.ndarray
     The predicted masks.
-
 Returns
 -------
 float
@@ -612,12 +629,13 @@ float
         (1 - Util.dice_coef(y_true, y_pred))</code></pre>
 </details>
 </dd>
-<dt id="gp2.util.Util.create_A_B_Z_split"><code class="name flex">
+<dt id="gp2.gp2.util.Util.create_A_B_Z_split"><code class="name flex">
 <span>def <span class="ident">create_A_B_Z_split</span></span>(<span>images, labels, dataset_size=1000, weights=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Creates A, B, Z split from images and labels</p>
-<h2 id="parameters">Parameters</h2>
+<div class="desc"><p>Creates A, B, Z split from images and labels
+Parameters</p>
+<hr>
 <dl>
 <dt><strong><code>images</code></strong> :&ensp;<code>numpy array</code></dt>
 <dd>The images to split</dd>
@@ -644,7 +662,6 @@ float
 <pre><code class="python">@staticmethod
 def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
     &#34;&#34;&#34; Creates A, B, Z split from images and labels
-
     Parameters
     ----------
     images : numpy array
@@ -655,7 +672,6 @@ def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
         The size of the dataset
     weights : dict
         The weights to use for the split. If None, the split is 40/40/20
-
     Returns
     -------
     A : numpy array
@@ -707,12 +723,13 @@ def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
     return A, B, Z</code></pre>
 </details>
 </dd>
-<dt id="gp2.util.Util.create_numbered_file"><code class="name flex">
+<dt id="gp2.gp2.util.Util.create_numbered_file"><code class="name flex">
 <span>def <span class="ident">create_numbered_file</span></span>(<span>filename, extension)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Creates a numbered file</p>
-<h2 id="parameters">Parameters</h2>
+<div class="desc"><p>Creates a numbered file
+Parameters</p>
+<hr>
 <dl>
 <dt><strong><code>filename</code></strong> :&ensp;<code>str</code></dt>
 <dd>The filename</dd>
@@ -731,14 +748,12 @@ def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
 <pre><code class="python">@staticmethod
 def create_numbered_file(filename, extension):
     &#34;&#34;&#34; Creates a numbered file
-
     Parameters
     ----------
     filename : str
         The filename
     extension : str
         The extension
-
     Returns
     -------
     numbered_file : str
@@ -753,12 +768,13 @@ def create_numbered_file(filename, extension):
     return numbered_file</code></pre>
 </details>
 </dd>
-<dt id="gp2.util.Util.create_train_val_test_split"><code class="name flex">
+<dt id="gp2.gp2.util.Util.create_train_val_test_split"><code class="name flex">
 <span>def <span class="ident">create_train_val_test_split</span></span>(<span>dataset, train_count=200, val_count=300, test_count=250, shuffle=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Creates a train, val, test split from a dataset</p>
-<h2 id="parameters">Parameters</h2>
+<div class="desc"><p>Creates a train, val, test split from a dataset
+Parameters</p>
+<hr>
 <dl>
 <dt><strong><code>dataset</code></strong> :&ensp;<code>numpy array</code></dt>
 <dd>The dataset to split</dd>
@@ -791,7 +807,6 @@ def create_train_val_test_split(dataset,
                                 test_count=250,
                                 shuffle=True):
     &#34;&#34;&#34; Creates a train, val, test split from a dataset
-
     Parameters
     ----------
     dataset : numpy array
@@ -804,7 +819,6 @@ def create_train_val_test_split(dataset,
         The number of test samples
     shuffle : bool
         Whether to shuffle the dataset before splitting
-
     Returns
     -------
     train : numpy array
@@ -826,8 +840,8 @@ def create_train_val_test_split(dataset,
     return train, val, test</code></pre>
 </details>
 </dd>
-<dt id="gp2.util.Util.dice_coef"><code class="name flex">
-<span>def <span class="ident">dice_coef</span></span>(<span>y_true, y_pred, smooth=1e-09)</span>
+<dt id="gp2.gp2.util.Util.dice_coeff"><code class="name flex">
+<span>def <span class="ident">dice_coeff</span></span>(<span>y_true, y_pred, smooth=1e-09)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculate the dice coefficient.
@@ -852,7 +866,7 @@ Parameters</p>
 </summary>
 <pre><code class="python">@staticmethod
 @tf.function
-def dice_coef(y_true, y_pred, smooth=1e-9):
+def dice_coeff(y_true, y_pred, smooth=1e-9):
     &#34;&#34;&#34; Calculate the dice coefficient.
     Parameters
     ----------
@@ -862,7 +876,6 @@ def dice_coef(y_true, y_pred, smooth=1e-9):
         The predicted masks.
     smooth : float
         The smoothing factor.
-
     Returns
     -------
     float
@@ -876,7 +889,52 @@ def dice_coef(y_true, y_pred, smooth=1e-9):
     return dice</code></pre>
 </details>
 </dd>
-<dt id="gp2.util.Util.disable_tensorflow_logging"><code class="name flex">
+<dt id="gp2.gp2.util.Util.dice_loss"><code class="name flex">
+<span>def <span class="ident">dice_loss</span></span>(<span>y_true, y_pred, smooth=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the dice loss.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>y_true</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>The true masks.</dd>
+<dt><strong><code>y_pred</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dd>The predicted masks.</dd>
+<dt><strong><code>smooth</code></strong> :&ensp;<code>float</code></dt>
+<dd>The smoothing factor.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>The dice loss.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+@tf.function
+def dice_loss(y_true, y_pred, smooth=1):
+    &#34;&#34;&#34; Calculate the dice loss.
+
+    Parameters
+    ----------
+    y_true : numpy.ndarray
+        The true masks.
+    y_pred : numpy.ndarray
+        The predicted masks.
+    smooth : float
+        The smoothing factor.
+
+    Returns
+    -------
+    float
+        The dice loss.
+    &#34;&#34;&#34;
+    return 1 - Util.dice_coeff(y_true, y_pred, smooth)</code></pre>
+</details>
+</dd>
+<dt id="gp2.gp2.util.Util.disable_tensorflow_logging"><code class="name flex">
 <span>def <span class="ident">disable_tensorflow_logging</span></span>(<span>)</span>
 </code></dt>
 <dd>
@@ -892,7 +950,7 @@ def disable_tensorflow_logging():
     logging.getLogger(&#39;tensorflow&#39;).disabled = True</code></pre>
 </details>
 </dd>
-<dt id="gp2.util.Util.hybrid_loss"><code class="name flex">
+<dt id="gp2.gp2.util.Util.hybrid_loss"><code class="name flex">
 <span>def <span class="ident">hybrid_loss</span></span>(<span>y_true, y_pred)</span>
 </code></dt>
 <dd>
@@ -924,7 +982,6 @@ def hybrid_loss(y_true, y_pred):
         The true masks.
     y_pred : numpy.ndarray
         The predicted masks.
-
     Returns
     -------
     float
@@ -943,12 +1000,13 @@ def hybrid_loss(y_true, y_pred):
     return loss_focal + loss_iou  # +loss_ssim</code></pre>
 </details>
 </dd>
-<dt id="gp2.util.Util.plot_accuracies"><code class="name flex">
+<dt id="gp2.gp2.util.Util.plot_accuracies"><code class="name flex">
 <span>def <span class="ident">plot_accuracies</span></span>(<span>x, y1, y2)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Plot line chart showing accuracies of classifier and discriminator</p>
-<h2 id="parameters">Parameters</h2>
+<div class="desc"><p>Plot line chart showing accuracies of classifier and discriminator
+Parameters</p>
+<hr>
 <dl>
 <dt><strong><code>x</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
 <dd>The x-axis values.</dd>
@@ -969,7 +1027,6 @@ def hybrid_loss(y_true, y_pred):
 <pre><code class="python">@staticmethod
 def plot_accuracies(x, y1, y2):
     &#34;&#34;&#34; Plot line chart showing accuracies of classifier and discriminator
-
     Parameters
     ----------
     x : numpy.ndarray
@@ -978,7 +1035,6 @@ def plot_accuracies(x, y1, y2):
         The y-axis values for the classifier.
     y2 : numpy.ndarray
         The y-axis values for the discriminator.
-
     Returns
     -------
     None
@@ -1027,22 +1083,23 @@ def plot_accuracies(x, y1, y2):
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="gp2" href="index.html">gp2</a></code></li>
+<li><code><a title="gp2.gp2" href="index.html">gp2.gp2</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="gp2.util.Util" href="#gp2.util.Util">Util</a></code></h4>
+<h4><code><a title="gp2.gp2.util.Util" href="#gp2.gp2.util.Util">Util</a></code></h4>
 <ul class="">
-<li><code><a title="gp2.util.Util.bce_dice_loss" href="#gp2.util.Util.bce_dice_loss">bce_dice_loss</a></code></li>
-<li><code><a title="gp2.util.Util.create_A_B_Z_split" href="#gp2.util.Util.create_A_B_Z_split">create_A_B_Z_split</a></code></li>
-<li><code><a title="gp2.util.Util.create_numbered_file" href="#gp2.util.Util.create_numbered_file">create_numbered_file</a></code></li>
-<li><code><a title="gp2.util.Util.create_train_val_test_split" href="#gp2.util.Util.create_train_val_test_split">create_train_val_test_split</a></code></li>
-<li><code><a title="gp2.util.Util.dice_coef" href="#gp2.util.Util.dice_coef">dice_coef</a></code></li>
-<li><code><a title="gp2.util.Util.disable_tensorflow_logging" href="#gp2.util.Util.disable_tensorflow_logging">disable_tensorflow_logging</a></code></li>
-<li><code><a title="gp2.util.Util.hybrid_loss" href="#gp2.util.Util.hybrid_loss">hybrid_loss</a></code></li>
-<li><code><a title="gp2.util.Util.plot_accuracies" href="#gp2.util.Util.plot_accuracies">plot_accuracies</a></code></li>
+<li><code><a title="gp2.gp2.util.Util.bce_dice_loss" href="#gp2.gp2.util.Util.bce_dice_loss">bce_dice_loss</a></code></li>
+<li><code><a title="gp2.gp2.util.Util.create_A_B_Z_split" href="#gp2.gp2.util.Util.create_A_B_Z_split">create_A_B_Z_split</a></code></li>
+<li><code><a title="gp2.gp2.util.Util.create_numbered_file" href="#gp2.gp2.util.Util.create_numbered_file">create_numbered_file</a></code></li>
+<li><code><a title="gp2.gp2.util.Util.create_train_val_test_split" href="#gp2.gp2.util.Util.create_train_val_test_split">create_train_val_test_split</a></code></li>
+<li><code><a title="gp2.gp2.util.Util.dice_coeff" href="#gp2.gp2.util.Util.dice_coeff">dice_coeff</a></code></li>
+<li><code><a title="gp2.gp2.util.Util.dice_loss" href="#gp2.gp2.util.Util.dice_loss">dice_loss</a></code></li>
+<li><code><a title="gp2.gp2.util.Util.disable_tensorflow_logging" href="#gp2.gp2.util.Util.disable_tensorflow_logging">disable_tensorflow_logging</a></code></li>
+<li><code><a title="gp2.gp2.util.Util.hybrid_loss" href="#gp2.gp2.util.Util.hybrid_loss">hybrid_loss</a></code></li>
+<li><code><a title="gp2.gp2.util.Util.plot_accuracies" href="#gp2.gp2.util.Util.plot_accuracies">plot_accuracies</a></code></li>
 </ul>
 </li>
 </ul>
