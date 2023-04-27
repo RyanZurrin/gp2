@@ -5,7 +5,8 @@ from abc import ABC, abstractmethod
 import numpy as np
 import os
 import pickle
-
+import tensorflow as tf
+from tensorflow.keras.layers import Layer
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 
@@ -102,3 +103,21 @@ class BaseCNNDiscriminator(Discriminator, ABC):
         scores = self.model.evaluate(x=[X_test_images, X_test_masks], y=y_test)
 
         return predictions, scores
+
+
+class CustomMaskLayer(Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def build(self, input_shape):
+        self.mask = self.add_weight(name='mask',
+                                    shape=input_shape[1:],
+                                    initializer=tf.keras.initializers.Ones(),
+                                    trainable=False)
+        super().build(input_shape)
+
+    def call(self, inputs):
+        return inputs * self.mask
+
+    def set_mask(self, mask):
+        self.mask.assign(mask)

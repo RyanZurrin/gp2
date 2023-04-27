@@ -574,6 +574,7 @@ class Runner:
             return
 
         D_, D_ids = D.to_array()
+        # TODO: Check why these are here if not used
         D_images = D_[:, :, :, 0]
         D_masks = D_[:, :, :, 1]
         D_labels = D_[:, 0, 0, 2]
@@ -582,7 +583,6 @@ class Runner:
             100 / percent_to_replace), replace=False))
 
         print('Replacing', len(selected_ids), 'from', len(D_ids), '!')
-
 
         D_relabeled_ = np.empty((len(selected_ids),) + D_.shape[1:],
                                 dtype=D_.dtype)
@@ -604,15 +604,13 @@ class Runner:
             label = D_[j, 0, 0, 2]
 
             origin = ''
-            if (k in A_test.data):
+            if k in A_test.data:
                 origin = 'A_test'
-            elif (k in B.data):
+            elif k in B.data:
                 origin = 'B'
             else:
-                print('Lost Datapoint!!', k)  # TODO - this is a problem!
+                print('Lost Datapoint!!', k)
                 continue
-
-            # print(origin, k)
 
             ### SIMULATION CASE -> just grab ground truth###
             ### OTHERWISE THIS IS THE ENTRYPOINT FOR MANUAL RE-LABELING ###
@@ -670,19 +668,13 @@ class Runner:
 
         # Move points from A_test to A_train
         for k in point_ids:
-
             # we need to check where this datapoint originally came from
-            origin = ''
-            origintext = ''
             if (k in A_test.data):
                 origintext = 'A_test'
                 origin = A_test
             elif (k in B.data):
                 origintext = 'B'
                 origin = B
-            # elif (k in C_test.data):
-            #     origintext = 'C_test'
-            #     origin = C_test
             else:
                 print('Lost Datapoint!!', k)
                 continue
@@ -691,7 +683,6 @@ class Runner:
             p.id = k
 
             M.remove_and_add(origin, A_train, p)
-            # print('removing', p.id, 'from', origintext, 'and adding to A_train')
             removed_counter += 1
 
             # now fill up the origin from Z
