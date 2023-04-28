@@ -121,7 +121,7 @@ class KUNet(BaseKerasSegmentationClassifier):
                             output_activation=self.output_activation
                             )
 
-        print('*** GP2 KVanillaUNet ***')
+        print('*** GP2 KUnet ***')
         print('Working directory:', self.workingdir)
 
         self.build()

@@ -184,7 +184,6 @@ class Util:
         plt.show()
 
     @staticmethod
-    @tf.function
     def dice_coeff(y_true, y_pred, smooth=1e-9):
         """ Calculate the dice coefficient.
         Parameters
@@ -208,7 +207,6 @@ class Util:
         return dice
 
     @staticmethod
-    @tf.function
     def bce_dice_loss(y_true, y_pred):
         """ Calculate the loss.
     Parameters
@@ -226,7 +224,6 @@ class Util:
             (1 - Util.dice_coeff(y_true, y_pred))
 
     @staticmethod
-    @tf.function
     def hybrid_loss(y_true, y_pred):
         """ Calculate the loss.
         Parameters
@@ -253,7 +250,6 @@ class Util:
         return loss_focal + loss_iou  # +loss_ssim
 
     @staticmethod
-    @tf.function
     def dice_loss(y_true, y_pred, smooth=1):
         """ Calculate the dice loss.
 
