@@ -413,19 +413,19 @@ class Runner:
         None
         """
         # Check that the sum of the ratios is approximately equal to 1
-        if not (
-                1 - threshold <= train_ratio + val_ratio + test_ratio <= 1 + threshold):
-            raise ValueError(
-                "The sum of train_ratio, val_ratio, and test_ratio must be approximately equal to 1")
+        # if not (
+        #         1 - threshold <= train_ratio + val_ratio + test_ratio <= 1 + threshold):
+        #     raise ValueError(
+        #         "The sum of train_ratio, val_ratio, and test_ratio must be approximately equal to 1")
 
         self.create_C_dataset()
 
         dataset_size = self.dataset_size
         weights = self.weights
 
-        train_count = int(0.2 * train_ratio * dataset_size)
-        val_count = int(0.2 * val_ratio * dataset_size)
-        test_count = int(0.2 * test_ratio * dataset_size)
+        train_count = int(0.2 * 0.4 * dataset_size)
+        val_count = int(0.2 * 0.1 * dataset_size)
+        test_count = int(0.2 * 0.5 * dataset_size)
 
         if weights:
             train_count = int(weights['B'] * weights['B_train'] * dataset_size)
@@ -436,24 +436,27 @@ class Runner:
 
         M = self.M
 
-        cnnd = self.discriminator
+        if not self.discriminator:
+            C_train = M.get('C_train')
+            C_val = M.get('C_val')
 
-        C_train = M.get('C_train')
-        C_val = M.get('C_val')
+            C_train_, C_train_ids = C_train.to_array()
+            X_train_images_ = C_train_[:, :, :, 0]
+            X_train_masks_ = C_train_[:, :, :, 1]
+            y_train_ = C_train_[:, 0, 0, 2]
 
-        C_train_, C_train_ids = C_train.to_array()
-        X_train_images_ = C_train_[:, :, :, 0]
-        X_train_masks_ = C_train_[:, :, :, 1]
-        y_train_ = C_train_[:, 0, 0, 2]
+            C_val_, C_val_ids = C_val.to_array()
+            X_val_images_ = C_val_[:, :, :, 0]
+            X_val_masks_ = C_val_[:, :, :, 1]
+            y_val_ = C_val_[:, 0, 0, 2]
 
-        C_val_, C_val_ids = C_val.to_array()
-        X_val_images_ = C_val_[:, :, :, 0]
-        X_val_masks_ = C_val_[:, :, :, 1]
-        y_val_ = C_val_[:, 0, 0, 2]
+            cnnd = CNNDiscriminator(verbose=self.verbose,
+                                    workingdir=self.workingdir)
 
-        cnnd.train(X_train_images_, X_train_masks_, y_train_, X_val_images_,
-                   X_val_masks_, y_val_)
-        self.discriminator = cnnd
+            cnnd.train(X_train_images_, X_train_masks_, y_train_, X_val_images_,
+                       X_val_masks_, y_val_)
+
+            self.discriminator = cnnd
 
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, 'M_step4.pickle'))
