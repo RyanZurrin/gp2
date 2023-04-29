@@ -549,10 +549,12 @@ class Runner:
     #
     def relabel(self, percent_to_replace=30):
         """ Relabels a subset of Dataset D
+
         Parameters
         ----------
         percent_to_replace : int
             Percentage of D to relabel
+
         Returns
         -------
         None
@@ -632,12 +634,14 @@ class Runner:
     def update_A_train(self, balance=True, fillup=True):
         """ Update A_train with selected points from D. Then, remove D from B
         and A_test (wherever it was!). Fill-up both B and A_test (internal!).
+
         Parameters
         ----------
         balance : bool
             If True, balance A_train with B and A_test
         fillup : bool
             If True, fill-up B and A_test with points from A_train
+
         Returns
         -------
         None
@@ -662,10 +666,10 @@ class Runner:
         # Move points from A_test to A_train
         for k in point_ids:
             # we need to check where this datapoint originally came from
-            if (k in A_test.data):
+            if k in A_test.data:
                 origintext = 'A_test'
                 origin = A_test
-            elif (k in B.data):
+            elif k in B.data:
                 origintext = 'B'
                 origin = B
             else:
@@ -688,11 +692,56 @@ class Runner:
 
                 M.remove_and_add(Z, origin, p)
                 filled_counter += 1
+        if balance:
+            total_samples = len(A_train.data.keys()) + \
+                len(B.data.keys()) + len(A_test.data.keys())
+            target_samples = total_samples // 3
+
+            while abs(len(A_train.data) - len(B.data)) > 1 or abs(
+                    len(A_train.data) - len(A_test.data)) > 1:
+                if len(A_train.data) > target_samples:
+                    if len(B.data) < target_samples:
+                        self.transfer(A_train, B)
+                    elif len(A_test.data) < target_samples:
+                        self.transfer(A_train, A_test)
+                elif len(B.data) > target_samples:
+                    if len(A_train.data) < target_samples:
+                        self.transfer(B, A_train)
+                    elif len(A_test.data) < target_samples:
+                        self.transfer(B, A_test)
+                elif len(A_test.data) > target_samples:
+                    if len(A_train.data) < target_samples:
+                        self.transfer(A_test, A_train)
+                    elif len(B.data) < target_samples:
+                        self.transfer(A_test, B)
 
         print('Removed:', removed_counter, 'Filled:', filled_counter)
 
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, 'M_step8.pickle'))
+
+    def transfer(self, source, target):
+        """ Transfer one point from source to target.
+
+        Parameters
+        ----------
+        source : Collection
+            Source collection
+        target : Collection
+            Target collection
+
+        Returns
+        -------
+        None
+        """
+        source_uniq_ids = list(source.data.keys())
+        source_uniq_id = np.random.choice(source_uniq_ids, replace=False)
+
+        p = Point(source.data[source_uniq_id])
+        p.id = source_uniq_id
+
+        self.M.remove_and_add(source, target, p)
+
 
     def run(self,
             images,
@@ -701,6 +750,28 @@ class Runner:
             runs=1,
             patience_counter=2,
             percent_to_replace=30):
+        """ Run the whole GP2 algorithm, including setting up the data, running
+        the classifier and discriminator, and relabeling.
+
+        Parameters
+        ----------
+        images : np.ndarray
+            List of images
+        masks : np.ndarray
+            List of masks
+        weights : dict
+            Dictionary of weights for the different classes
+        runs : int
+            Number of runs
+        patience_counter : int
+            Number of times the classifier can run without improvement. (Default: 2)
+        percent_to_replace : int
+            Percentage of points to replace in each run. (Default: 30)
+
+        Returns
+        --------
+        None
+        """
         # assert that len of images and masks is the same
         assert len(images) == len(masks)
         dataset_size = len(images)

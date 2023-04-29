@@ -36,14 +36,12 @@ class Util:
         Z : numpy array
             The Z split
         """
-
         #
         # We split as follows
         # A 0.4*dataset_size
         # B 0.4*dataset_size
         # Z 0.2*dataset_size
         #
-
         A_split = int(0.4 * dataset_size)
         B_split = int(0.2 * dataset_size)
         Z_split = int(0.4 * dataset_size)
@@ -70,8 +68,7 @@ class Util:
 
         # funnel data
         Z = images[A_split + B_split:A_split + B_split + Z_split, :, :, 0]
-        Z_labels = labels[A_split + B_split:A_split + B_split + Z_split, :, :,
-                   0]
+        Z_labels = labels[A_split + B_split:A_split + B_split + Z_split, :, :, 0]
 
         Z = np.stack((Z, Z_labels), axis=-1)
 
@@ -153,33 +150,18 @@ class Util:
         -------
         None
         """
-
-        # Plot Line1 (Left Y Axis)
         fig, ax1 = plt.subplots(1, 1, figsize=(3, 3), dpi=80)
         line1, = ax1.plot(x, y1, color='tab:red', label='Classifier')
         line2, = ax1.plot(x, y2, color='tab:blue', label='Discriminator')
         ax1.legend(handles=[line1, line2])
         ax1.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
-        # # Plot Line2 (Right Y Axis)
-        # ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-        # ax2.plot(x, y2, color='tab:blue')
-
-        # Decorations
-        # ax1 (left Y axis)
         ax1.set_xlabel('Cycle', color='tab:gray', fontsize=14)
         ax1.tick_params(axis='x', rotation=0, labelsize=12,
                         labelcolor='tab:gray')
         ax1.set_ylabel('Accuracy', color='tab:red', fontsize=14)
         ax1.tick_params(axis='y', rotation=0, labelcolor='tab:red')
         ax1.grid(alpha=.4)
-
-        # ax2 (right Y axis)
-        # ax2.set_ylabel("# Unemployed (1000's)", color='tab:blue', fontsize=20)
-        # ax2.tick_params(axis='y', labelcolor='tab:blue')
-        # ax2.set_xticks(np.arange(0, len(x), 60))
-        # ax2.set_xticklabels(x[::60], rotation=90, fontdict={'fontsize':10})
-        # ax2.set_title("Personal Savings Rate vs Unemployed: Plotting in Secondary Y Axis", fontsize=22)
         fig.tight_layout()
         plt.show()
 
@@ -241,7 +223,8 @@ class Util:
         y_true = tf.cast(y_true, tf.float32)
         y_pred = tf.cast(y_pred, tf.float32)
 
-        loss_focal = losses.focal_tversky(y_true, y_pred, alpha=0.5, gamma=4 / 3)
+        loss_focal = losses.focal_tversky(y_true, y_pred, alpha=0.5,
+                                          gamma=4 / 3)
         loss_iou = losses.iou_seg(y_true, y_pred)
 
         # (x)
