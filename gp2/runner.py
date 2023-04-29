@@ -171,7 +171,6 @@ class Runner:
             raise ValueError('Discriminator not supported: {}'.format(
                 discriminator))
 
-
     #
     # STEP 0
     #
@@ -547,13 +546,17 @@ class Runner:
     #
     # STEP 7 (calls 8)
     #
-    def relabel(self, percent_to_replace=30):
+    def relabel(self, percent_to_replace=30, balance=False, fillup=True):
         """ Relabels a subset of Dataset D
 
         Parameters
         ----------
         percent_to_replace : int
             Percentage of D to relabel
+        balance : bool
+            Whether to balance when updating A_train
+        fillup : bool
+            Whether to fillup when updating A_train
 
         Returns
         -------
@@ -626,12 +629,12 @@ class Runner:
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, 'M_step7.pickle'))
 
-        self.update_A_train()
+        self.update_A_train(balance=balance, fillup=fillup)
 
     #
     # STEP 8
     #
-    def update_A_train(self, balance=True, fillup=True):
+    def update_A_train(self, balance=False, fillup=True):
         """ Update A_train with selected points from D. Then, remove D from B
         and A_test (wherever it was!). Fill-up both B and A_test (internal!).
 
@@ -694,7 +697,7 @@ class Runner:
                 filled_counter += 1
         if balance:
             total_samples = len(A_train.data.keys()) + \
-                len(B.data.keys()) + len(A_test.data.keys())
+                            len(B.data.keys()) + len(A_test.data.keys())
             target_samples = total_samples // 3
 
             while abs(len(A_train.data) - len(B.data)) > 1 or abs(
@@ -742,14 +745,15 @@ class Runner:
 
         self.M.remove_and_add(source, target, p)
 
-
     def run(self,
             images,
             masks,
             weights,
             runs=1,
             patience_counter=2,
-            percent_to_replace=30):
+            percent_to_replace=30,
+            balance=False,
+            fillup=True):
         """ Run the whole GP2 algorithm, including setting up the data, running
         the classifier and discriminator, and relabeling.
 
@@ -767,6 +771,10 @@ class Runner:
             Number of times the classifier can run without improvement. (Default: 2)
         percent_to_replace : int
             Percentage of points to replace in each run. (Default: 30)
+        balance : bool
+            If True, balance A_train with B and A_test
+        fillup : bool
+            If True, fill-up B and A_test with points from A_train
 
         Returns
         --------
@@ -790,7 +798,9 @@ class Runner:
                 print('No more machine labels.')
                 print('TOOK', time.time() - t0, 'seconds')
                 break
-            self.relabel(percent_to_replace=percent_to_replace)
+            self.relabel(percent_to_replace=percent_to_replace,
+                         balance=balance,
+                         fillup=fillup)
             print('TOOK', time.time() - t0, 'seconds')
             print('==== DONE LOOP', run, '====')
 
