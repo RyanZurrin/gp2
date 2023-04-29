@@ -415,13 +415,20 @@ class Runner:
     #
     # STEP 4 (calls 2+3+5)
     #
-    def run_discriminator(self, train_ratio=0.4, val_ratio=0.1, test_ratio=0.5,
+    def run_discriminator(self, epochs=100, batch_size=64, patience_counter=2,
+                          train_ratio=0.4, val_ratio=0.1, test_ratio=0.5,
                           threshold=1e-6):
         """ Train the discriminator using C_train/C_val. If the discriminator was
         trained, this will just predict.
 
         Parameters
         ----------
+        epochs : int
+            Number of epochs.
+        batch_size : int
+            Batch size.
+        patience_counter : int
+            Patience counter.
         train_ratio : float
             Ratio of training samples.
         val_ratio : float
@@ -475,7 +482,9 @@ class Runner:
             y_val_ = C_val_[:, 0, 0, 2]
 
             self.discriminator.train(X_train_images_, X_train_masks_, y_train_,
-                                     X_val_images_, X_val_masks_, y_val_)
+                                     X_val_images_, X_val_masks_, y_val_,
+                                     patience_counter=patience_counter,
+                                     epochs=epochs, batch_size=batch_size)
             self.discriminatorTrained = True
 
         if self.store_after_each_step:
@@ -813,7 +822,8 @@ class Runner:
             t0 = time.time()
             self.run_classifier(patience_counter=patience_counter,
                                 epochs=epochs, batch_size=batch_size)
-            self.run_discriminator()
+            self.run_discriminator(patience_counter=patience_counter,
+                                   epochs=epochs, batch_size=batch_size)
             l = self.find_machine_labels()
             if l == 0:
                 print('No more machine labels.')
