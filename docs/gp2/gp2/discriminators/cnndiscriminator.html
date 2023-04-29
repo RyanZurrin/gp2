@@ -26,13 +26,27 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from .base_cnn_discriminator import BaseCNNDiscriminator
+<pre><code class="python">from .discriminator import Discriminator
+
+
+import numpy as np
+import os
+import pickle
+
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras import losses
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, concatenate, Conv2D, MaxPooling2D, \
     LeakyReLU, Dropout, Flatten, Dense
 
+from gp2.gp2.util import Util
 
-class CNNDiscriminator(BaseCNNDiscriminator):
+
+class CNNDiscriminator(Discriminator):
 
     def __init__(self, verbose=True, workingdir=&#39;/tmp&#39;):
         super().__init__(verbose, workingdir)
@@ -100,7 +114,66 @@ class CNNDiscriminator(BaseCNNDiscriminator):
                       loss=&#39;categorical_crossentropy&#39;,
                       metrics=[&#39;accuracy&#39;])
 
-        return model</code></pre>
+        return model
+
+    def train(self, X_train_images, X_train_masks, y_train,
+              X_val_images, X_val_masks, y_val,
+              patience_counter=10, batch_size=64, epochs=100):
+        super().train(X_train_images, X_train_masks, y_train,
+                      X_val_images, X_val_masks, y_val)
+
+        checkpoint_file = os.path.join(self.workingdir, &#39;cnnd&#39;)
+        checkpoint_file = Util.create_numbered_file(checkpoint_file, &#39;.model&#39;)
+
+        callbacks = [EarlyStopping(patience=patience_counter,
+                                   monitor=&#39;loss&#39;,
+                                   verbose=0),
+                     ModelCheckpoint(filepath=checkpoint_file,
+                                     save_weights_only=False,
+                                     monitor=&#39;val_loss&#39;,
+                                     mode=&#39;min&#39;,
+                                     verbose=0,
+                                     save_best_only=True)]
+
+        y_train = to_categorical(y_train)
+        y_val = to_categorical(y_val)
+
+        # print(&#39;y_train&#39;)
+        # print(y_train.shape)
+        # print(y_train[0:10])
+
+        # print(&#39;y_val&#39;)
+        # print(y_val.shape)
+        # print(y_val[0:10])
+
+        history = self.model.fit(x=[X_train_images, X_train_masks], y=y_train,
+                                 batch_size=batch_size,
+                                 epochs=epochs,
+                                 callbacks=callbacks,
+                                 validation_data=(
+                                 [X_val_images, X_val_masks], y_val),
+                                 verbose=0)
+
+        history_file = os.path.join(self.workingdir, &#39;cnnd_history&#39;)
+        history_file = Util.create_numbered_file(history_file, &#39;.pickle&#39;)
+
+        with open(history_file, &#39;wb&#39;) as f:
+            pickle.dump(history.history, f)
+
+        print(&#39;Model saved to&#39;, checkpoint_file)
+        print(&#39;History saved to&#39;, history_file)
+
+    def predict(self, X_test_images, X_test_masks, y_test):
+        predictions = self.model.predict(x=[X_test_images, X_test_masks])
+
+        # grab the most likely label from the categorical representation
+        predictions = np.argmax(predictions, axis=-1)
+
+        y_test = to_categorical(y_test)
+
+        scores = self.model.evaluate(x=[X_test_images, X_test_masks], y=y_test)
+
+        return predictions, scores</code></pre>
 </details>
 </section>
 <section>
@@ -117,12 +190,13 @@ class CNNDiscriminator(BaseCNNDiscriminator):
 <span>(</span><span>verbose=True, workingdir='/tmp')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base class for CNN discriminators</p></div>
+<div class="desc"><p>Helper class that provides a standard way to create an ABC using
+inheritance.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class CNNDiscriminator(BaseCNNDiscriminator):
+<pre><code class="python">class CNNDiscriminator(Discriminator):
 
     def __init__(self, verbose=True, workingdir=&#39;/tmp&#39;):
         super().__init__(verbose, workingdir)
@@ -190,11 +264,69 @@ class CNNDiscriminator(BaseCNNDiscriminator):
                       loss=&#39;categorical_crossentropy&#39;,
                       metrics=[&#39;accuracy&#39;])
 
-        return model</code></pre>
+        return model
+
+    def train(self, X_train_images, X_train_masks, y_train,
+              X_val_images, X_val_masks, y_val,
+              patience_counter=10, batch_size=64, epochs=100):
+        super().train(X_train_images, X_train_masks, y_train,
+                      X_val_images, X_val_masks, y_val)
+
+        checkpoint_file = os.path.join(self.workingdir, &#39;cnnd&#39;)
+        checkpoint_file = Util.create_numbered_file(checkpoint_file, &#39;.model&#39;)
+
+        callbacks = [EarlyStopping(patience=patience_counter,
+                                   monitor=&#39;loss&#39;,
+                                   verbose=0),
+                     ModelCheckpoint(filepath=checkpoint_file,
+                                     save_weights_only=False,
+                                     monitor=&#39;val_loss&#39;,
+                                     mode=&#39;min&#39;,
+                                     verbose=0,
+                                     save_best_only=True)]
+
+        y_train = to_categorical(y_train)
+        y_val = to_categorical(y_val)
+
+        # print(&#39;y_train&#39;)
+        # print(y_train.shape)
+        # print(y_train[0:10])
+
+        # print(&#39;y_val&#39;)
+        # print(y_val.shape)
+        # print(y_val[0:10])
+
+        history = self.model.fit(x=[X_train_images, X_train_masks], y=y_train,
+                                 batch_size=batch_size,
+                                 epochs=epochs,
+                                 callbacks=callbacks,
+                                 validation_data=(
+                                 [X_val_images, X_val_masks], y_val),
+                                 verbose=0)
+
+        history_file = os.path.join(self.workingdir, &#39;cnnd_history&#39;)
+        history_file = Util.create_numbered_file(history_file, &#39;.pickle&#39;)
+
+        with open(history_file, &#39;wb&#39;) as f:
+            pickle.dump(history.history, f)
+
+        print(&#39;Model saved to&#39;, checkpoint_file)
+        print(&#39;History saved to&#39;, history_file)
+
+    def predict(self, X_test_images, X_test_masks, y_test):
+        predictions = self.model.predict(x=[X_test_images, X_test_masks])
+
+        # grab the most likely label from the categorical representation
+        predictions = np.argmax(predictions, axis=-1)
+
+        y_test = to_categorical(y_test)
+
+        scores = self.model.evaluate(x=[X_test_images, X_test_masks], y=y_test)
+
+        return predictions, scores</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="gp2.gp2.discriminators.base_cnn_discriminator.BaseCNNDiscriminator" href="base_cnn_discriminator.html#gp2.gp2.discriminators.base_cnn_discriminator.BaseCNNDiscriminator">BaseCNNDiscriminator</a></li>
 <li><a title="gp2.gp2.discriminators.discriminator.Discriminator" href="discriminator.html#gp2.gp2.discriminators.discriminator.Discriminator">Discriminator</a></li>
 <li>abc.ABC</li>
 </ul>
@@ -283,16 +415,86 @@ class CNNDiscriminator(BaseCNNDiscriminator):
     return model</code></pre>
 </details>
 </dd>
+<dt id="gp2.gp2.discriminators.cnndiscriminator.CNNDiscriminator.predict"><code class="name flex">
+<span>def <span class="ident">predict</span></span>(<span>self, X_test_images, X_test_masks, y_test)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def predict(self, X_test_images, X_test_masks, y_test):
+    predictions = self.model.predict(x=[X_test_images, X_test_masks])
+
+    # grab the most likely label from the categorical representation
+    predictions = np.argmax(predictions, axis=-1)
+
+    y_test = to_categorical(y_test)
+
+    scores = self.model.evaluate(x=[X_test_images, X_test_masks], y=y_test)
+
+    return predictions, scores</code></pre>
+</details>
+</dd>
+<dt id="gp2.gp2.discriminators.cnndiscriminator.CNNDiscriminator.train"><code class="name flex">
+<span>def <span class="ident">train</span></span>(<span>self, X_train_images, X_train_masks, y_train, X_val_images, X_val_masks, y_val, patience_counter=10, batch_size=64, epochs=100)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def train(self, X_train_images, X_train_masks, y_train,
+          X_val_images, X_val_masks, y_val,
+          patience_counter=10, batch_size=64, epochs=100):
+    super().train(X_train_images, X_train_masks, y_train,
+                  X_val_images, X_val_masks, y_val)
+
+    checkpoint_file = os.path.join(self.workingdir, &#39;cnnd&#39;)
+    checkpoint_file = Util.create_numbered_file(checkpoint_file, &#39;.model&#39;)
+
+    callbacks = [EarlyStopping(patience=patience_counter,
+                               monitor=&#39;loss&#39;,
+                               verbose=0),
+                 ModelCheckpoint(filepath=checkpoint_file,
+                                 save_weights_only=False,
+                                 monitor=&#39;val_loss&#39;,
+                                 mode=&#39;min&#39;,
+                                 verbose=0,
+                                 save_best_only=True)]
+
+    y_train = to_categorical(y_train)
+    y_val = to_categorical(y_val)
+
+    # print(&#39;y_train&#39;)
+    # print(y_train.shape)
+    # print(y_train[0:10])
+
+    # print(&#39;y_val&#39;)
+    # print(y_val.shape)
+    # print(y_val[0:10])
+
+    history = self.model.fit(x=[X_train_images, X_train_masks], y=y_train,
+                             batch_size=batch_size,
+                             epochs=epochs,
+                             callbacks=callbacks,
+                             validation_data=(
+                             [X_val_images, X_val_masks], y_val),
+                             verbose=0)
+
+    history_file = os.path.join(self.workingdir, &#39;cnnd_history&#39;)
+    history_file = Util.create_numbered_file(history_file, &#39;.pickle&#39;)
+
+    with open(history_file, &#39;wb&#39;) as f:
+        pickle.dump(history.history, f)
+
+    print(&#39;Model saved to&#39;, checkpoint_file)
+    print(&#39;History saved to&#39;, history_file)</code></pre>
+</details>
+</dd>
 </dl>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="gp2.gp2.discriminators.base_cnn_discriminator.BaseCNNDiscriminator" href="base_cnn_discriminator.html#gp2.gp2.discriminators.base_cnn_discriminator.BaseCNNDiscriminator">BaseCNNDiscriminator</a></b></code>:
-<ul class="hlist">
-<li><code><a title="gp2.gp2.discriminators.base_cnn_discriminator.BaseCNNDiscriminator.predict" href="base_cnn_discriminator.html#gp2.gp2.discriminators.base_cnn_discriminator.BaseCNNDiscriminator.predict">predict</a></code></li>
-<li><code><a title="gp2.gp2.discriminators.base_cnn_discriminator.BaseCNNDiscriminator.train" href="base_cnn_discriminator.html#gp2.gp2.discriminators.base_cnn_discriminator.BaseCNNDiscriminator.train">train</a></code></li>
-</ul>
-</li>
-</ul>
 </dd>
 </dl>
 </section>
@@ -315,6 +517,8 @@ class CNNDiscriminator(BaseCNNDiscriminator):
 <ul class="">
 <li><code><a title="gp2.gp2.discriminators.cnndiscriminator.CNNDiscriminator.build" href="#gp2.gp2.discriminators.cnndiscriminator.CNNDiscriminator.build">build</a></code></li>
 <li><code><a title="gp2.gp2.discriminators.cnndiscriminator.CNNDiscriminator.create_convolution_layers" href="#gp2.gp2.discriminators.cnndiscriminator.CNNDiscriminator.create_convolution_layers">create_convolution_layers</a></code></li>
+<li><code><a title="gp2.gp2.discriminators.cnndiscriminator.CNNDiscriminator.predict" href="#gp2.gp2.discriminators.cnndiscriminator.CNNDiscriminator.predict">predict</a></code></li>
+<li><code><a title="gp2.gp2.discriminators.cnndiscriminator.CNNDiscriminator.train" href="#gp2.gp2.discriminators.cnndiscriminator.CNNDiscriminator.train">train</a></code></li>
 </ul>
 </li>
 </ul>

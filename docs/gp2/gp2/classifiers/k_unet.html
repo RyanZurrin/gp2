@@ -40,10 +40,10 @@ class KUNet(BaseKerasSegmentationClassifier):
     def __init__(self,
                  input_shape=(512, 512, 1),
                  num_classes=1,
-                 activation=&#39;sigmoid&#39;,
+                 activation=&#39;relu&#39;,
                  use_batch_norm=True,
                  upsample_mode=&#39;deconv&#39;,
-                 dropout=0.5,
+                 dropout=0.3,
                  dropout_change_per_layer=0.0,
                  dropout_type=&#39;spatial&#39;,
                  use_dropout_on_upsampling=False,
@@ -51,15 +51,19 @@ class KUNet(BaseKerasSegmentationClassifier):
                  filters=16,
                  num_layers=4,
                  output_activation=&#39;sigmoid&#39;,
-                 name=&#39;kvanillaunet&#39;,
+                 name=&#39;kunet&#39;,
                  optimizer=None,
                  loss=None,
                  metric=None,
                  verbose=False,
                  workingdir=&#39;/tmp&#39;,
                  ):
-        &#34;&#34;&#34; Keras Vanilla U-Net model.
-        valilla_unet(input_shape, num_classes=1, dropout=0.5, filters=64, num_layers=4, output_activation=&#39;sigmoid&#39;)
+        &#34;&#34;&#34; Keras Custom U-Net model.
+
+        custom_unet(input_shape, num_classes=1, activation=&#39;sigmoid&#39;, use_batch_norm=True,
+        upsample_mode=&#39;deconv&#39;, dropout=0.5, dropout_change_per_layer=0.0,
+        dropout_type=&#39;spatial&#39;, use_dropout_on_upsampling=False, use_attention=False,
+        filters=16, num_layers=4, output_activation=&#39;sigmoid&#39;)
 
 
         Parameters
@@ -145,7 +149,7 @@ class KUNet(BaseKerasSegmentationClassifier):
                             output_activation=self.output_activation
                             )
 
-        print(&#39;*** GP2 KVanillaUNet ***&#39;)
+        print(&#39;*** GP2 KUnet ***&#39;)
         print(&#39;Working directory:&#39;, self.workingdir)
 
         self.build()
@@ -168,12 +172,15 @@ class KUNet(BaseKerasSegmentationClassifier):
 <dl>
 <dt id="gp2.gp2.classifiers.k_unet.KUNet"><code class="flex name class">
 <span>class <span class="ident">KUNet</span></span>
-<span>(</span><span>input_shape=(512, 512, 1), num_classes=1, activation='sigmoid', use_batch_norm=True, upsample_mode='deconv', dropout=0.5, dropout_change_per_layer=0.0, dropout_type='spatial', use_dropout_on_upsampling=False, use_attention=False, filters=16, num_layers=4, output_activation='sigmoid', name='kvanillaunet', optimizer=None, loss=None, metric=None, verbose=False, workingdir='/tmp')</span>
+<span>(</span><span>input_shape=(512, 512, 1), num_classes=1, activation='relu', use_batch_norm=True, upsample_mode='deconv', dropout=0.3, dropout_change_per_layer=0.0, dropout_type='spatial', use_dropout_on_upsampling=False, use_attention=False, filters=16, num_layers=4, output_activation='sigmoid', name='kunet', optimizer=None, loss=None, metric=None, verbose=False, workingdir='/tmp')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Base class for classifiers</p>
-<p>Keras Vanilla U-Net model.
-valilla_unet(input_shape, num_classes=1, dropout=0.5, filters=64, num_layers=4, output_activation='sigmoid')</p>
+<p>Keras Custom U-Net model.</p>
+<p>custom_unet(input_shape, num_classes=1, activation='sigmoid', use_batch_norm=True,
+upsample_mode='deconv', dropout=0.5, dropout_change_per_layer=0.0,
+dropout_type='spatial', use_dropout_on_upsampling=False, use_attention=False,
+filters=16, num_layers=4, output_activation='sigmoid')</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>input_shape</code></strong> :&ensp;<code>tuple</code></dt>
@@ -226,10 +233,10 @@ skip-connection, implemented as proposed by Oktay et al. <a href="https://arxiv.
     def __init__(self,
                  input_shape=(512, 512, 1),
                  num_classes=1,
-                 activation=&#39;sigmoid&#39;,
+                 activation=&#39;relu&#39;,
                  use_batch_norm=True,
                  upsample_mode=&#39;deconv&#39;,
-                 dropout=0.5,
+                 dropout=0.3,
                  dropout_change_per_layer=0.0,
                  dropout_type=&#39;spatial&#39;,
                  use_dropout_on_upsampling=False,
@@ -237,15 +244,19 @@ skip-connection, implemented as proposed by Oktay et al. <a href="https://arxiv.
                  filters=16,
                  num_layers=4,
                  output_activation=&#39;sigmoid&#39;,
-                 name=&#39;kvanillaunet&#39;,
+                 name=&#39;kunet&#39;,
                  optimizer=None,
                  loss=None,
                  metric=None,
                  verbose=False,
                  workingdir=&#39;/tmp&#39;,
                  ):
-        &#34;&#34;&#34; Keras Vanilla U-Net model.
-        valilla_unet(input_shape, num_classes=1, dropout=0.5, filters=64, num_layers=4, output_activation=&#39;sigmoid&#39;)
+        &#34;&#34;&#34; Keras Custom U-Net model.
+
+        custom_unet(input_shape, num_classes=1, activation=&#39;sigmoid&#39;, use_batch_norm=True,
+        upsample_mode=&#39;deconv&#39;, dropout=0.5, dropout_change_per_layer=0.0,
+        dropout_type=&#39;spatial&#39;, use_dropout_on_upsampling=False, use_attention=False,
+        filters=16, num_layers=4, output_activation=&#39;sigmoid&#39;)
 
 
         Parameters
@@ -331,7 +342,7 @@ skip-connection, implemented as proposed by Oktay et al. <a href="https://arxiv.
                             output_activation=self.output_activation
                             )
 
-        print(&#39;*** GP2 KVanillaUNet ***&#39;)
+        print(&#39;*** GP2 KUnet ***&#39;)
         print(&#39;Working directory:&#39;, self.workingdir)
 
         self.build()

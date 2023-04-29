@@ -64,14 +64,12 @@ class Util:
         Z : numpy array
             The Z split
         &#34;&#34;&#34;
-
         #
         # We split as follows
         # A 0.4*dataset_size
         # B 0.4*dataset_size
         # Z 0.2*dataset_size
         #
-
         A_split = int(0.4 * dataset_size)
         B_split = int(0.2 * dataset_size)
         Z_split = int(0.4 * dataset_size)
@@ -98,8 +96,7 @@ class Util:
 
         # funnel data
         Z = images[A_split + B_split:A_split + B_split + Z_split, :, :, 0]
-        Z_labels = labels[A_split + B_split:A_split + B_split + Z_split, :, :,
-                   0]
+        Z_labels = labels[A_split + B_split:A_split + B_split + Z_split, :, :, 0]
 
         Z = np.stack((Z, Z_labels), axis=-1)
 
@@ -171,48 +168,32 @@ class Util:
         &#34;&#34;&#34; Plot line chart showing accuracies of classifier and discriminator
         Parameters
         ----------
-        x : numpy.ndarray
-            The x-axis values.
-        y1 : numpy.ndarray
+        x : range
+            The range of the x-axis
+        y1 : numpy.ndarray | list
             The y-axis values for the classifier.
-        y2 : numpy.ndarray
+        y2 : numpy.ndarray | list
             The y-axis values for the discriminator.
         Returns
         -------
         None
         &#34;&#34;&#34;
-
-        # Plot Line1 (Left Y Axis)
         fig, ax1 = plt.subplots(1, 1, figsize=(3, 3), dpi=80)
         line1, = ax1.plot(x, y1, color=&#39;tab:red&#39;, label=&#39;Classifier&#39;)
         line2, = ax1.plot(x, y2, color=&#39;tab:blue&#39;, label=&#39;Discriminator&#39;)
         ax1.legend(handles=[line1, line2])
         ax1.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
-        # # Plot Line2 (Right Y Axis)
-        # ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-        # ax2.plot(x, y2, color=&#39;tab:blue&#39;)
-
-        # Decorations
-        # ax1 (left Y axis)
         ax1.set_xlabel(&#39;Cycle&#39;, color=&#39;tab:gray&#39;, fontsize=14)
         ax1.tick_params(axis=&#39;x&#39;, rotation=0, labelsize=12,
                         labelcolor=&#39;tab:gray&#39;)
         ax1.set_ylabel(&#39;Accuracy&#39;, color=&#39;tab:red&#39;, fontsize=14)
         ax1.tick_params(axis=&#39;y&#39;, rotation=0, labelcolor=&#39;tab:red&#39;)
         ax1.grid(alpha=.4)
-
-        # ax2 (right Y axis)
-        # ax2.set_ylabel(&#34;# Unemployed (1000&#39;s)&#34;, color=&#39;tab:blue&#39;, fontsize=20)
-        # ax2.tick_params(axis=&#39;y&#39;, labelcolor=&#39;tab:blue&#39;)
-        # ax2.set_xticks(np.arange(0, len(x), 60))
-        # ax2.set_xticklabels(x[::60], rotation=90, fontdict={&#39;fontsize&#39;:10})
-        # ax2.set_title(&#34;Personal Savings Rate vs Unemployed: Plotting in Secondary Y Axis&#34;, fontsize=22)
         fig.tight_layout()
         plt.show()
 
     @staticmethod
-    @tf.function
     def dice_coeff(y_true, y_pred, smooth=1e-9):
         &#34;&#34;&#34; Calculate the dice coefficient.
         Parameters
@@ -236,7 +217,6 @@ class Util:
         return dice
 
     @staticmethod
-    @tf.function
     def bce_dice_loss(y_true, y_pred):
         &#34;&#34;&#34; Calculate the loss.
     Parameters
@@ -251,10 +231,9 @@ class Util:
         The loss.
     &#34;&#34;&#34;
         return tf.keras.losses.binary_crossentropy(y_true, y_pred) + \
-            (1 - Util.dice_coef(y_true, y_pred))
+            (1 - Util.dice_coeff(y_true, y_pred))
 
     @staticmethod
-    @tf.function
     def hybrid_loss(y_true, y_pred):
         &#34;&#34;&#34; Calculate the loss.
         Parameters
@@ -272,7 +251,8 @@ class Util:
         y_true = tf.cast(y_true, tf.float32)
         y_pred = tf.cast(y_pred, tf.float32)
 
-        loss_focal = losses.focal_tversky(y_true, y_pred, alpha=0.5, gamma=4 / 3)
+        loss_focal = losses.focal_tversky(y_true, y_pred, alpha=0.5,
+                                          gamma=4 / 3)
         loss_iou = losses.iou_seg(y_true, y_pred)
 
         # (x)
@@ -281,7 +261,6 @@ class Util:
         return loss_focal + loss_iou  # +loss_ssim
 
     @staticmethod
-    @tf.function
     def dice_loss(y_true, y_pred, smooth=1):
         &#34;&#34;&#34; Calculate the dice loss.
 
@@ -349,14 +328,12 @@ class Util:
         Z : numpy array
             The Z split
         &#34;&#34;&#34;
-
         #
         # We split as follows
         # A 0.4*dataset_size
         # B 0.4*dataset_size
         # Z 0.2*dataset_size
         #
-
         A_split = int(0.4 * dataset_size)
         B_split = int(0.2 * dataset_size)
         Z_split = int(0.4 * dataset_size)
@@ -383,8 +360,7 @@ class Util:
 
         # funnel data
         Z = images[A_split + B_split:A_split + B_split + Z_split, :, :, 0]
-        Z_labels = labels[A_split + B_split:A_split + B_split + Z_split, :, :,
-                   0]
+        Z_labels = labels[A_split + B_split:A_split + B_split + Z_split, :, :, 0]
 
         Z = np.stack((Z, Z_labels), axis=-1)
 
@@ -456,48 +432,32 @@ class Util:
         &#34;&#34;&#34; Plot line chart showing accuracies of classifier and discriminator
         Parameters
         ----------
-        x : numpy.ndarray
-            The x-axis values.
-        y1 : numpy.ndarray
+        x : range
+            The range of the x-axis
+        y1 : numpy.ndarray | list
             The y-axis values for the classifier.
-        y2 : numpy.ndarray
+        y2 : numpy.ndarray | list
             The y-axis values for the discriminator.
         Returns
         -------
         None
         &#34;&#34;&#34;
-
-        # Plot Line1 (Left Y Axis)
         fig, ax1 = plt.subplots(1, 1, figsize=(3, 3), dpi=80)
         line1, = ax1.plot(x, y1, color=&#39;tab:red&#39;, label=&#39;Classifier&#39;)
         line2, = ax1.plot(x, y2, color=&#39;tab:blue&#39;, label=&#39;Discriminator&#39;)
         ax1.legend(handles=[line1, line2])
         ax1.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
-        # # Plot Line2 (Right Y Axis)
-        # ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-        # ax2.plot(x, y2, color=&#39;tab:blue&#39;)
-
-        # Decorations
-        # ax1 (left Y axis)
         ax1.set_xlabel(&#39;Cycle&#39;, color=&#39;tab:gray&#39;, fontsize=14)
         ax1.tick_params(axis=&#39;x&#39;, rotation=0, labelsize=12,
                         labelcolor=&#39;tab:gray&#39;)
         ax1.set_ylabel(&#39;Accuracy&#39;, color=&#39;tab:red&#39;, fontsize=14)
         ax1.tick_params(axis=&#39;y&#39;, rotation=0, labelcolor=&#39;tab:red&#39;)
         ax1.grid(alpha=.4)
-
-        # ax2 (right Y axis)
-        # ax2.set_ylabel(&#34;# Unemployed (1000&#39;s)&#34;, color=&#39;tab:blue&#39;, fontsize=20)
-        # ax2.tick_params(axis=&#39;y&#39;, labelcolor=&#39;tab:blue&#39;)
-        # ax2.set_xticks(np.arange(0, len(x), 60))
-        # ax2.set_xticklabels(x[::60], rotation=90, fontdict={&#39;fontsize&#39;:10})
-        # ax2.set_title(&#34;Personal Savings Rate vs Unemployed: Plotting in Secondary Y Axis&#34;, fontsize=22)
         fig.tight_layout()
         plt.show()
 
     @staticmethod
-    @tf.function
     def dice_coeff(y_true, y_pred, smooth=1e-9):
         &#34;&#34;&#34; Calculate the dice coefficient.
         Parameters
@@ -521,7 +481,6 @@ class Util:
         return dice
 
     @staticmethod
-    @tf.function
     def bce_dice_loss(y_true, y_pred):
         &#34;&#34;&#34; Calculate the loss.
     Parameters
@@ -536,10 +495,9 @@ class Util:
         The loss.
     &#34;&#34;&#34;
         return tf.keras.losses.binary_crossentropy(y_true, y_pred) + \
-            (1 - Util.dice_coef(y_true, y_pred))
+            (1 - Util.dice_coeff(y_true, y_pred))
 
     @staticmethod
-    @tf.function
     def hybrid_loss(y_true, y_pred):
         &#34;&#34;&#34; Calculate the loss.
         Parameters
@@ -557,7 +515,8 @@ class Util:
         y_true = tf.cast(y_true, tf.float32)
         y_pred = tf.cast(y_pred, tf.float32)
 
-        loss_focal = losses.focal_tversky(y_true, y_pred, alpha=0.5, gamma=4 / 3)
+        loss_focal = losses.focal_tversky(y_true, y_pred, alpha=0.5,
+                                          gamma=4 / 3)
         loss_iou = losses.iou_seg(y_true, y_pred)
 
         # (x)
@@ -566,7 +525,6 @@ class Util:
         return loss_focal + loss_iou  # +loss_ssim
 
     @staticmethod
-    @tf.function
     def dice_loss(y_true, y_pred, smooth=1):
         &#34;&#34;&#34; Calculate the dice loss.
 
@@ -611,7 +569,6 @@ Parameters</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-@tf.function
 def bce_dice_loss(y_true, y_pred):
     &#34;&#34;&#34; Calculate the loss.
 Parameters
@@ -626,7 +583,7 @@ float
     The loss.
 &#34;&#34;&#34;
     return tf.keras.losses.binary_crossentropy(y_true, y_pred) + \
-        (1 - Util.dice_coef(y_true, y_pred))</code></pre>
+        (1 - Util.dice_coeff(y_true, y_pred))</code></pre>
 </details>
 </dd>
 <dt id="gp2.gp2.util.Util.create_A_B_Z_split"><code class="name flex">
@@ -681,14 +638,12 @@ def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
     Z : numpy array
         The Z split
     &#34;&#34;&#34;
-
     #
     # We split as follows
     # A 0.4*dataset_size
     # B 0.4*dataset_size
     # Z 0.2*dataset_size
     #
-
     A_split = int(0.4 * dataset_size)
     B_split = int(0.2 * dataset_size)
     Z_split = int(0.4 * dataset_size)
@@ -715,8 +670,7 @@ def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
 
     # funnel data
     Z = images[A_split + B_split:A_split + B_split + Z_split, :, :, 0]
-    Z_labels = labels[A_split + B_split:A_split + B_split + Z_split, :, :,
-               0]
+    Z_labels = labels[A_split + B_split:A_split + B_split + Z_split, :, :, 0]
 
     Z = np.stack((Z, Z_labels), axis=-1)
 
@@ -865,7 +819,6 @@ Parameters</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-@tf.function
 def dice_coeff(y_true, y_pred, smooth=1e-9):
     &#34;&#34;&#34; Calculate the dice coefficient.
     Parameters
@@ -913,7 +866,6 @@ def dice_coeff(y_true, y_pred, smooth=1e-9):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-@tf.function
 def dice_loss(y_true, y_pred, smooth=1):
     &#34;&#34;&#34; Calculate the dice loss.
 
@@ -973,7 +925,6 @@ Parameters</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-@tf.function
 def hybrid_loss(y_true, y_pred):
     &#34;&#34;&#34; Calculate the loss.
     Parameters
@@ -991,7 +942,8 @@ def hybrid_loss(y_true, y_pred):
     y_true = tf.cast(y_true, tf.float32)
     y_pred = tf.cast(y_pred, tf.float32)
 
-    loss_focal = losses.focal_tversky(y_true, y_pred, alpha=0.5, gamma=4 / 3)
+    loss_focal = losses.focal_tversky(y_true, y_pred, alpha=0.5,
+                                      gamma=4 / 3)
     loss_iou = losses.iou_seg(y_true, y_pred)
 
     # (x)
@@ -1008,11 +960,11 @@ def hybrid_loss(y_true, y_pred):
 Parameters</p>
 <hr>
 <dl>
-<dt><strong><code>x</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
-<dd>The x-axis values.</dd>
-<dt><strong><code>y1</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dt><strong><code>x</code></strong> :&ensp;<code>range</code></dt>
+<dd>The range of the x-axis</dd>
+<dt><strong><code>y1</code></strong> :&ensp;<code>numpy.ndarray | list</code></dt>
 <dd>The y-axis values for the classifier.</dd>
-<dt><strong><code>y2</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
+<dt><strong><code>y2</code></strong> :&ensp;<code>numpy.ndarray | list</code></dt>
 <dd>The y-axis values for the discriminator.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -1029,43 +981,28 @@ def plot_accuracies(x, y1, y2):
     &#34;&#34;&#34; Plot line chart showing accuracies of classifier and discriminator
     Parameters
     ----------
-    x : numpy.ndarray
-        The x-axis values.
-    y1 : numpy.ndarray
+    x : range
+        The range of the x-axis
+    y1 : numpy.ndarray | list
         The y-axis values for the classifier.
-    y2 : numpy.ndarray
+    y2 : numpy.ndarray | list
         The y-axis values for the discriminator.
     Returns
     -------
     None
     &#34;&#34;&#34;
-
-    # Plot Line1 (Left Y Axis)
     fig, ax1 = plt.subplots(1, 1, figsize=(3, 3), dpi=80)
     line1, = ax1.plot(x, y1, color=&#39;tab:red&#39;, label=&#39;Classifier&#39;)
     line2, = ax1.plot(x, y2, color=&#39;tab:blue&#39;, label=&#39;Discriminator&#39;)
     ax1.legend(handles=[line1, line2])
     ax1.xaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
-    # # Plot Line2 (Right Y Axis)
-    # ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-    # ax2.plot(x, y2, color=&#39;tab:blue&#39;)
-
-    # Decorations
-    # ax1 (left Y axis)
     ax1.set_xlabel(&#39;Cycle&#39;, color=&#39;tab:gray&#39;, fontsize=14)
     ax1.tick_params(axis=&#39;x&#39;, rotation=0, labelsize=12,
                     labelcolor=&#39;tab:gray&#39;)
     ax1.set_ylabel(&#39;Accuracy&#39;, color=&#39;tab:red&#39;, fontsize=14)
     ax1.tick_params(axis=&#39;y&#39;, rotation=0, labelcolor=&#39;tab:red&#39;)
     ax1.grid(alpha=.4)
-
-    # ax2 (right Y axis)
-    # ax2.set_ylabel(&#34;# Unemployed (1000&#39;s)&#34;, color=&#39;tab:blue&#39;, fontsize=20)
-    # ax2.tick_params(axis=&#39;y&#39;, labelcolor=&#39;tab:blue&#39;)
-    # ax2.set_xticks(np.arange(0, len(x), 60))
-    # ax2.set_xticklabels(x[::60], rotation=90, fontdict={&#39;fontsize&#39;:10})
-    # ax2.set_title(&#34;Personal Savings Rate vs Unemployed: Plotting in Secondary Y Axis&#34;, fontsize=22)
     fig.tight_layout()
     plt.show()</code></pre>
 </details>

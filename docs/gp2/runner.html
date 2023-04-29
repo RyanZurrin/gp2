@@ -27,7 +27,9 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">from .data import *
-from .gp2 import *
+from .gp2 import UNet, UNetPLUS, KUNet, KATTUnet2D, KR2UNet2dD, KResUNet2D, \
+    KUNet2D, KUNet3Plus2D, KUNetPlus2D, KVNet2D, CNNDiscriminator, \
+    CNNDiscriminatorPLUS, Util
 import time
 import numpy as np
 import os
@@ -36,12 +38,14 @@ import tempfile
 
 def validate_weights(weights, tolerance=1e-6):
     &#34;&#34;&#34; Validate the weights for training.
+
     What must be verified:
         A_train + A_val + A_test = 1. \n
         B_train + B_val + B_test = 1. \n
         A + B + Z = 1. \n
         A * A_test = B. \n
         Z &gt; .1.
+
     Parameters
     ----------
     weights : dict
@@ -51,10 +55,12 @@ def validate_weights(weights, tolerance=1e-6):
         &#39;Z&#39;
     tolerance : float
         Tolerance to use for the validation.
+
     Returns
     -------
-    None : None
-        If the weights are valid, will return None.
+    bool
+        True if the weights are valid.
+
     Raises
     ------
     ValueError
@@ -85,9 +91,11 @@ def validate_weights(weights, tolerance=1e-6):
         raise ValueError(&#34;Z must be greater than .1&#34;)
 
     print(&#34;Weights OK!&#34;)
+    return True
 
 
 class Runner:
+    discriminatorTrained = False
 
     def __init__(self,
                  verbose=False,
@@ -138,7 +146,7 @@ class Runner:
                                             UNet) or classifier == &#39;unet&#39;:
             self.classifier = UNet(verbose=self.verbose,
                                    workingdir=self.workingdir)
-        elif isinstance(classifier, KUNet) or classifier == &#39;kvanillaunet&#39;:
+        elif isinstance(classifier, KUNet) or classifier == &#39;kunet&#39;:
             self.classifier = KUNet(verbose=self.verbose,
                                     workingdir=self.workingdir,
                                     **kwargs)
@@ -464,24 +472,24 @@ class Runner:
 
         M = self.M
 
-        cnnd = self.discriminator
+        if self.discriminatorTrained is False:
+            print(&#34;****** TRAINING DISCRIMINATOR ******&#34;)
+            C_train = M.get(&#39;C_train&#39;)
+            C_val = M.get(&#39;C_val&#39;)
 
-        C_train = M.get(&#39;C_train&#39;)
-        C_val = M.get(&#39;C_val&#39;)
+            C_train_, C_train_ids = C_train.to_array()
+            X_train_images_ = C_train_[:, :, :, 0]
+            X_train_masks_ = C_train_[:, :, :, 1]
+            y_train_ = C_train_[:, 0, 0, 2]
 
-        C_train_, C_train_ids = C_train.to_array()
-        X_train_images_ = C_train_[:, :, :, 0]
-        X_train_masks_ = C_train_[:, :, :, 1]
-        y_train_ = C_train_[:, 0, 0, 2]
+            C_val_, C_val_ids = C_val.to_array()
+            X_val_images_ = C_val_[:, :, :, 0]
+            X_val_masks_ = C_val_[:, :, :, 1]
+            y_val_ = C_val_[:, 0, 0, 2]
 
-        C_val_, C_val_ids = C_val.to_array()
-        X_val_images_ = C_val_[:, :, :, 0]
-        X_val_masks_ = C_val_[:, :, :, 1]
-        y_val_ = C_val_[:, 0, 0, 2]
-
-        cnnd.train(X_train_images_, X_train_masks_, y_train_, X_val_images_,
-                   X_val_masks_, y_val_)
-        self.discriminator = cnnd
+            self.discriminator.train(X_train_images_, X_train_masks_, y_train_,
+                                     X_val_images_, X_val_masks_, y_val_)
+            self.discriminatorTrained = True
 
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, &#39;M_step4.pickle&#39;))
@@ -566,12 +574,18 @@ class Runner:
     #
     # STEP 7 (calls 8)
     #
-    def relabel(self, percent_to_replace=30):
+    def relabel(self, percent_to_replace=30, balance=False, fillup=True):
         &#34;&#34;&#34; Relabels a subset of Dataset D
+
         Parameters
         ----------
         percent_to_replace : int
             Percentage of D to relabel
+        balance : bool
+            Whether to balance when updating A_train
+        fillup : bool
+            Whether to fillup when updating A_train
+
         Returns
         -------
         None
@@ -643,20 +657,22 @@ class Runner:
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, &#39;M_step7.pickle&#39;))
 
-        self.update_A_train()
+        self.update_A_train(balance=balance, fillup=fillup)
 
     #
     # STEP 8
     #
-    def update_A_train(self, balance=True, fillup=True):
+    def update_A_train(self, balance=False, fillup=True):
         &#34;&#34;&#34; Update A_train with selected points from D. Then, remove D from B
         and A_test (wherever it was!). Fill-up both B and A_test (internal!).
+
         Parameters
         ----------
         balance : bool
             If True, balance A_train with B and A_test
         fillup : bool
             If True, fill-up B and A_test with points from A_train
+
         Returns
         -------
         None
@@ -681,10 +697,10 @@ class Runner:
         # Move points from A_test to A_train
         for k in point_ids:
             # we need to check where this datapoint originally came from
-            if (k in A_test.data):
+            if k in A_test.data:
                 origintext = &#39;A_test&#39;
                 origin = A_test
-            elif (k in B.data):
+            elif k in B.data:
                 origintext = &#39;B&#39;
                 origin = B
             else:
@@ -707,11 +723,55 @@ class Runner:
 
                 M.remove_and_add(Z, origin, p)
                 filled_counter += 1
+        if balance:
+            total_samples = len(A_train.data.keys()) + \
+                            len(B.data.keys()) + len(A_test.data.keys())
+            target_samples = total_samples // 3
+
+            while abs(len(A_train.data) - len(B.data)) &gt; 1 or abs(
+                    len(A_train.data) - len(A_test.data)) &gt; 1:
+                if len(A_train.data) &gt; target_samples:
+                    if len(B.data) &lt; target_samples:
+                        self.transfer(A_train, B)
+                    elif len(A_test.data) &lt; target_samples:
+                        self.transfer(A_train, A_test)
+                elif len(B.data) &gt; target_samples:
+                    if len(A_train.data) &lt; target_samples:
+                        self.transfer(B, A_train)
+                    elif len(A_test.data) &lt; target_samples:
+                        self.transfer(B, A_test)
+                elif len(A_test.data) &gt; target_samples:
+                    if len(A_train.data) &lt; target_samples:
+                        self.transfer(A_test, A_train)
+                    elif len(B.data) &lt; target_samples:
+                        self.transfer(A_test, B)
 
         print(&#39;Removed:&#39;, removed_counter, &#39;Filled:&#39;, filled_counter)
 
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, &#39;M_step8.pickle&#39;))
+
+    def transfer(self, source, target):
+        &#34;&#34;&#34; Transfer one point from source to target.
+
+        Parameters
+        ----------
+        source : Collection
+            Source collection
+        target : Collection
+            Target collection
+
+        Returns
+        -------
+        None
+        &#34;&#34;&#34;
+        source_uniq_ids = list(source.data.keys())
+        source_uniq_id = np.random.choice(source_uniq_ids, replace=False)
+
+        p = Point(source.data[source_uniq_id])
+        p.id = source_uniq_id
+
+        self.M.remove_and_add(source, target, p)
 
     def run(self,
             images,
@@ -719,7 +779,35 @@ class Runner:
             weights,
             runs=1,
             patience_counter=2,
-            percent_to_replace=30):
+            percent_to_replace=30,
+            balance=False,
+            fillup=True):
+        &#34;&#34;&#34; Run the whole GP2 algorithm, including setting up the data, running
+        the classifier and discriminator, and relabeling.
+
+        Parameters
+        ----------
+        images : np.ndarray
+            List of images
+        masks : np.ndarray
+            List of masks
+        weights : dict
+            Dictionary of weights for the different classes
+        runs : int
+            Number of runs
+        patience_counter : int
+            Number of times the classifier can run without improvement. (Default: 2)
+        percent_to_replace : int
+            Percentage of points to replace in each run. (Default: 30)
+        balance : bool
+            If True, balance A_train with B and A_test
+        fillup : bool
+            If True, fill-up B and A_test with points from A_train
+
+        Returns
+        --------
+        None
+        &#34;&#34;&#34;
         # assert that len of images and masks is the same
         assert len(images) == len(masks)
         dataset_size = len(images)
@@ -738,7 +826,9 @@ class Runner:
                 print(&#39;No more machine labels.&#39;)
                 print(&#39;TOOK&#39;, time.time() - t0, &#39;seconds&#39;)
                 break
-            self.relabel(percent_to_replace=percent_to_replace)
+            self.relabel(percent_to_replace=percent_to_replace,
+                         balance=balance,
+                         fillup=fillup)
             print(&#39;TOOK&#39;, time.time() - t0, &#39;seconds&#39;)
             print(&#39;==== DONE LOOP&#39;, run, &#39;====&#39;)
 
@@ -746,7 +836,13 @@ class Runner:
     # PLOT!
     #
     def plot(self):
+        &#34;&#34;&#34; Plot the accuracies of the classifier and discriminator based on
+        the scores stored in classifier_scores and discriminator_scores.
 
+        Returns:
+        --------
+        None
+        &#34;&#34;&#34;
         x = range(len(self.classifier_scores))
         y1 = [v[1] for v in self.classifier_scores]
         y2 = [v[1] for v in self.discriminator_scores]
@@ -765,8 +861,8 @@ class Runner:
 <span>def <span class="ident">validate_weights</span></span>(<span>weights, tolerance=1e-06)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Validate the weights for training.
-What must be verified:
+<div class="desc"><p>Validate the weights for training.</p>
+<p>What must be verified:
 A_train + A_val + A_test = 1. </p>
 <pre><code>B_train + B_val + B_test = 1.
 
@@ -788,8 +884,8 @@ Weights should be a dictionary with keys containing the following:
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><strong><code>None</code></strong> :&ensp;<code>None</code></dt>
-<dd>If the weights are valid, will return None.</dd>
+<dt><code>bool</code></dt>
+<dd>True if the weights are valid.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
@@ -802,12 +898,14 @@ Weights should be a dictionary with keys containing the following:
 </summary>
 <pre><code class="python">def validate_weights(weights, tolerance=1e-6):
     &#34;&#34;&#34; Validate the weights for training.
+
     What must be verified:
         A_train + A_val + A_test = 1. \n
         B_train + B_val + B_test = 1. \n
         A + B + Z = 1. \n
         A * A_test = B. \n
         Z &gt; .1.
+
     Parameters
     ----------
     weights : dict
@@ -817,10 +915,12 @@ Weights should be a dictionary with keys containing the following:
         &#39;Z&#39;
     tolerance : float
         Tolerance to use for the validation.
+
     Returns
     -------
-    None : None
-        If the weights are valid, will return None.
+    bool
+        True if the weights are valid.
+
     Raises
     ------
     ValueError
@@ -850,7 +950,8 @@ Weights should be a dictionary with keys containing the following:
     if weights[&#39;Z&#39;] &lt; .1:
         raise ValueError(&#34;Z must be greater than .1&#34;)
 
-    print(&#34;Weights OK!&#34;)</code></pre>
+    print(&#34;Weights OK!&#34;)
+    return True</code></pre>
 </details>
 </dd>
 </dl>
@@ -860,7 +961,7 @@ Weights should be a dictionary with keys containing the following:
 <dl>
 <dt id="gp2.runner.Runner"><code class="flex name class">
 <span>class <span class="ident">Runner</span></span>
-<span>(</span><span>verbose=False, workingdir='/tmp/tmpv6c9olasGP2', store_after_each_step=False, classifier=None, discriminator=None, weights=None, **kwargs)</span>
+<span>(</span><span>verbose=False, workingdir='/tmp/tmpqhvughbbGP2', store_after_each_step=False, classifier=None, discriminator=None, weights=None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initialize the GP2 runner with specified classifier and
@@ -893,6 +994,7 @@ discriminator.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Runner:
+    discriminatorTrained = False
 
     def __init__(self,
                  verbose=False,
@@ -943,7 +1045,7 @@ discriminator.</dd>
                                             UNet) or classifier == &#39;unet&#39;:
             self.classifier = UNet(verbose=self.verbose,
                                    workingdir=self.workingdir)
-        elif isinstance(classifier, KUNet) or classifier == &#39;kvanillaunet&#39;:
+        elif isinstance(classifier, KUNet) or classifier == &#39;kunet&#39;:
             self.classifier = KUNet(verbose=self.verbose,
                                     workingdir=self.workingdir,
                                     **kwargs)
@@ -1269,24 +1371,24 @@ discriminator.</dd>
 
         M = self.M
 
-        cnnd = self.discriminator
+        if self.discriminatorTrained is False:
+            print(&#34;****** TRAINING DISCRIMINATOR ******&#34;)
+            C_train = M.get(&#39;C_train&#39;)
+            C_val = M.get(&#39;C_val&#39;)
 
-        C_train = M.get(&#39;C_train&#39;)
-        C_val = M.get(&#39;C_val&#39;)
+            C_train_, C_train_ids = C_train.to_array()
+            X_train_images_ = C_train_[:, :, :, 0]
+            X_train_masks_ = C_train_[:, :, :, 1]
+            y_train_ = C_train_[:, 0, 0, 2]
 
-        C_train_, C_train_ids = C_train.to_array()
-        X_train_images_ = C_train_[:, :, :, 0]
-        X_train_masks_ = C_train_[:, :, :, 1]
-        y_train_ = C_train_[:, 0, 0, 2]
+            C_val_, C_val_ids = C_val.to_array()
+            X_val_images_ = C_val_[:, :, :, 0]
+            X_val_masks_ = C_val_[:, :, :, 1]
+            y_val_ = C_val_[:, 0, 0, 2]
 
-        C_val_, C_val_ids = C_val.to_array()
-        X_val_images_ = C_val_[:, :, :, 0]
-        X_val_masks_ = C_val_[:, :, :, 1]
-        y_val_ = C_val_[:, 0, 0, 2]
-
-        cnnd.train(X_train_images_, X_train_masks_, y_train_, X_val_images_,
-                   X_val_masks_, y_val_)
-        self.discriminator = cnnd
+            self.discriminator.train(X_train_images_, X_train_masks_, y_train_,
+                                     X_val_images_, X_val_masks_, y_val_)
+            self.discriminatorTrained = True
 
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, &#39;M_step4.pickle&#39;))
@@ -1371,12 +1473,18 @@ discriminator.</dd>
     #
     # STEP 7 (calls 8)
     #
-    def relabel(self, percent_to_replace=30):
+    def relabel(self, percent_to_replace=30, balance=False, fillup=True):
         &#34;&#34;&#34; Relabels a subset of Dataset D
+
         Parameters
         ----------
         percent_to_replace : int
             Percentage of D to relabel
+        balance : bool
+            Whether to balance when updating A_train
+        fillup : bool
+            Whether to fillup when updating A_train
+
         Returns
         -------
         None
@@ -1448,20 +1556,22 @@ discriminator.</dd>
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, &#39;M_step7.pickle&#39;))
 
-        self.update_A_train()
+        self.update_A_train(balance=balance, fillup=fillup)
 
     #
     # STEP 8
     #
-    def update_A_train(self, balance=True, fillup=True):
+    def update_A_train(self, balance=False, fillup=True):
         &#34;&#34;&#34; Update A_train with selected points from D. Then, remove D from B
         and A_test (wherever it was!). Fill-up both B and A_test (internal!).
+
         Parameters
         ----------
         balance : bool
             If True, balance A_train with B and A_test
         fillup : bool
             If True, fill-up B and A_test with points from A_train
+
         Returns
         -------
         None
@@ -1486,10 +1596,10 @@ discriminator.</dd>
         # Move points from A_test to A_train
         for k in point_ids:
             # we need to check where this datapoint originally came from
-            if (k in A_test.data):
+            if k in A_test.data:
                 origintext = &#39;A_test&#39;
                 origin = A_test
-            elif (k in B.data):
+            elif k in B.data:
                 origintext = &#39;B&#39;
                 origin = B
             else:
@@ -1512,11 +1622,55 @@ discriminator.</dd>
 
                 M.remove_and_add(Z, origin, p)
                 filled_counter += 1
+        if balance:
+            total_samples = len(A_train.data.keys()) + \
+                            len(B.data.keys()) + len(A_test.data.keys())
+            target_samples = total_samples // 3
+
+            while abs(len(A_train.data) - len(B.data)) &gt; 1 or abs(
+                    len(A_train.data) - len(A_test.data)) &gt; 1:
+                if len(A_train.data) &gt; target_samples:
+                    if len(B.data) &lt; target_samples:
+                        self.transfer(A_train, B)
+                    elif len(A_test.data) &lt; target_samples:
+                        self.transfer(A_train, A_test)
+                elif len(B.data) &gt; target_samples:
+                    if len(A_train.data) &lt; target_samples:
+                        self.transfer(B, A_train)
+                    elif len(A_test.data) &lt; target_samples:
+                        self.transfer(B, A_test)
+                elif len(A_test.data) &gt; target_samples:
+                    if len(A_train.data) &lt; target_samples:
+                        self.transfer(A_test, A_train)
+                    elif len(B.data) &lt; target_samples:
+                        self.transfer(A_test, B)
 
         print(&#39;Removed:&#39;, removed_counter, &#39;Filled:&#39;, filled_counter)
 
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, &#39;M_step8.pickle&#39;))
+
+    def transfer(self, source, target):
+        &#34;&#34;&#34; Transfer one point from source to target.
+
+        Parameters
+        ----------
+        source : Collection
+            Source collection
+        target : Collection
+            Target collection
+
+        Returns
+        -------
+        None
+        &#34;&#34;&#34;
+        source_uniq_ids = list(source.data.keys())
+        source_uniq_id = np.random.choice(source_uniq_ids, replace=False)
+
+        p = Point(source.data[source_uniq_id])
+        p.id = source_uniq_id
+
+        self.M.remove_and_add(source, target, p)
 
     def run(self,
             images,
@@ -1524,7 +1678,35 @@ discriminator.</dd>
             weights,
             runs=1,
             patience_counter=2,
-            percent_to_replace=30):
+            percent_to_replace=30,
+            balance=False,
+            fillup=True):
+        &#34;&#34;&#34; Run the whole GP2 algorithm, including setting up the data, running
+        the classifier and discriminator, and relabeling.
+
+        Parameters
+        ----------
+        images : np.ndarray
+            List of images
+        masks : np.ndarray
+            List of masks
+        weights : dict
+            Dictionary of weights for the different classes
+        runs : int
+            Number of runs
+        patience_counter : int
+            Number of times the classifier can run without improvement. (Default: 2)
+        percent_to_replace : int
+            Percentage of points to replace in each run. (Default: 30)
+        balance : bool
+            If True, balance A_train with B and A_test
+        fillup : bool
+            If True, fill-up B and A_test with points from A_train
+
+        Returns
+        --------
+        None
+        &#34;&#34;&#34;
         # assert that len of images and masks is the same
         assert len(images) == len(masks)
         dataset_size = len(images)
@@ -1543,7 +1725,9 @@ discriminator.</dd>
                 print(&#39;No more machine labels.&#39;)
                 print(&#39;TOOK&#39;, time.time() - t0, &#39;seconds&#39;)
                 break
-            self.relabel(percent_to_replace=percent_to_replace)
+            self.relabel(percent_to_replace=percent_to_replace,
+                         balance=balance,
+                         fillup=fillup)
             print(&#39;TOOK&#39;, time.time() - t0, &#39;seconds&#39;)
             print(&#39;==== DONE LOOP&#39;, run, &#39;====&#39;)
 
@@ -1551,13 +1735,26 @@ discriminator.</dd>
     # PLOT!
     #
     def plot(self):
+        &#34;&#34;&#34; Plot the accuracies of the classifier and discriminator based on
+        the scores stored in classifier_scores and discriminator_scores.
 
+        Returns:
+        --------
+        None
+        &#34;&#34;&#34;
         x = range(len(self.classifier_scores))
         y1 = [v[1] for v in self.classifier_scores]
         y2 = [v[1] for v in self.discriminator_scores]
 
         Util.plot_accuracies(x, y1, y2)</code></pre>
 </details>
+<h3>Class variables</h3>
+<dl>
+<dt id="gp2.runner.Runner.discriminatorTrained"><code class="name">var <span class="ident">discriminatorTrained</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="gp2.runner.Runner.create_C_dataset"><code class="name flex">
@@ -1745,13 +1942,22 @@ Returns number of machine labels found.</p></div>
 <span>def <span class="ident">plot</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Plot the accuracies of the classifier and discriminator based on
+the scores stored in classifier_scores and discriminator_scores.</p>
+<h2 id="returns">Returns:</h2>
+<p>None</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def plot(self):
+    &#34;&#34;&#34; Plot the accuracies of the classifier and discriminator based on
+    the scores stored in classifier_scores and discriminator_scores.
 
+    Returns:
+    --------
+    None
+    &#34;&#34;&#34;
     x = range(len(self.classifier_scores))
     y1 = [v[1] for v in self.classifier_scores]
     y2 = [v[1] for v in self.discriminator_scores]
@@ -1794,15 +2000,18 @@ Returns number of machine labels found.</p></div>
 </details>
 </dd>
 <dt id="gp2.runner.Runner.relabel"><code class="name flex">
-<span>def <span class="ident">relabel</span></span>(<span>self, percent_to_replace=30)</span>
+<span>def <span class="ident">relabel</span></span>(<span>self, percent_to_replace=30, balance=False, fillup=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Relabels a subset of Dataset D
-Parameters</p>
-<hr>
+<div class="desc"><p>Relabels a subset of Dataset D</p>
+<h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>percent_to_replace</code></strong> :&ensp;<code>int</code></dt>
 <dd>Percentage of D to relabel</dd>
+<dt><strong><code>balance</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to balance when updating A_train</dd>
+<dt><strong><code>fillup</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to fillup when updating A_train</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1813,12 +2022,18 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def relabel(self, percent_to_replace=30):
+<pre><code class="python">def relabel(self, percent_to_replace=30, balance=False, fillup=True):
     &#34;&#34;&#34; Relabels a subset of Dataset D
+
     Parameters
     ----------
     percent_to_replace : int
         Percentage of D to relabel
+    balance : bool
+        Whether to balance when updating A_train
+    fillup : bool
+        Whether to fillup when updating A_train
+
     Returns
     -------
     None
@@ -1890,14 +2105,39 @@ Parameters</p>
     if self.store_after_each_step:
         M.save(os.path.join(self.workingdir, &#39;M_step7.pickle&#39;))
 
-    self.update_A_train()</code></pre>
+    self.update_A_train(balance=balance, fillup=fillup)</code></pre>
 </details>
 </dd>
 <dt id="gp2.runner.Runner.run"><code class="name flex">
-<span>def <span class="ident">run</span></span>(<span>self, images, masks, weights, runs=1, patience_counter=2, percent_to_replace=30)</span>
+<span>def <span class="ident">run</span></span>(<span>self, images, masks, weights, runs=1, patience_counter=2, percent_to_replace=30, balance=False, fillup=True)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Run the whole GP2 algorithm, including setting up the data, running
+the classifier and discriminator, and relabeling.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>images</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>List of images</dd>
+<dt><strong><code>masks</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>List of masks</dd>
+<dt><strong><code>weights</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Dictionary of weights for the different classes</dd>
+<dt><strong><code>runs</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of runs</dd>
+<dt><strong><code>patience_counter</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of times the classifier can run without improvement. (Default: 2)</dd>
+<dt><strong><code>percent_to_replace</code></strong> :&ensp;<code>int</code></dt>
+<dd>Percentage of points to replace in each run. (Default: 30)</dd>
+<dt><strong><code>balance</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, balance A_train with B and A_test</dd>
+<dt><strong><code>fillup</code></strong> :&ensp;<code>bool</code></dt>
+<dd>If True, fill-up B and A_test with points from A_train</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1908,7 +2148,35 @@ Parameters</p>
         weights,
         runs=1,
         patience_counter=2,
-        percent_to_replace=30):
+        percent_to_replace=30,
+        balance=False,
+        fillup=True):
+    &#34;&#34;&#34; Run the whole GP2 algorithm, including setting up the data, running
+    the classifier and discriminator, and relabeling.
+
+    Parameters
+    ----------
+    images : np.ndarray
+        List of images
+    masks : np.ndarray
+        List of masks
+    weights : dict
+        Dictionary of weights for the different classes
+    runs : int
+        Number of runs
+    patience_counter : int
+        Number of times the classifier can run without improvement. (Default: 2)
+    percent_to_replace : int
+        Percentage of points to replace in each run. (Default: 30)
+    balance : bool
+        If True, balance A_train with B and A_test
+    fillup : bool
+        If True, fill-up B and A_test with points from A_train
+
+    Returns
+    --------
+    None
+    &#34;&#34;&#34;
     # assert that len of images and masks is the same
     assert len(images) == len(masks)
     dataset_size = len(images)
@@ -1927,7 +2195,9 @@ Parameters</p>
             print(&#39;No more machine labels.&#39;)
             print(&#39;TOOK&#39;, time.time() - t0, &#39;seconds&#39;)
             break
-        self.relabel(percent_to_replace=percent_to_replace)
+        self.relabel(percent_to_replace=percent_to_replace,
+                     balance=balance,
+                     fillup=fillup)
         print(&#39;TOOK&#39;, time.time() - t0, &#39;seconds&#39;)
         print(&#39;==== DONE LOOP&#39;, run, &#39;====&#39;)</code></pre>
 </details>
@@ -2077,24 +2347,24 @@ Parameters</p>
 
     M = self.M
 
-    cnnd = self.discriminator
+    if self.discriminatorTrained is False:
+        print(&#34;****** TRAINING DISCRIMINATOR ******&#34;)
+        C_train = M.get(&#39;C_train&#39;)
+        C_val = M.get(&#39;C_val&#39;)
 
-    C_train = M.get(&#39;C_train&#39;)
-    C_val = M.get(&#39;C_val&#39;)
+        C_train_, C_train_ids = C_train.to_array()
+        X_train_images_ = C_train_[:, :, :, 0]
+        X_train_masks_ = C_train_[:, :, :, 1]
+        y_train_ = C_train_[:, 0, 0, 2]
 
-    C_train_, C_train_ids = C_train.to_array()
-    X_train_images_ = C_train_[:, :, :, 0]
-    X_train_masks_ = C_train_[:, :, :, 1]
-    y_train_ = C_train_[:, 0, 0, 2]
+        C_val_, C_val_ids = C_val.to_array()
+        X_val_images_ = C_val_[:, :, :, 0]
+        X_val_masks_ = C_val_[:, :, :, 1]
+        y_val_ = C_val_[:, 0, 0, 2]
 
-    C_val_, C_val_ids = C_val.to_array()
-    X_val_images_ = C_val_[:, :, :, 0]
-    X_val_masks_ = C_val_[:, :, :, 1]
-    y_val_ = C_val_[:, 0, 0, 2]
-
-    cnnd.train(X_train_images_, X_train_masks_, y_train_, X_val_images_,
-               X_val_masks_, y_val_)
-    self.discriminator = cnnd
+        self.discriminator.train(X_train_images_, X_train_masks_, y_train_,
+                                 X_val_images_, X_val_masks_, y_val_)
+        self.discriminatorTrained = True
 
     if self.store_after_each_step:
         M.save(os.path.join(self.workingdir, &#39;M_step4.pickle&#39;))
@@ -2209,14 +2479,57 @@ The weights should sum to 1.0.</dd>
     M.register(A_test, &#39;A_test&#39;)</code></pre>
 </details>
 </dd>
+<dt id="gp2.runner.Runner.transfer"><code class="name flex">
+<span>def <span class="ident">transfer</span></span>(<span>self, source, target)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Transfer one point from source to target.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>source</code></strong> :&ensp;<code>Collection</code></dt>
+<dd>Source collection</dd>
+<dt><strong><code>target</code></strong> :&ensp;<code>Collection</code></dt>
+<dd>Target collection</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transfer(self, source, target):
+    &#34;&#34;&#34; Transfer one point from source to target.
+
+    Parameters
+    ----------
+    source : Collection
+        Source collection
+    target : Collection
+        Target collection
+
+    Returns
+    -------
+    None
+    &#34;&#34;&#34;
+    source_uniq_ids = list(source.data.keys())
+    source_uniq_id = np.random.choice(source_uniq_ids, replace=False)
+
+    p = Point(source.data[source_uniq_id])
+    p.id = source_uniq_id
+
+    self.M.remove_and_add(source, target, p)</code></pre>
+</details>
+</dd>
 <dt id="gp2.runner.Runner.update_A_train"><code class="name flex">
-<span>def <span class="ident">update_A_train</span></span>(<span>self, balance=True, fillup=True)</span>
+<span>def <span class="ident">update_A_train</span></span>(<span>self, balance=False, fillup=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Update A_train with selected points from D. Then, remove D from B
-and A_test (wherever it was!). Fill-up both B and A_test (internal!).
-Parameters</p>
-<hr>
+and A_test (wherever it was!). Fill-up both B and A_test (internal!).</p>
+<h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>balance</code></strong> :&ensp;<code>bool</code></dt>
 <dd>If True, balance A_train with B and A_test</dd>
@@ -2232,15 +2545,17 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_A_train(self, balance=True, fillup=True):
+<pre><code class="python">def update_A_train(self, balance=False, fillup=True):
     &#34;&#34;&#34; Update A_train with selected points from D. Then, remove D from B
     and A_test (wherever it was!). Fill-up both B and A_test (internal!).
+
     Parameters
     ----------
     balance : bool
         If True, balance A_train with B and A_test
     fillup : bool
         If True, fill-up B and A_test with points from A_train
+
     Returns
     -------
     None
@@ -2265,10 +2580,10 @@ Parameters</p>
     # Move points from A_test to A_train
     for k in point_ids:
         # we need to check where this datapoint originally came from
-        if (k in A_test.data):
+        if k in A_test.data:
             origintext = &#39;A_test&#39;
             origin = A_test
-        elif (k in B.data):
+        elif k in B.data:
             origintext = &#39;B&#39;
             origin = B
         else:
@@ -2291,6 +2606,28 @@ Parameters</p>
 
             M.remove_and_add(Z, origin, p)
             filled_counter += 1
+    if balance:
+        total_samples = len(A_train.data.keys()) + \
+                        len(B.data.keys()) + len(A_test.data.keys())
+        target_samples = total_samples // 3
+
+        while abs(len(A_train.data) - len(B.data)) &gt; 1 or abs(
+                len(A_train.data) - len(A_test.data)) &gt; 1:
+            if len(A_train.data) &gt; target_samples:
+                if len(B.data) &lt; target_samples:
+                    self.transfer(A_train, B)
+                elif len(A_test.data) &lt; target_samples:
+                    self.transfer(A_train, A_test)
+            elif len(B.data) &gt; target_samples:
+                if len(A_train.data) &lt; target_samples:
+                    self.transfer(B, A_train)
+                elif len(A_test.data) &lt; target_samples:
+                    self.transfer(B, A_test)
+            elif len(A_test.data) &gt; target_samples:
+                if len(A_train.data) &lt; target_samples:
+                    self.transfer(A_test, A_train)
+                elif len(B.data) &lt; target_samples:
+                    self.transfer(A_test, B)
 
     print(&#39;Removed:&#39;, removed_counter, &#39;Filled:&#39;, filled_counter)
 
@@ -2326,6 +2663,7 @@ Parameters</p>
 <ul class="">
 <li><code><a title="gp2.runner.Runner.create_C_dataset" href="#gp2.runner.Runner.create_C_dataset">create_C_dataset</a></code></li>
 <li><code><a title="gp2.runner.Runner.create_C_train_val_test_split" href="#gp2.runner.Runner.create_C_train_val_test_split">create_C_train_val_test_split</a></code></li>
+<li><code><a title="gp2.runner.Runner.discriminatorTrained" href="#gp2.runner.Runner.discriminatorTrained">discriminatorTrained</a></code></li>
 <li><code><a title="gp2.runner.Runner.find_machine_labels" href="#gp2.runner.Runner.find_machine_labels">find_machine_labels</a></code></li>
 <li><code><a title="gp2.runner.Runner.plot" href="#gp2.runner.Runner.plot">plot</a></code></li>
 <li><code><a title="gp2.runner.Runner.predict_discriminator" href="#gp2.runner.Runner.predict_discriminator">predict_discriminator</a></code></li>
@@ -2334,6 +2672,7 @@ Parameters</p>
 <li><code><a title="gp2.runner.Runner.run_classifier" href="#gp2.runner.Runner.run_classifier">run_classifier</a></code></li>
 <li><code><a title="gp2.runner.Runner.run_discriminator" href="#gp2.runner.Runner.run_discriminator">run_discriminator</a></code></li>
 <li><code><a title="gp2.runner.Runner.setup_data" href="#gp2.runner.Runner.setup_data">setup_data</a></code></li>
+<li><code><a title="gp2.runner.Runner.transfer" href="#gp2.runner.Runner.transfer">transfer</a></code></li>
 <li><code><a title="gp2.runner.Runner.update_A_train" href="#gp2.runner.Runner.update_A_train">update_A_train</a></code></li>
 </ul>
 </li>
