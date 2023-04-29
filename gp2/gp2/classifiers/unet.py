@@ -20,6 +20,9 @@ class UNet(Classifier):
     def __init__(self, verbose=True, workingdir='/tmp'):
         super().__init__(verbose, workingdir)
 
+        print('*** GP2  Unet ***')
+        print('Working directory:', self.workingdir)
+
         self.model = self.build()
 
     def build(self, input_shape=(512, 512, 1), num_classes=1):

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en"><head>
+  <meta charset="utf-8"/>
+  <title>
+   Saige-Dx Summary
+  </title>
+  <link href="dh_resources/ext/bootstrap.min.css" rel="stylesheet"/>
+  <link href="dh_resources/ext/font-lato.css" rel="stylesheet"/>
+  <link href="dh_resources/dh_report2.css" rel="stylesheet"/>
+ </head>
+ <body>
+  <div class="page">
+   <div class="page-content">
+    <div class="row">
+     <div class="col-md-3" style="padding-left: 0; padding-right:0">
+      <div class="row">
+       <img class="logo" src="dh_resources/dh_logo.png"/>
+       <br/>
+
+      </div>
+      <div class="row padded-row text-center" style="padding-top: 0.5em; padding-bottom: 0.1em; margin-top: 0px; width: 2.69in;">
+       <h1 class="text-capitalize" style="padding-left: 0.3em; margin-top: 25px;">
+        Saige-Dx Summary
+       </h1>
+      </div>
+      <div class="row padded-row" style="width: 2.69in; margin-top: 0px;">
+       <h2 style="margin-bottom: -4px;">
+        <img class="dh-icon" src="dh_resources/dh_icon_female2.png" style="margin-bottom:8px; margin-right:0px; height:1em"/>
+        Patient Information
+       </h2>
+       <div class="line">
+       </div>
+       <div class="col-sm-6">
+        <h6>
+         Patient Name:
+        </h6>
+        <h6>
+         Patient ID:
+        </h6>
+        <!--<h6>Patient DOB:</h6>-->
+        <h6>
+         Study Date:
+        </h6>
+        <h6>
+         Modality:
+        </h6>
+       </div>
+       <div class="col-sm-6" id="dh-patient-info-div">
+        <h6 id="dh-patient-name">
+         (Unknown)
+        </h6>
+        <h6 id="dh-pid">
+         (Unknown)
+        </h6>
+        <h6 id="dh-exam-date">
+         (Unknown)
+        </h6>
+        <h6 id="dh-modality">
+         (Unknown)
+        </h6>
+       </div>
+      </div>
+      <div class="row padded-row" style="width: 2.69in; margin-top:-0.5em">
+       <h2 style="margin-bottom: -4px;">
+        <img src="dh_resources/dh_icon_stetho2.png" style="margin-bottom:8px;margin-right:0px; height:1em"/>
+        Suspicion Level
+       </h2>
+       <div class="line">
+       </div>
+       <div class="row vertical-align padded-row" style="margin-right: 0px;">
+        <div class="col-md-1" style="height: 2.5in; padding-top: 0em; padding-right: 0.5em; margin-left:-3px;">
+         <img align="right" id="dh-score-arrow" src="dh_resources/report_arrow_head.png" style="width: 16px;"/>
+		<!-- Pixel range for arrow: 0px (highest point) - 232px (lowest point) -->
+        </div>
+        <div class="col-md-1" style="padding: 0em 0 0 0; margin-left: -3px;">
+         <div class="row">
+          <img height="240px" id="dh-score-bar" src="dh_resources/report_bar_percentiles_wide.png" style="float: left; margin-top: 5px; "/>
+         </div>
+        </div>
+        <div class="col-md-10" style="height: 2.5in; padding-left:1em; padding-right: 0; padding-top: 0.5em; width: 2.25in;">
+         <div class="row text-center" style="padding-top: 0.9em;">
+          <h6>
+           Case Suspicion Level:
+          </h6>
+          <h3 id="dh-suspicious-level-case" style="padding-top: 0em; font-size: 24px;font-weight: 700;">
+           (UNKNOWN)
+          </h3>
+         </div>
+		<!-- Alternative Table -->
+		 <div class="row" style="padding-top: 0.3in; padding-left: 0em;">
+			<h5 style="padding-bottom: 0px; line-height: 0.5em" align="center">Highest Finding</h5>
+			<h5 style="margin-block-end: 7px; padding-top: 0px; line-height: 0.5em " align="center"> Suspicion Level</h5>
+				<div class="line" style="background-color: #999999"></div>
+				<div class="col-md-6" style="padding: 0; padding-right: 2px; text-align: center">
+					<h5>Right:</h5>
+					<h5 id="dh-suspicious-level-right" style="font-weight: 700;">(N/A)</h5>
+				</div>
+				<div class="col-md-6" style="padding: 0; padding-left: 2px;text-align: center;">
+					<h5>Left:</h5>
+					<h5 id="dh-suspicious-level-left" style="font-weight: 700;">(N/A)</h5>
+				</div>
+		 </div>
+
+		<!-- Tabular option
+         <div class="row" style="padding-top: 0.1in; padding-left: 0.7em; margin-top:0; margin-right:-1em">
+          <h5 align="center" style="margin-block-end: 3px; ">
+           Left
+          </h5>
+          <div class="line" style="background-color: #999999;">
+          </div>
+          <div class="col-md-8" style="padding: 0; margin-right: -1.9em;">
+           <h5>
+            Findings Highest Suspicion Level:
+           </h5>
+          </div>
+          <div class="col-md-4" style="padding: 0.7em 0 0 0;">
+           <h5 id="dh-suspicious-level-left" style="font-weight: 700">
+            INTERMEDIATE
+           </h5>
+          </div>
+         </div>
+         <div class="row" style="padding-left: 0.7em; margin-top:0; margin-right:-1em">
+          <h5 align="center" style="margin-block-end: 3px;">
+           Right
+          </h5>
+          <div class="line" style="background-color: #999999">
+          </div>
+          <div class="col-md-8" style="padding: 0;margin-bottom: 20px; margin-right: -1.9em;">
+           <h5>
+            Findings Highest Suspicion Level:
+           </h5>
+          </div>
+          <div class="col-md-4" style="padding: 0.7em 0 0 0;">
+           <h5 id="dh-suspicious-level-right" style="font-weight: 700">
+            LOW
+           </h5>
+          </div>
+         </div>
+        -->
+		</div>
+       </div>
+      </div>
+     </div>
+     <div class="col-md-9" style="height: inherit; padding: 0 0 0 10px">
+      <div class="row">
+       <div class="col-sm-6" style="padding: 0; padding-top: 0em;">
+		<p align="center" style="font-size: 20px; line-height: 0.85em; color: white;"><strong>2D</strong></p>
+        <div class="row box text-center">
+         <div class="col-sm-6" style="padding: 0; padding-bottom: 15px">
+          <div class="container-scan">
+           <img id="dh-img-dxm-r-cc" src="../../reports/temp_html_files_1.2.826.0.1.3680043.9.7134.1.2.0.48638.1505985014.183465/tmp_im-dxm-R-CC.jpg" style="width: 100%;"/>
+          </div>
+		  <div class="top-left">RCC</div>
+         </div>
+         <div class="col-sm-6" style="padding: 0; padding-bottom: 10px">
+          <div class="container-scan">
+           <img id="dh-img-dxm-l-cc" src="../../reports/temp_html_files_1.2.826.0.1.3680043.9.7134.1.2.0.48638.1505985014.183465/tmp_im-dxm-L-CC.jpg" style="width: 100%;"/>
+          </div>
+          <div class="top-right">LCC</div>
+         </div>
+        </div>
+        <div class="row box text-center">
+         <div class="col-sm-6" style="padding: 0; padding-bottom: 15px">
+          <div class="container-scan">
+           <img id="dh-img-dxm-r-mlo" src="../../reports/temp_html_files_1.2.826.0.1.3680043.9.7134.1.2.0.48638.1505985014.183465/tmp_im-dxm-R-MLO.jpg" style="width: 100%;"/>
+          </div>
+          <div class="top-left">RMLO</div>
+         </div>
+         <div class="col-sm-6" style="padding: 0; padding-bottom: 15px">
+          <div class="container-scan">
+           <img id="dh-img-dxm-l-mlo" src="../../reports/temp_html_files_1.2.826.0.1.3680043.9.7134.1.2.0.48638.1505985014.183465/tmp_im-dxm-L-MLO.jpg" style="width: 100%;"/>
+          </div>
+          <div class="top-right">LMLO</div>
+         </div>
+        </div>
+       </div>
+       <div class="col-sm-6" style="padding: 0; padding-top: 0em;">
+        <p align="center" style="font-size: 20px; line-height: 0.85em; color: white;"><strong>3D</strong></p>
+        <div class="row box text-center">
+         <div class="col-sm-6" style="padding: 0; padding-bottom: 15px">
+          <div class="container-scan">
+           <img id="dh-img-dbt-r-cc" src="../../reports/temp_html_files_1.2.826.0.1.3680043.9.7134.1.2.0.48638.1505985014.183465/tmp_im-dbt-R-CC.jpg" style="width: 100%"/>
+          </div>
+		  <div class="top-left">RCC</div>
+          <div class="bottom-left" >
+           <h4 id="dh-findings-main-slice-dbt-r-cc" style="margin-bottom: -0.3em;">
+            Slice displayed: -
+           </h4>
+           <h4 id="dh-findings-all-slices-dbt-r-cc" style="margin-bottom: 0em;">
+            Slices of findings: [-,-]
+           </h4>
+          </div>
+         </div>
+         <div class="col-sm-6" style="padding: 0; padding-bottom: 15px">
+          <div class="container-scan">
+           <img id="dh-img-dbt-l-cc" src="../../reports/temp_html_files_1.2.826.0.1.3680043.9.7134.1.2.0.48638.1505985014.183465/tmp_im-dbt-L-CC.jpg" style="width: 100%;"/>
+          </div>
+		  <div class="top-right">LCC</div>
+          <div class="bottom-right">
+           <h4 id="dh-findings-main-slice-dbt-l-cc" style="text-align: right; margin-bottom: -0.3em;">
+            Slice displayed: -
+           </h4>
+           <h4 id="dh-findings-all-slices-dbt-l-cc" style="text-align: right; margin-bottom: 0em;">
+            Slices of findings: [-,-]
+           </h4>
+          </div>
+         </div>
+        </div>
+        <div class="row box text-center">
+         <div class="col-sm-6" style="padding: 0; padding-bottom: 15px">
+          <div class="container-scan">
+           <img id="dh-img-dbt-r-mlo" src="../../reports/temp_html_files_1.2.826.0.1.3680043.9.7134.1.2.0.48638.1505985014.183465/tmp_im-dbt-R-MLO.jpg" style="width: 100%;"/>
+          </div>
+		  <div class="top-left">RMLO</div>
+          <div class="bottom-left" >
+           <h4 id="dh-findings-main-slice-dbt-r-mlo" style="margin-bottom: -0.3em;">
+            Slice displayed: -
+           </h4>
+           <h4 id="dh-findings-all-slices-dbt-r-mlo" style="margin-bottom: 0em;">
+            Slices of findings: [-,-]
+           </h4>
+          </div>
+         </div>
+         <div class="col-sm-6" style="padding: 0; padding-bottom: 15px">
+          <div class="container-scan">
+           <img id="dh-img-dbt-l-mlo" src="../../reports/temp_html_files_1.2.826.0.1.3680043.9.7134.1.2.0.48638.1505985014.183465/tmp_im-dbt-L-MLO.jpg" style="width: 100%;"/>
+          </div>
+		  <div class="top-right">LMLO</div>
+          <div class="bottom-right">
+           <h4 id="dh-findings-main-slice-dbt-l-mlo" style="text-align: right; margin-bottom: -0.3em;">
+            Slice displayed: -
+           </h4>
+           <h4 id="dh-findings-all-slices-dbt-l-mlo" style="text-align: right; margin-bottom: 0em;">
+            Slices of findings: [-,-]
+           </h4>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+ </body>
+</html>

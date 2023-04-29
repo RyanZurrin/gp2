@@ -143,11 +143,11 @@ class Util:
         """ Plot line chart showing accuracies of classifier and discriminator
         Parameters
         ----------
-        x : numpy.ndarray
-            The x-axis values.
-        y1 : numpy.ndarray
+        x : range
+            The range of the x-axis
+        y1 : numpy.ndarray | list
             The y-axis values for the classifier.
-        y2 : numpy.ndarray
+        y2 : numpy.ndarray | list
             The y-axis values for the discriminator.
         Returns
         -------

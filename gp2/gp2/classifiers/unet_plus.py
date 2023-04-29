@@ -82,6 +82,9 @@ class UNetPLUS(BaseKerasSegmentationClassifier):
         self.loss = loss or losses.binary_crossentropy
         self.metrics = metrics or [Util.dice_coeff]
 
+        print('*** GP2  KUNet2D ***')
+        print('Working directory:', self.workingdir)
+
         self.model = self.build()
 
         if verbose:

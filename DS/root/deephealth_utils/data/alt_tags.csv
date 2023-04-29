@@ -1,0 +1,78 @@
+spec_id,field,tag,function
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,ViewPosition,"[['0054', '0220'], 0, ['0008', '0104']]",verbose_position_to_code
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,LateralityAndView,"[[['0019', '108a'], 0, ['0019', '1087']], [['0019', '108a'], 0, ['0019', '0010']], 'Hologic, Inc.']",None
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,ImageLaterality,"[['5200', '9229'], 0, ['0020', '9071'], 0, ['0020', '9072']]",None
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,ImageLaterality,"['0020', '0062']",None
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,ImageLaterality,"['0020', '0060']",None
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,WindowCenter,"[['5200', '9229'], 0, ['0028', '9132'], 0, ['0028', '1050']]",None
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,WindowWidth,"[['5200', '9229'], 0, ['0028', '9132'], 0, ['0028', '1051']]",None
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,WindowCenterWidthExplanation,"[['5200', '9229'], 0, ['0028', '9132'], 0, ['0028', '1055']]",None
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,RescaleIntercept,"[['5200', '9229'], 0, ['0028', '9145'], 0, ['0028', '1052']]",None
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,RescaleSlope,"[['5200', '9229'], 0, ['0028', '9145'], 0, ['0028', '1053']]",None
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,RescaleType,"[['5200', '9229'], 0, ['0028', '9145'], 0, ['0028', '1054']]",None
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,EstimatedRadiographicMagnificationFactor,"[['0018', '9507'], 0, ['0018', '1114']]",None
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.13.1.3,ImagerPixelSpacing,"[['5200', '9230'], 0, ['0028', '9110'], 0, ['0028', '0030']]",None
+SeleniaDimensions_1.2.840.10008.5.1.4.1.1.7,ImageLaterality,"['0020', '0060']",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,RescaleIntercept,"[['5200', '9229'], 0, ['0028', '9145'], 0, ['0028', '1052']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,RescaleSlope,"[['5200', '9229'], 0, ['0028', '9145'], 0, ['0028', '1053']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,RescaleType,"[['5200', '9229'], 0, ['0028', '9145'], 0, ['0028', '1054']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,WindowCenter,"[['5200', '9229'], 0, ['0028', '9132'], 0, ['0028', '1050']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,WindowWidth,"[['5200', '9229'], 0, ['0028', '9132'], 0, ['0028', '1051']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,WindowCenterWidthExplanation,"[['5200', '9229'], 0, ['0028', '9132'], 0, ['0028', '1055']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,EstimatedRadiographicMagnificationFactor,"[['0018', '9507'], 0, ['0018', '1114']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,ViewPosition,"[['0054', '0220'], 0, ['0008', '0104']]",verbose_position_to_code
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,FieldOfViewHorizontalFlip,"[['0018', '9507'], 0, ['0018', '7034']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,Grid,"[['0018', '9507'], 0, ['0018', '1166']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,VOILUTFunction,"[['5200', '9229'], 0, ['0028', '9132'], 0, ['0028', '1056']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,FilterType,"[['0018', '9507'], 0, ['0018', '1160']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,FocalSpots,"[['0018', '9507'], 0, ['0018', '1190']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,ReconstructionIndex,"[['5200', '9230'], 0, ['0018', '9504'], 0, ['0020', '9536']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,Rows,"[['0018', '9506'], 0, ['0028', '0010']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,Columns,"[['0018', '9506'], 0, ['0028', '0011']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,AnodeTargetMaterial,"[['0018', '9507'], 0, ['0018', '1191']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,XRayReceptorType,"[['0018', '9507'], 0, ['0018', '9420']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,CodingSchemeDesignator,"[['5200', '9229'], 0, ['0020', '9071'], 0, ['0008', '2218'], 0, ['0008', '0102']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,AcquisitionIndex,"[['0018', '9530'], 0, ['0020', '9518']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,ApplicationManufacturer,"[['0018', '9530'], 0, ['0018', '9526']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,DetectorType,"[['0018', '9506'], 0, ['0018', '7004']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,FieldOfViewOrigin,"[['0018', '9507'], 0, ['0018', '7030']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,ProtocolName,"[['0018', '9506'], 0, ['0018', '9423']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,FrameType,"[['5200', '9230'], 0, ['0018', '9504'], 0, ['0008', '9007']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,ReconstructionDescription,"[['0018', '9530'], 0, ['0018', '9531']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,ApplicationName,"[['0018', '9530'], 0, ['0018', '9524']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,ImageLaterality,"[['5200', '9229'], 0, ['0020', '9071'], 0, ['0020', '9072']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,ImageLaterality,"['0020', '0062']",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,ImageLaterality,"['0020', '0060']",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.13.1.3,ImagerPixelSpacing,"[['5200', '9230'], 0, ['0028', '9110'], 0, ['0028', '0030']]",None
+SenographeEssential_1.2.840.10008.5.1.4.1.1.1.2,CodingSchemeDesignator,"[['0008', '2218'], 0, ['0008', '0102']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,RescaleIntercept,"[['5200', '9229'], 0, ['0028', '9145'], 0, ['0028', '1052']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,RescaleSlope,"[['5200', '9229'], 0, ['0028', '9145'], 0, ['0028', '1053']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,RescaleType,"[['5200', '9229'], 0, ['0028', '9145'], 0, ['0028', '1054']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,WindowCenter,"[['5200', '9229'], 0, ['0028', '9132'], 0, ['0028', '1050']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,WindowWidth,"[['5200', '9229'], 0, ['0028', '9132'], 0, ['0028', '1051']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,WindowCenterWidthExplanation,"[['5200', '9229'], 0, ['0028', '9132'], 0, ['0028', '1055']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,EstimatedRadiographicMagnificationFactor,"[['0018', '9507'], 0, ['0018', '1114']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,ViewPosition,"[['0054', '0220'], 0, ['0008', '0104']]",verbose_position_to_code
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,FieldOfViewHorizontalFlip,"[['0018', '9507'], 0, ['0018', '7034']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,Grid,"[['0018', '9507'], 0, ['0018', '1166']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,VOILUTFunction,"[['5200', '9229'], 0, ['0028', '9132'], 0, ['0028', '1056']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,FilterType,"[['0018', '9507'], 0, ['0018', '1160']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,FocalSpots,"[['0018', '9507'], 0, ['0018', '1190']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,ReconstructionIndex,"[['5200', '9230'], 0, ['0018', '9504'], 0, ['0020', '9536']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,Rows,"[['0018', '9506'], 0, ['0028', '0010']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,Columns,"[['0018', '9506'], 0, ['0028', '0011']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,AnodeTargetMaterial,"[['0018', '9507'], 0, ['0018', '1191']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,XRayReceptorType,"[['0018', '9507'], 0, ['0018', '9420']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,CodingSchemeDesignator,"[['5200', '9229'], 0, ['0020', '9071'], 0, ['0008', '2218'], 0, ['0008', '0102']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,AcquisitionIndex,"[['0018', '9530'], 0, ['0020', '9518']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,ApplicationManufacturer,"[['0018', '9530'], 0, ['0018', '9526']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,DetectorType,"[['0018', '9506'], 0, ['0018', '7004']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,FieldOfViewOrigin,"[['0018', '9507'], 0, ['0018', '7030']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,ProtocolName,"[['0018', '9506'], 0, ['0018', '9423']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,FrameType,"[['5200', '9230'], 0, ['0018', '9504'], 0, ['0008', '9007']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,ReconstructionDescription,"[['0018', '9530'], 0, ['0018', '9531']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,ApplicationName,"[['0018', '9530'], 0, ['0018', '9524']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,ImageLaterality,"[['5200', '9229'], 0, ['0020', '9071'], 0, ['0020', '9072']]",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,ImageLaterality,"['0020', '0062']",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,ImageLaterality,"['0020', '0060']",None
+VolumePreview_1.2.840.10008.5.1.4.1.1.13.1.3,ImagerPixelSpacing,"[['5200', '9230'], 0, ['0028', '9110'], 0, ['0028', '0030']]",None

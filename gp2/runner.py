@@ -1,5 +1,7 @@
 from .data import *
-from .gp2 import *
+from .gp2 import UNet, UNetPLUS, KUNet, KATTUnet2D, KR2UNet2dD, KResUNet2D, \
+    KUNet2D, KUNet3Plus2D, KUNetPlus2D, KVNet2D, CNNDiscriminator, \
+    CNNDiscriminatorPLUS, Util
 import time
 import numpy as np
 import os
@@ -8,12 +10,14 @@ import tempfile
 
 def validate_weights(weights, tolerance=1e-6):
     """ Validate the weights for training.
+
     What must be verified:
         A_train + A_val + A_test = 1. \n
         B_train + B_val + B_test = 1. \n
         A + B + Z = 1. \n
         A * A_test = B. \n
         Z > .1.
+
     Parameters
     ----------
     weights : dict
@@ -23,10 +27,12 @@ def validate_weights(weights, tolerance=1e-6):
         'Z'
     tolerance : float
         Tolerance to use for the validation.
+
     Returns
     -------
-    None : None
-        If the weights are valid, will return None.
+    bool
+        True if the weights are valid.
+
     Raises
     ------
     ValueError
@@ -57,9 +63,11 @@ def validate_weights(weights, tolerance=1e-6):
         raise ValueError("Z must be greater than .1")
 
     print("Weights OK!")
+    return True
 
 
 class Runner:
+    discriminatorTrained = False
 
     def __init__(self,
                  verbose=False,
@@ -162,6 +170,7 @@ class Runner:
         else:
             raise ValueError('Discriminator not supported: {}'.format(
                 discriminator))
+
 
     #
     # STEP 0
@@ -413,19 +422,19 @@ class Runner:
         None
         """
         # Check that the sum of the ratios is approximately equal to 1
-        # if not (
-        #         1 - threshold <= train_ratio + val_ratio + test_ratio <= 1 + threshold):
-        #     raise ValueError(
-        #         "The sum of train_ratio, val_ratio, and test_ratio must be approximately equal to 1")
+        if not (
+                1 - threshold <= train_ratio + val_ratio + test_ratio <= 1 + threshold):
+            raise ValueError(
+                "The sum of train_ratio, val_ratio, and test_ratio must be approximately equal to 1")
 
         self.create_C_dataset()
 
         dataset_size = self.dataset_size
         weights = self.weights
 
-        train_count = int(0.2 * 0.4 * dataset_size)
-        val_count = int(0.2 * 0.1 * dataset_size)
-        test_count = int(0.2 * 0.5 * dataset_size)
+        train_count = int(0.2 * train_ratio * dataset_size)
+        val_count = int(0.2 * val_ratio * dataset_size)
+        test_count = int(0.2 * test_ratio * dataset_size)
 
         if weights:
             train_count = int(weights['B'] * weights['B_train'] * dataset_size)
@@ -436,7 +445,8 @@ class Runner:
 
         M = self.M
 
-        if not self.discriminator:
+        if self.discriminatorTrained is False:
+            print("****** TRAINING DISCRIMINATOR ******")
             C_train = M.get('C_train')
             C_val = M.get('C_val')
 
@@ -450,13 +460,9 @@ class Runner:
             X_val_masks_ = C_val_[:, :, :, 1]
             y_val_ = C_val_[:, 0, 0, 2]
 
-            cnnd = CNNDiscriminator(verbose=self.verbose,
-                                    workingdir=self.workingdir)
-
-            cnnd.train(X_train_images_, X_train_masks_, y_train_, X_val_images_,
-                       X_val_masks_, y_val_)
-
-            self.discriminator = cnnd
+            self.discriminator.train(X_train_images_, X_train_masks_, y_train_,
+                                     X_val_images_, X_val_masks_, y_val_)
+            self.discriminatorTrained = True
 
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, 'M_step4.pickle'))
@@ -721,7 +727,13 @@ class Runner:
     # PLOT!
     #
     def plot(self):
+        """ Plot the accuracies of the classifier and discriminator based on
+        the scores stored in classifier_scores and discriminator_scores.
 
+        Returns:
+        --------
+        None
+        """
         x = range(len(self.classifier_scores))
         y1 = [v[1] for v in self.classifier_scores]
         y2 = [v[1] for v in self.discriminator_scores]
