@@ -148,15 +148,16 @@ class BaseKerasSegmentationClassifier(Classifier):
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base class for classifiers</p>
-<h2 id="args">Args</h2>
+<div class="desc"><p>Abstract Base class for classifiers</p>
+<p>Initialize the Classifier class.</p>
+<h2 id="parameters">Parameters</h2>
 <dl>
-<dt><strong><code>verbose</code></strong></dt>
-<dd>(bool) print verbose output</dd>
-<dt><strong><code>workingdir</code></strong></dt>
-<dd>(str) working directory</dd>
-<dt><strong><code>**kwargs</code></strong></dt>
-<dd>(dict) keyword arguments</dd>
+<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to print the model summary.</dd>
+<dt><strong><code>workingdir</code></strong> :&ensp;<code>str</code></dt>
+<dd>The working directory to use for saving the model.</dd>
+<dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Additional keyword arguments.</dd>
 </dl></div>
 <details class="source">
 <summary>

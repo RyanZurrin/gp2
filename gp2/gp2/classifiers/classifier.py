@@ -2,16 +2,22 @@ from abc import ABC, abstractmethod
 
 
 class Classifier(ABC):
-    """
-    Base class for classifiers
+    """ Abstract Base class for classifiers
+
     """
 
     def __init__(self, verbose=True, workingdir='/tmp', **kwargs):
-        """
-        Args:
-            verbose: (bool) print verbose output
-            workingdir: (str) working directory
-            **kwargs: (dict) keyword arguments
+        """ Initialize the Classifier class.
+
+        Parameters
+        ----------
+        verbose : bool
+            Whether to print the model summary.
+        workingdir : str
+            The working directory to use for saving the model.
+        **kwargs : dict
+            Additional keyword arguments.
+
         """
         self.verbose = verbose
         self.workingdir = workingdir

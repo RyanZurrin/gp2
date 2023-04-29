@@ -107,6 +107,7 @@ class Runner:
                  **kwargs):
         &#34;&#34;&#34; Initialize the GP2 runner with specified classifier and
         discriminator.
+
         Parameters
         ----------
         verbose : bool
@@ -204,11 +205,13 @@ class Runner:
     #
     def setup_data(self, images, masks, dataset_size=1000, weights=None):
         &#34;&#34;&#34; Set up the data for training.
+
         Each dataset is composed of three parts:
             A_: data to train/val/test the classifier \n
             B_: expert labels to feed directly into the discriminator \n
             Z_: a repository of additional data that can further train the
             classifier
+
         Parameters
         ----------
         images : list of np.ndarray
@@ -221,6 +224,7 @@ class Runner:
             Weights to use for training. If None, will use the default weights.
             Weights should be a dictionary with keys &#39;A&#39;, &#39;B&#39;, &#39;Z&#39;, &#39;A_test&#39;.
             The weights should sum to 1.0.
+
         Returns
         -------
         None
@@ -277,12 +281,18 @@ class Runner:
     #
     # STEP 1
     #
-    def run_classifier(self, patience_counter=2):
+    def run_classifier(self, patience_counter=2, epochs=100, batch_size=64):
         &#34;&#34;&#34; (Re-)Train the classifier.
+
         Parameters
         ----------
         patience_counter : int
             Number of epochs to wait before early stopping.
+        epochs : int
+            Number of epochs to train for.
+        batch_size : int
+            Batch size to use for training.
+
         Returns
         -------
         None
@@ -310,8 +320,9 @@ class Runner:
         y_val_, y_val_ids = A_val.to_array()
         y_val_ = y_val_[:, :, :, 1].astype(np.float32)
 
-        history = u.train(X_train_, y_train_, X_val_, y_val_,
-                          patience_counter=patience_counter)
+        u.train(X_train_, y_train_, X_val_, y_val_,
+                patience_counter=patience_counter,
+                epochs=epochs, batch_size=batch_size)
 
         X_test_, X_test_ids = A_test.to_array()
         X_test__ = X_test_[:, :, :, 0].astype(np.float32)
@@ -387,6 +398,7 @@ class Runner:
                                       val_count=100,
                                       test_count=100):
         &#34;&#34;&#34; Create the C train/val/test split from the C dataset (internal!).
+
         Parameters
         ----------
         train_count : int
@@ -395,6 +407,7 @@ class Runner:
             Number of validation samples.
         test_count : int
             Number of test samples.
+
         Returns
         -------
         None
@@ -434,6 +447,7 @@ class Runner:
                           threshold=1e-6):
         &#34;&#34;&#34; Train the discriminator using C_train/C_val. If the discriminator was
         trained, this will just predict.
+
         Parameters
         ----------
         train_ratio : float
@@ -444,6 +458,7 @@ class Runner:
             Ratio of test samples.
         threshold : float
             Threshold for the sum of train_ratio, val_ratio, and test_ratio.
+
         Returns
         -------
         None
@@ -602,10 +617,6 @@ class Runner:
             return
 
         D_, D_ids = D.to_array()
-        # TODO: Check why these are here if not used
-        D_images = D_[:, :, :, 0]
-        D_masks = D_[:, :, :, 1]
-        D_labels = D_[:, 0, 0, 2]
 
         selected_ids = list(np.random.choice(D_ids, len(D_ids) // int(
             100 / percent_to_replace), replace=False))
@@ -723,6 +734,7 @@ class Runner:
 
                 M.remove_and_add(Z, origin, p)
                 filled_counter += 1
+
         if balance:
             total_samples = len(A_train.data.keys()) + \
                             len(B.data.keys()) + len(A_test.data.keys())
@@ -765,19 +777,23 @@ class Runner:
         -------
         None
         &#34;&#34;&#34;
+        print(&#39;Transfer from&#39;, source.name, &#39;to&#39;, target.name)
+        M = self.M
         source_uniq_ids = list(source.data.keys())
         source_uniq_id = np.random.choice(source_uniq_ids, replace=False)
 
         p = Point(source.data[source_uniq_id])
         p.id = source_uniq_id
 
-        self.M.remove_and_add(source, target, p)
+        M.remove_and_add(source, target, p)
 
     def run(self,
             images,
             masks,
             weights,
             runs=1,
+            epochs=100,
+            batch_size=64,
             patience_counter=2,
             percent_to_replace=30,
             balance=False,
@@ -795,6 +811,10 @@ class Runner:
             Dictionary of weights for the different classes
         runs : int
             Number of runs
+        epochs : int
+            Number of epochs
+        batch_size : int
+            Batch size
         patience_counter : int
             Number of times the classifier can run without improvement. (Default: 2)
         percent_to_replace : int
@@ -817,9 +837,10 @@ class Runner:
 
         for run in range(runs):
             print(&#39;******&#39;)
-            print(&#39;Loop&#39;, run)
+            print(&#39;Loop&#39;, run+1)
             t0 = time.time()
-            self.run_classifier(patience_counter=patience_counter)
+            self.run_classifier(patience_counter=patience_counter,
+                                epochs=epochs, batch_size=batch_size)
             self.run_discriminator()
             l = self.find_machine_labels()
             if l == 0:
@@ -830,7 +851,7 @@ class Runner:
                          balance=balance,
                          fillup=fillup)
             print(&#39;TOOK&#39;, time.time() - t0, &#39;seconds&#39;)
-            print(&#39;==== DONE LOOP&#39;, run, &#39;====&#39;)
+            print(&#39;==== DONE LOOP&#39;, run+1, &#39;====&#39;)
 
     #
     # PLOT!
@@ -961,13 +982,12 @@ Weights should be a dictionary with keys containing the following:
 <dl>
 <dt id="gp2.runner.Runner"><code class="flex name class">
 <span>class <span class="ident">Runner</span></span>
-<span>(</span><span>verbose=False, workingdir='/tmp/tmpqhvughbbGP2', store_after_each_step=False, classifier=None, discriminator=None, weights=None, **kwargs)</span>
+<span>(</span><span>verbose=False, workingdir='/tmp/tmp1lscst1aGP2', store_after_each_step=False, classifier=None, discriminator=None, weights=None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initialize the GP2 runner with specified classifier and
-discriminator.
-Parameters</p>
-<hr>
+discriminator.</p>
+<h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code></dt>
 <dd>If True, will print out additional information during training.</dd>
@@ -1006,6 +1026,7 @@ discriminator.</dd>
                  **kwargs):
         &#34;&#34;&#34; Initialize the GP2 runner with specified classifier and
         discriminator.
+
         Parameters
         ----------
         verbose : bool
@@ -1103,11 +1124,13 @@ discriminator.</dd>
     #
     def setup_data(self, images, masks, dataset_size=1000, weights=None):
         &#34;&#34;&#34; Set up the data for training.
+
         Each dataset is composed of three parts:
             A_: data to train/val/test the classifier \n
             B_: expert labels to feed directly into the discriminator \n
             Z_: a repository of additional data that can further train the
             classifier
+
         Parameters
         ----------
         images : list of np.ndarray
@@ -1120,6 +1143,7 @@ discriminator.</dd>
             Weights to use for training. If None, will use the default weights.
             Weights should be a dictionary with keys &#39;A&#39;, &#39;B&#39;, &#39;Z&#39;, &#39;A_test&#39;.
             The weights should sum to 1.0.
+
         Returns
         -------
         None
@@ -1176,12 +1200,18 @@ discriminator.</dd>
     #
     # STEP 1
     #
-    def run_classifier(self, patience_counter=2):
+    def run_classifier(self, patience_counter=2, epochs=100, batch_size=64):
         &#34;&#34;&#34; (Re-)Train the classifier.
+
         Parameters
         ----------
         patience_counter : int
             Number of epochs to wait before early stopping.
+        epochs : int
+            Number of epochs to train for.
+        batch_size : int
+            Batch size to use for training.
+
         Returns
         -------
         None
@@ -1209,8 +1239,9 @@ discriminator.</dd>
         y_val_, y_val_ids = A_val.to_array()
         y_val_ = y_val_[:, :, :, 1].astype(np.float32)
 
-        history = u.train(X_train_, y_train_, X_val_, y_val_,
-                          patience_counter=patience_counter)
+        u.train(X_train_, y_train_, X_val_, y_val_,
+                patience_counter=patience_counter,
+                epochs=epochs, batch_size=batch_size)
 
         X_test_, X_test_ids = A_test.to_array()
         X_test__ = X_test_[:, :, :, 0].astype(np.float32)
@@ -1286,6 +1317,7 @@ discriminator.</dd>
                                       val_count=100,
                                       test_count=100):
         &#34;&#34;&#34; Create the C train/val/test split from the C dataset (internal!).
+
         Parameters
         ----------
         train_count : int
@@ -1294,6 +1326,7 @@ discriminator.</dd>
             Number of validation samples.
         test_count : int
             Number of test samples.
+
         Returns
         -------
         None
@@ -1333,6 +1366,7 @@ discriminator.</dd>
                           threshold=1e-6):
         &#34;&#34;&#34; Train the discriminator using C_train/C_val. If the discriminator was
         trained, this will just predict.
+
         Parameters
         ----------
         train_ratio : float
@@ -1343,6 +1377,7 @@ discriminator.</dd>
             Ratio of test samples.
         threshold : float
             Threshold for the sum of train_ratio, val_ratio, and test_ratio.
+
         Returns
         -------
         None
@@ -1501,10 +1536,6 @@ discriminator.</dd>
             return
 
         D_, D_ids = D.to_array()
-        # TODO: Check why these are here if not used
-        D_images = D_[:, :, :, 0]
-        D_masks = D_[:, :, :, 1]
-        D_labels = D_[:, 0, 0, 2]
 
         selected_ids = list(np.random.choice(D_ids, len(D_ids) // int(
             100 / percent_to_replace), replace=False))
@@ -1622,6 +1653,7 @@ discriminator.</dd>
 
                 M.remove_and_add(Z, origin, p)
                 filled_counter += 1
+
         if balance:
             total_samples = len(A_train.data.keys()) + \
                             len(B.data.keys()) + len(A_test.data.keys())
@@ -1664,19 +1696,23 @@ discriminator.</dd>
         -------
         None
         &#34;&#34;&#34;
+        print(&#39;Transfer from&#39;, source.name, &#39;to&#39;, target.name)
+        M = self.M
         source_uniq_ids = list(source.data.keys())
         source_uniq_id = np.random.choice(source_uniq_ids, replace=False)
 
         p = Point(source.data[source_uniq_id])
         p.id = source_uniq_id
 
-        self.M.remove_and_add(source, target, p)
+        M.remove_and_add(source, target, p)
 
     def run(self,
             images,
             masks,
             weights,
             runs=1,
+            epochs=100,
+            batch_size=64,
             patience_counter=2,
             percent_to_replace=30,
             balance=False,
@@ -1694,6 +1730,10 @@ discriminator.</dd>
             Dictionary of weights for the different classes
         runs : int
             Number of runs
+        epochs : int
+            Number of epochs
+        batch_size : int
+            Batch size
         patience_counter : int
             Number of times the classifier can run without improvement. (Default: 2)
         percent_to_replace : int
@@ -1716,9 +1756,10 @@ discriminator.</dd>
 
         for run in range(runs):
             print(&#39;******&#39;)
-            print(&#39;Loop&#39;, run)
+            print(&#39;Loop&#39;, run+1)
             t0 = time.time()
-            self.run_classifier(patience_counter=patience_counter)
+            self.run_classifier(patience_counter=patience_counter,
+                                epochs=epochs, batch_size=batch_size)
             self.run_discriminator()
             l = self.find_machine_labels()
             if l == 0:
@@ -1729,7 +1770,7 @@ discriminator.</dd>
                          balance=balance,
                          fillup=fillup)
             print(&#39;TOOK&#39;, time.time() - t0, &#39;seconds&#39;)
-            print(&#39;==== DONE LOOP&#39;, run, &#39;====&#39;)
+            print(&#39;==== DONE LOOP&#39;, run+1, &#39;====&#39;)
 
     #
     # PLOT!
@@ -1815,9 +1856,8 @@ discriminator.</dd>
 <span>def <span class="ident">create_C_train_val_test_split</span></span>(<span>self, train_count=300, val_count=100, test_count=100)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Create the C train/val/test split from the C dataset (internal!).
-Parameters</p>
-<hr>
+<div class="desc"><p>Create the C train/val/test split from the C dataset (internal!).</p>
+<h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>train_count</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of training samples.</dd>
@@ -1840,6 +1880,7 @@ Parameters</p>
                                   val_count=100,
                                   test_count=100):
     &#34;&#34;&#34; Create the C train/val/test split from the C dataset (internal!).
+
     Parameters
     ----------
     train_count : int
@@ -1848,6 +1889,7 @@ Parameters</p>
         Number of validation samples.
     test_count : int
         Number of test samples.
+
     Returns
     -------
     None
@@ -2050,10 +2092,6 @@ the scores stored in classifier_scores and discriminator_scores.</p>
         return
 
     D_, D_ids = D.to_array()
-    # TODO: Check why these are here if not used
-    D_images = D_[:, :, :, 0]
-    D_masks = D_[:, :, :, 1]
-    D_labels = D_[:, 0, 0, 2]
 
     selected_ids = list(np.random.choice(D_ids, len(D_ids) // int(
         100 / percent_to_replace), replace=False))
@@ -2109,7 +2147,7 @@ the scores stored in classifier_scores and discriminator_scores.</p>
 </details>
 </dd>
 <dt id="gp2.runner.Runner.run"><code class="name flex">
-<span>def <span class="ident">run</span></span>(<span>self, images, masks, weights, runs=1, patience_counter=2, percent_to_replace=30, balance=False, fillup=True)</span>
+<span>def <span class="ident">run</span></span>(<span>self, images, masks, weights, runs=1, epochs=100, batch_size=64, patience_counter=2, percent_to_replace=30, balance=False, fillup=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Run the whole GP2 algorithm, including setting up the data, running
@@ -2124,6 +2162,10 @@ the classifier and discriminator, and relabeling.</p>
 <dd>Dictionary of weights for the different classes</dd>
 <dt><strong><code>runs</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of runs</dd>
+<dt><strong><code>epochs</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of epochs</dd>
+<dt><strong><code>batch_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Batch size</dd>
 <dt><strong><code>patience_counter</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of times the classifier can run without improvement. (Default: 2)</dd>
 <dt><strong><code>percent_to_replace</code></strong> :&ensp;<code>int</code></dt>
@@ -2147,6 +2189,8 @@ the classifier and discriminator, and relabeling.</p>
         masks,
         weights,
         runs=1,
+        epochs=100,
+        batch_size=64,
         patience_counter=2,
         percent_to_replace=30,
         balance=False,
@@ -2164,6 +2208,10 @@ the classifier and discriminator, and relabeling.</p>
         Dictionary of weights for the different classes
     runs : int
         Number of runs
+    epochs : int
+        Number of epochs
+    batch_size : int
+        Batch size
     patience_counter : int
         Number of times the classifier can run without improvement. (Default: 2)
     percent_to_replace : int
@@ -2186,9 +2234,10 @@ the classifier and discriminator, and relabeling.</p>
 
     for run in range(runs):
         print(&#39;******&#39;)
-        print(&#39;Loop&#39;, run)
+        print(&#39;Loop&#39;, run+1)
         t0 = time.time()
-        self.run_classifier(patience_counter=patience_counter)
+        self.run_classifier(patience_counter=patience_counter,
+                            epochs=epochs, batch_size=batch_size)
         self.run_discriminator()
         l = self.find_machine_labels()
         if l == 0:
@@ -2199,19 +2248,22 @@ the classifier and discriminator, and relabeling.</p>
                      balance=balance,
                      fillup=fillup)
         print(&#39;TOOK&#39;, time.time() - t0, &#39;seconds&#39;)
-        print(&#39;==== DONE LOOP&#39;, run, &#39;====&#39;)</code></pre>
+        print(&#39;==== DONE LOOP&#39;, run+1, &#39;====&#39;)</code></pre>
 </details>
 </dd>
 <dt id="gp2.runner.Runner.run_classifier"><code class="name flex">
-<span>def <span class="ident">run_classifier</span></span>(<span>self, patience_counter=2)</span>
+<span>def <span class="ident">run_classifier</span></span>(<span>self, patience_counter=2, epochs=100, batch_size=64)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>(Re-)Train the classifier.
-Parameters</p>
-<hr>
+<div class="desc"><p>(Re-)Train the classifier.</p>
+<h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>patience_counter</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of epochs to wait before early stopping.</dd>
+<dt><strong><code>epochs</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of epochs to train for.</dd>
+<dt><strong><code>batch_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Batch size to use for training.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -2222,12 +2274,18 @@ Parameters</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def run_classifier(self, patience_counter=2):
+<pre><code class="python">def run_classifier(self, patience_counter=2, epochs=100, batch_size=64):
     &#34;&#34;&#34; (Re-)Train the classifier.
+
     Parameters
     ----------
     patience_counter : int
         Number of epochs to wait before early stopping.
+    epochs : int
+        Number of epochs to train for.
+    batch_size : int
+        Batch size to use for training.
+
     Returns
     -------
     None
@@ -2255,8 +2313,9 @@ Parameters</p>
     y_val_, y_val_ids = A_val.to_array()
     y_val_ = y_val_[:, :, :, 1].astype(np.float32)
 
-    history = u.train(X_train_, y_train_, X_val_, y_val_,
-                      patience_counter=patience_counter)
+    u.train(X_train_, y_train_, X_val_, y_val_,
+            patience_counter=patience_counter,
+            epochs=epochs, batch_size=batch_size)
 
     X_test_, X_test_ids = A_test.to_array()
     X_test__ = X_test_[:, :, :, 0].astype(np.float32)
@@ -2283,9 +2342,8 @@ Parameters</p>
 </code></dt>
 <dd>
 <div class="desc"><p>Train the discriminator using C_train/C_val. If the discriminator was
-trained, this will just predict.
-Parameters</p>
-<hr>
+trained, this will just predict.</p>
+<h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>train_ratio</code></strong> :&ensp;<code>float</code></dt>
 <dd>Ratio of training samples.</dd>
@@ -2309,6 +2367,7 @@ Parameters</p>
                       threshold=1e-6):
     &#34;&#34;&#34; Train the discriminator using C_train/C_val. If the discriminator was
     trained, this will just predict.
+
     Parameters
     ----------
     train_ratio : float
@@ -2319,6 +2378,7 @@ Parameters</p>
         Ratio of test samples.
     threshold : float
         Threshold for the sum of train_ratio, val_ratio, and test_ratio.
+
     Returns
     -------
     None
@@ -2376,8 +2436,8 @@ Parameters</p>
 <span>def <span class="ident">setup_data</span></span>(<span>self, images, masks, dataset_size=1000, weights=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Set up the data for training.
-Each dataset is composed of three parts:
+<div class="desc"><p>Set up the data for training.</p>
+<p>Each dataset is composed of three parts:
 A_: data to train/val/test the classifier </p>
 <pre><code>B_: expert labels to feed directly into the discriminator
 
@@ -2408,11 +2468,13 @@ The weights should sum to 1.0.</dd>
 </summary>
 <pre><code class="python">def setup_data(self, images, masks, dataset_size=1000, weights=None):
     &#34;&#34;&#34; Set up the data for training.
+
     Each dataset is composed of three parts:
         A_: data to train/val/test the classifier \n
         B_: expert labels to feed directly into the discriminator \n
         Z_: a repository of additional data that can further train the
         classifier
+
     Parameters
     ----------
     images : list of np.ndarray
@@ -2425,6 +2487,7 @@ The weights should sum to 1.0.</dd>
         Weights to use for training. If None, will use the default weights.
         Weights should be a dictionary with keys &#39;A&#39;, &#39;B&#39;, &#39;Z&#39;, &#39;A_test&#39;.
         The weights should sum to 1.0.
+
     Returns
     -------
     None
@@ -2514,13 +2577,15 @@ The weights should sum to 1.0.</dd>
     -------
     None
     &#34;&#34;&#34;
+    print(&#39;Transfer from&#39;, source.name, &#39;to&#39;, target.name)
+    M = self.M
     source_uniq_ids = list(source.data.keys())
     source_uniq_id = np.random.choice(source_uniq_ids, replace=False)
 
     p = Point(source.data[source_uniq_id])
     p.id = source_uniq_id
 
-    self.M.remove_and_add(source, target, p)</code></pre>
+    M.remove_and_add(source, target, p)</code></pre>
 </details>
 </dd>
 <dt id="gp2.runner.Runner.update_A_train"><code class="name flex">
@@ -2606,6 +2671,7 @@ and A_test (wherever it was!). Fill-up both B and A_test (internal!).</p>
 
             M.remove_and_add(Z, origin, p)
             filled_counter += 1
+
     if balance:
         total_samples = len(A_train.data.keys()) + \
                         len(B.data.keys()) + len(A_test.data.keys())

@@ -81,6 +81,7 @@ class Util:
                                     test_count=250,
                                     shuffle=True):
         """ Creates a train, val, test split from a dataset
+
         Parameters
         ----------
         dataset : numpy array
@@ -93,6 +94,7 @@ class Util:
             The number of test samples
         shuffle : bool
             Whether to shuffle the dataset before splitting
+
         Returns
         -------
         train : numpy array
@@ -116,12 +118,14 @@ class Util:
     @staticmethod
     def create_numbered_file(filename, extension):
         """ Creates a numbered file
+
         Parameters
         ----------
         filename : str
             The filename
         extension : str
             The extension
+
         Returns
         -------
         numbered_file : str
@@ -138,6 +142,7 @@ class Util:
     @staticmethod
     def plot_accuracies(x, y1, y2):
         """ Plot line chart showing accuracies of classifier and discriminator
+
         Parameters
         ----------
         x : range
@@ -146,6 +151,7 @@ class Util:
             The y-axis values for the classifier.
         y2 : numpy.ndarray | list
             The y-axis values for the discriminator.
+
         Returns
         -------
         None
@@ -168,6 +174,7 @@ class Util:
     @staticmethod
     def dice_coeff(y_true, y_pred, smooth=1e-9):
         """ Calculate the dice coefficient.
+
         Parameters
         ----------
         y_true : numpy.ndarray
@@ -176,6 +183,7 @@ class Util:
             The predicted masks.
         smooth : float
             The smoothing factor.
+
         Returns
         -------
         float
@@ -208,12 +216,14 @@ class Util:
     @staticmethod
     def hybrid_loss(y_true, y_pred):
         """ Calculate the loss.
+
         Parameters
         ----------
         y_true : numpy.ndarray
             The true masks.
         y_pred : numpy.ndarray
             The predicted masks.
+
         Returns
         -------
         float

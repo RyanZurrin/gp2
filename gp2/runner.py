@@ -79,6 +79,7 @@ class Runner:
                  **kwargs):
         """ Initialize the GP2 runner with specified classifier and
         discriminator.
+
         Parameters
         ----------
         verbose : bool
@@ -176,11 +177,13 @@ class Runner:
     #
     def setup_data(self, images, masks, dataset_size=1000, weights=None):
         """ Set up the data for training.
+
         Each dataset is composed of three parts:
             A_: data to train/val/test the classifier \n
             B_: expert labels to feed directly into the discriminator \n
             Z_: a repository of additional data that can further train the
             classifier
+
         Parameters
         ----------
         images : list of np.ndarray
@@ -193,6 +196,7 @@ class Runner:
             Weights to use for training. If None, will use the default weights.
             Weights should be a dictionary with keys 'A', 'B', 'Z', 'A_test'.
             The weights should sum to 1.0.
+
         Returns
         -------
         None
@@ -249,12 +253,18 @@ class Runner:
     #
     # STEP 1
     #
-    def run_classifier(self, patience_counter=2):
+    def run_classifier(self, patience_counter=2, epochs=100, batch_size=64):
         """ (Re-)Train the classifier.
+
         Parameters
         ----------
         patience_counter : int
             Number of epochs to wait before early stopping.
+        epochs : int
+            Number of epochs to train for.
+        batch_size : int
+            Batch size to use for training.
+
         Returns
         -------
         None
@@ -282,8 +292,9 @@ class Runner:
         y_val_, y_val_ids = A_val.to_array()
         y_val_ = y_val_[:, :, :, 1].astype(np.float32)
 
-        history = u.train(X_train_, y_train_, X_val_, y_val_,
-                          patience_counter=patience_counter)
+        u.train(X_train_, y_train_, X_val_, y_val_,
+                patience_counter=patience_counter,
+                epochs=epochs, batch_size=batch_size)
 
         X_test_, X_test_ids = A_test.to_array()
         X_test__ = X_test_[:, :, :, 0].astype(np.float32)
@@ -359,6 +370,7 @@ class Runner:
                                       val_count=100,
                                       test_count=100):
         """ Create the C train/val/test split from the C dataset (internal!).
+
         Parameters
         ----------
         train_count : int
@@ -367,6 +379,7 @@ class Runner:
             Number of validation samples.
         test_count : int
             Number of test samples.
+
         Returns
         -------
         None
@@ -406,6 +419,7 @@ class Runner:
                           threshold=1e-6):
         """ Train the discriminator using C_train/C_val. If the discriminator was
         trained, this will just predict.
+
         Parameters
         ----------
         train_ratio : float
@@ -416,6 +430,7 @@ class Runner:
             Ratio of test samples.
         threshold : float
             Threshold for the sum of train_ratio, val_ratio, and test_ratio.
+
         Returns
         -------
         None
@@ -574,10 +589,6 @@ class Runner:
             return
 
         D_, D_ids = D.to_array()
-        # TODO: Check why these are here if not used
-        D_images = D_[:, :, :, 0]
-        D_masks = D_[:, :, :, 1]
-        D_labels = D_[:, 0, 0, 2]
 
         selected_ids = list(np.random.choice(D_ids, len(D_ids) // int(
             100 / percent_to_replace), replace=False))
@@ -695,6 +706,7 @@ class Runner:
 
                 M.remove_and_add(Z, origin, p)
                 filled_counter += 1
+
         if balance:
             total_samples = len(A_train.data.keys()) + \
                             len(B.data.keys()) + len(A_test.data.keys())
@@ -737,19 +749,23 @@ class Runner:
         -------
         None
         """
+        print('Transfer from', source.name, 'to', target.name)
+        M = self.M
         source_uniq_ids = list(source.data.keys())
         source_uniq_id = np.random.choice(source_uniq_ids, replace=False)
 
         p = Point(source.data[source_uniq_id])
         p.id = source_uniq_id
 
-        self.M.remove_and_add(source, target, p)
+        M.remove_and_add(source, target, p)
 
     def run(self,
             images,
             masks,
             weights,
             runs=1,
+            epochs=100,
+            batch_size=64,
             patience_counter=2,
             percent_to_replace=30,
             balance=False,
@@ -767,6 +783,10 @@ class Runner:
             Dictionary of weights for the different classes
         runs : int
             Number of runs
+        epochs : int
+            Number of epochs
+        batch_size : int
+            Batch size
         patience_counter : int
             Number of times the classifier can run without improvement. (Default: 2)
         percent_to_replace : int
@@ -789,9 +809,10 @@ class Runner:
 
         for run in range(runs):
             print('******')
-            print('Loop', run)
+            print('Loop', run+1)
             t0 = time.time()
-            self.run_classifier(patience_counter=patience_counter)
+            self.run_classifier(patience_counter=patience_counter,
+                                epochs=epochs, batch_size=batch_size)
             self.run_discriminator()
             l = self.find_machine_labels()
             if l == 0:
@@ -802,7 +823,7 @@ class Runner:
                          balance=balance,
                          fillup=fillup)
             print('TOOK', time.time() - t0, 'seconds')
-            print('==== DONE LOOP', run, '====')
+            print('==== DONE LOOP', run+1, '====')
 
     #
     # PLOT!

@@ -109,6 +109,7 @@ class Util:
                                     test_count=250,
                                     shuffle=True):
         &#34;&#34;&#34; Creates a train, val, test split from a dataset
+
         Parameters
         ----------
         dataset : numpy array
@@ -121,6 +122,7 @@ class Util:
             The number of test samples
         shuffle : bool
             Whether to shuffle the dataset before splitting
+
         Returns
         -------
         train : numpy array
@@ -144,12 +146,14 @@ class Util:
     @staticmethod
     def create_numbered_file(filename, extension):
         &#34;&#34;&#34; Creates a numbered file
+
         Parameters
         ----------
         filename : str
             The filename
         extension : str
             The extension
+
         Returns
         -------
         numbered_file : str
@@ -166,6 +170,7 @@ class Util:
     @staticmethod
     def plot_accuracies(x, y1, y2):
         &#34;&#34;&#34; Plot line chart showing accuracies of classifier and discriminator
+
         Parameters
         ----------
         x : range
@@ -174,6 +179,7 @@ class Util:
             The y-axis values for the classifier.
         y2 : numpy.ndarray | list
             The y-axis values for the discriminator.
+
         Returns
         -------
         None
@@ -196,6 +202,7 @@ class Util:
     @staticmethod
     def dice_coeff(y_true, y_pred, smooth=1e-9):
         &#34;&#34;&#34; Calculate the dice coefficient.
+
         Parameters
         ----------
         y_true : numpy.ndarray
@@ -204,6 +211,7 @@ class Util:
             The predicted masks.
         smooth : float
             The smoothing factor.
+
         Returns
         -------
         float
@@ -236,12 +244,14 @@ class Util:
     @staticmethod
     def hybrid_loss(y_true, y_pred):
         &#34;&#34;&#34; Calculate the loss.
+
         Parameters
         ----------
         y_true : numpy.ndarray
             The true masks.
         y_pred : numpy.ndarray
             The predicted masks.
+
         Returns
         -------
         float
@@ -373,6 +383,7 @@ class Util:
                                     test_count=250,
                                     shuffle=True):
         &#34;&#34;&#34; Creates a train, val, test split from a dataset
+
         Parameters
         ----------
         dataset : numpy array
@@ -385,6 +396,7 @@ class Util:
             The number of test samples
         shuffle : bool
             Whether to shuffle the dataset before splitting
+
         Returns
         -------
         train : numpy array
@@ -408,12 +420,14 @@ class Util:
     @staticmethod
     def create_numbered_file(filename, extension):
         &#34;&#34;&#34; Creates a numbered file
+
         Parameters
         ----------
         filename : str
             The filename
         extension : str
             The extension
+
         Returns
         -------
         numbered_file : str
@@ -430,6 +444,7 @@ class Util:
     @staticmethod
     def plot_accuracies(x, y1, y2):
         &#34;&#34;&#34; Plot line chart showing accuracies of classifier and discriminator
+
         Parameters
         ----------
         x : range
@@ -438,6 +453,7 @@ class Util:
             The y-axis values for the classifier.
         y2 : numpy.ndarray | list
             The y-axis values for the discriminator.
+
         Returns
         -------
         None
@@ -460,6 +476,7 @@ class Util:
     @staticmethod
     def dice_coeff(y_true, y_pred, smooth=1e-9):
         &#34;&#34;&#34; Calculate the dice coefficient.
+
         Parameters
         ----------
         y_true : numpy.ndarray
@@ -468,6 +485,7 @@ class Util:
             The predicted masks.
         smooth : float
             The smoothing factor.
+
         Returns
         -------
         float
@@ -500,12 +518,14 @@ class Util:
     @staticmethod
     def hybrid_loss(y_true, y_pred):
         &#34;&#34;&#34; Calculate the loss.
+
         Parameters
         ----------
         y_true : numpy.ndarray
             The true masks.
         y_pred : numpy.ndarray
             The predicted masks.
+
         Returns
         -------
         float
@@ -681,9 +701,8 @@ def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
 <span>def <span class="ident">create_numbered_file</span></span>(<span>filename, extension)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Creates a numbered file
-Parameters</p>
-<hr>
+<div class="desc"><p>Creates a numbered file</p>
+<h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>filename</code></strong> :&ensp;<code>str</code></dt>
 <dd>The filename</dd>
@@ -702,12 +721,14 @@ Parameters</p>
 <pre><code class="python">@staticmethod
 def create_numbered_file(filename, extension):
     &#34;&#34;&#34; Creates a numbered file
+
     Parameters
     ----------
     filename : str
         The filename
     extension : str
         The extension
+
     Returns
     -------
     numbered_file : str
@@ -726,9 +747,8 @@ def create_numbered_file(filename, extension):
 <span>def <span class="ident">create_train_val_test_split</span></span>(<span>dataset, train_count=200, val_count=300, test_count=250, shuffle=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Creates a train, val, test split from a dataset
-Parameters</p>
-<hr>
+<div class="desc"><p>Creates a train, val, test split from a dataset</p>
+<h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>dataset</code></strong> :&ensp;<code>numpy array</code></dt>
 <dd>The dataset to split</dd>
@@ -761,6 +781,7 @@ def create_train_val_test_split(dataset,
                                 test_count=250,
                                 shuffle=True):
     &#34;&#34;&#34; Creates a train, val, test split from a dataset
+
     Parameters
     ----------
     dataset : numpy array
@@ -773,6 +794,7 @@ def create_train_val_test_split(dataset,
         The number of test samples
     shuffle : bool
         Whether to shuffle the dataset before splitting
+
     Returns
     -------
     train : numpy array
@@ -798,9 +820,8 @@ def create_train_val_test_split(dataset,
 <span>def <span class="ident">dice_coeff</span></span>(<span>y_true, y_pred, smooth=1e-09)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculate the dice coefficient.
-Parameters</p>
-<hr>
+<div class="desc"><p>Calculate the dice coefficient.</p>
+<h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>y_true</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
 <dd>The true masks.</dd>
@@ -821,6 +842,7 @@ Parameters</p>
 <pre><code class="python">@staticmethod
 def dice_coeff(y_true, y_pred, smooth=1e-9):
     &#34;&#34;&#34; Calculate the dice coefficient.
+
     Parameters
     ----------
     y_true : numpy.ndarray
@@ -829,6 +851,7 @@ def dice_coeff(y_true, y_pred, smooth=1e-9):
         The predicted masks.
     smooth : float
         The smoothing factor.
+
     Returns
     -------
     float
@@ -906,9 +929,8 @@ def disable_tensorflow_logging():
 <span>def <span class="ident">hybrid_loss</span></span>(<span>y_true, y_pred)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Calculate the loss.
-Parameters</p>
-<hr>
+<div class="desc"><p>Calculate the loss.</p>
+<h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>y_true</code></strong> :&ensp;<code>numpy.ndarray</code></dt>
 <dd>The true masks.</dd>
@@ -927,12 +949,14 @@ Parameters</p>
 <pre><code class="python">@staticmethod
 def hybrid_loss(y_true, y_pred):
     &#34;&#34;&#34; Calculate the loss.
+
     Parameters
     ----------
     y_true : numpy.ndarray
         The true masks.
     y_pred : numpy.ndarray
         The predicted masks.
+
     Returns
     -------
     float
@@ -956,9 +980,8 @@ def hybrid_loss(y_true, y_pred):
 <span>def <span class="ident">plot_accuracies</span></span>(<span>x, y1, y2)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Plot line chart showing accuracies of classifier and discriminator
-Parameters</p>
-<hr>
+<div class="desc"><p>Plot line chart showing accuracies of classifier and discriminator</p>
+<h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>x</code></strong> :&ensp;<code>range</code></dt>
 <dd>The range of the x-axis</dd>
@@ -979,6 +1002,7 @@ Parameters</p>
 <pre><code class="python">@staticmethod
 def plot_accuracies(x, y1, y2):
     &#34;&#34;&#34; Plot line chart showing accuracies of classifier and discriminator
+
     Parameters
     ----------
     x : range
@@ -987,6 +1011,7 @@ def plot_accuracies(x, y1, y2):
         The y-axis values for the classifier.
     y2 : numpy.ndarray | list
         The y-axis values for the discriminator.
+
     Returns
     -------
     None
