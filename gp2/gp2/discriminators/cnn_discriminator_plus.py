@@ -2,7 +2,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import losses
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.regularizers import l1_l2
-from .base_cnn_discriminator import BaseCNNDiscriminator
+from .base_cnn_discriminator import BaseCNNDiscriminator, CustomMaskLayer
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, concatenate, Conv2D, MaxPooling2D, \
     LeakyReLU, Dropout, Flatten, Dense
@@ -12,6 +12,7 @@ class CNNDiscriminatorPLUS(BaseCNNDiscriminator):
     def __init__(self,
                  image_shape=(512, 512, 1),
                  num_classes=2,
+                 mask_layer=None,
                  conv_layers=None,
                  dense_layers=None,
                  optimizer=None,
@@ -25,6 +26,7 @@ class CNNDiscriminatorPLUS(BaseCNNDiscriminator):
         super().__init__(workingdir)
         self.image_shape = image_shape
         self.num_classes = num_classes
+        self.mask_layer = mask_layer
         self.conv_layers = conv_layers or [
             (16, (3, 3), 0.25),
             (32, (3, 3), 0.25),
@@ -63,7 +65,9 @@ class CNNDiscriminatorPLUS(BaseCNNDiscriminator):
         image_model = self.create_convolution_layers(image_input)
 
         mask_input = Input(shape=self.image_shape)
-        mask_model = self.create_convolution_layers(mask_input)
+        # TODO: May need to remove the CustomMaskLayer, just testing
+        mask_model = CustomMaskLayer()(mask_input)
+        mask_model = self.create_convolution_layers(mask_model)
 
         conv = concatenate([image_model, mask_model])
 

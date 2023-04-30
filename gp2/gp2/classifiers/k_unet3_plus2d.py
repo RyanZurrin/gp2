@@ -1,14 +1,10 @@
 from keras import losses
 from tensorflow.keras import optimizers
 
-from gp2.gp2.classifiers.base_keras_segmentation_classifier import \
+from .base_keras_segmentation_classifier import \
     BaseKerasSegmentationClassifier
 from keras_unet_collection import models
-import tensorflow as tf
 from gp2.gp2.util import Util
-
-policy = tf.keras.mixed_precision.Policy('mixed_float16')
-tf.keras.mixed_precision.set_global_policy(policy)
 
 
 class KUNet3Plus2D(BaseKerasSegmentationClassifier):
@@ -107,26 +103,13 @@ class KUNet3Plus2D(BaseKerasSegmentationClassifier):
         """
         super().__init__(verbose=verbose, workingdir=workingdir)
 
-        if filter_num_down is None:
-            filter_num_down = [32, 64, 128, 256]
-        if filter_num_skip is None:
-            filter_num_skip = [16, 16, 16, 16]
-        if filter_num_aggregate is None:
-            filter_num_aggregate = 64
-        if optimizer is None:
-            optimizer = optimizers.Adam(learning_rate=1e-4)
-        if loss is None:
-            loss = losses.binary_crossentropy
-        if metric is None:
-            metric = [Util.dice_coef]
-
         print(f'KUNet3Plus2D: {optimizer}, {loss}, {metric}')
 
         self.input_size = input_size
         self.n_labels = n_labels
-        self.filter_num_down = filter_num_down
-        self.filter_num_skip = filter_num_skip
-        self.filter_num_aggregate = filter_num_aggregate
+        self.filter_num_down = filter_num_down or [32, 64, 128, 256]
+        self.filter_num_skip = filter_num_skip or [16, 16, 16, 16]
+        self.filter_num_aggregate = filter_num_aggregate or 64
         self.stack_num_down = stack_num_down
         self.stack_num_up = stack_num_up
         self.activation = activation
@@ -136,9 +119,9 @@ class KUNet3Plus2D(BaseKerasSegmentationClassifier):
         self.unpool = unpool
         self.deep_supervision = deep_supervision
         self.name = name
-        self.optimizer = optimizer
-        self.loss = loss
-        self.metric = metric
+        self.optimizer = optimizer or optimizers.Adam(learning_rate=1e-4)
+        self.loss = loss or losses.binary_crossentropy
+        self.metric = metric or [Util.dice_coeff]
 
         self.model = models.unet_3plus_2d(input_size=self.input_size,
                                           n_labels=self.n_labels,

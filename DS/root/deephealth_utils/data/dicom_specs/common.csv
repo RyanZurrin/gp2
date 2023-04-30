@@ -1,0 +1,22 @@
+,TagName,Tag,AcceptanceCriteria,Common,Common-Rule
+0,BreastImplantPresent,"[""0028"",""1300""]",PAC-30,YES,NOT_EQUAL
+1,SOPClassUID,"[""0008"", ""0016""]",FAC-20,1.2.840.10008.5.1.4.1.1.1.2|1.2.840.10008.5.1.4.1.1.13.1.3,IN
+2,Modality,"[""0008"",""0060""]",FAC-21,MG,EQUAL
+3,BodyPartExamined,"[""0018"",""0015""]",FAC-23,BREAST,EQUAL
+4,LossyImageCompression,"[""0028"", ""2110""]",FAC-24,"""00""",EQUAL
+5,FieldOfViewHorizontalFlip,"[""0018"",""7034""]",FAC-25,YES,NOT_EQUAL
+6,QualityControlImage,"[""0028"",""0300""]",FAC-26,YES,NOT_EQUAL
+7,BurnedInAnnotation,"[""0028"",""0301""]",FAC-27,NO,EQUAL
+8,Manufacturer,"[""0008"", ""0070""]",FAC-80,,REQUIRED
+9,ManufacturerModelName,"[""0008"", ""1090""]",FAC-90,,REQUIRED
+11,PresentationIntentType,"[""0008"",""0068""]",FAC-110,FOR PRESENTATION,NOT_DIFF
+12,ViewCodeSequence,"[[""0054"", ""0220""], 0, [""0008"", ""0100""]]",FAC-160,R-10242|R-10226,IN
+13,ViewModifierCodeSequence,"[[""0054"",""0220""], 0, [""0054"", ""0222""]]",FAC-170,,EMPTY_SEQ
+14,StudyDescription,"[""0008"", ""1030""]",FAC-180,dx|diag|non screen|non-screen|bx|biopsy|implant|inject|localization|wire|marker|mag|magnification|loc|compression|galactogram|biop|needle|specimen,NOT_CONTAINS
+15,PartialView,"[""0028"",""1350""]",FAC-181,YES,NOT_EQUAL
+16,SOPInstanceUID,"[""0008"",""0018""]",FAC-200,,REQUIRED
+17,SeriesInstanceUID,"[""0020"",""000E""]",FAC-200,,REQUIRED
+18,StudyInstanceUID,"[""0020"",""000D""]",FAC-200,,REQUIRED
+19,PatientID,"[""0010"",""0020""]",FAC-200,,REQUIRED
+20,StudyDate,"[""0008"",""0020""]",FAC-200,,REQUIRED
+21,PatientBirthDate,"[""0010"",""0030""]",FAC-200,,REQUIRED

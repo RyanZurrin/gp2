@@ -1,13 +1,11 @@
 from keras import losses
-from tensorflow.keras import  optimizers
+from tensorflow.keras import optimizers
 
-from gp2.gp2.classifiers.base_keras_segmentation_classifier import BaseKerasSegmentationClassifier
+from .base_keras_segmentation_classifier import \
+    BaseKerasSegmentationClassifier
 from keras_unet_collection import models
-import tensorflow as tf
-from gp2.gp2.util import Util
 
-policy = tf.keras.mixed_precision.Policy('mixed_float16')
-tf.keras.mixed_precision.set_global_policy(policy)
+from gp2.gp2.util import Util
 
 
 class KUNetPlus2D(BaseKerasSegmentationClassifier):
@@ -94,20 +92,8 @@ class KUNetPlus2D(BaseKerasSegmentationClassifier):
         """
         super().__init__(verbose=verbose, workingdir=workingdir)
 
-        if filter_num is None:
-            filter_num = [32, 64, 128, 256, 512, 1024, 2048]
-
-        if optimizer is None:
-            optimizer = optimizers.Adam(learning_rate=1e-4)
-
-        if loss is None:
-            loss = losses.binary_crossentropy
-
-        if metric is None:
-            metric = [Util.dice_coef]
-
         self.input_size = input_size
-        self.filter_num = filter_num
+        self.filter_num = filter_num or [32, 64, 128, 256, 512, 1024, 2048]
         self.n_labels = n_labels
         self.stack_num_down = stack_num_down
         self.stack_num_up = stack_num_up
@@ -122,9 +108,9 @@ class KUNetPlus2D(BaseKerasSegmentationClassifier):
         self.freeze_backbone = freeze_backbone
         self.freeze_batch_norm = freeze_batch_norm
         self.name = name
-        self.optimizer = optimizer
-        self.loss = loss
-        self.metric = metric
+        self.optimizer = optimizer or optimizers.Adam(learning_rate=1e-4)
+        self.loss = loss or losses.binary_crossentropy
+        self.metric = metric or [Util.dice_coeff]
         self.model = models.unet_plus_2d(self.input_size,
                                          filter_num=self.filter_num,
                                          n_labels=self.n_labels,

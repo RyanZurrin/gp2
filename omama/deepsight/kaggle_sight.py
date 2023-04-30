@@ -439,7 +439,7 @@ class KaggleSight:
     # --------------------------------------------------------------------------
     @staticmethod
     def _check_predictions_cache(caselist_file, cache_path=None, timing=False):
-        """ Check if the deepsight cache exists for the given SOP instance
+        """ Check if the DS cache exists for the given SOP instance
         Parameters
         ----------
         caselist_file: str
@@ -609,7 +609,7 @@ class KaggleSight:
             ignore_checks : list
                 ignore checks
             output_in_terminal: bool
-                output the deepsight generated text to the terminal
+                output the DS generated text to the terminal
             task_num: int
                 task number to run
             pred_cache_path: str
@@ -656,11 +656,11 @@ class KaggleSight:
             unique_filename = KaggleSight._generate_unique_filename()
 
         # make a date/time file to append to the output file name for
-        # deepsight output
+        # DS output
         now = datetime.now()
         date_time = now.strftime("%Y%m%d_%H%M%S")
 
-        # make sure the output dir passed to the deepsight run end with a /
+        # make sure the output dir passed to the DS run end with a /
         if output_dir[-1] != '/':
             output_dir += '/'
         output_location = output_dir + unique_filename + '/'
@@ -678,7 +678,7 @@ class KaggleSight:
         # make the error code dictionary
         error_codes_dict = KaggleSight._generate_error_codes_dict()  # !!! Full set of error codes
 
-        # make the caselist file to use in the deepsight classifier
+        # make the caselist file to use in the DS classifier
         caselist_file = KaggleSight._make_caselist_file(
             cases,
             path=output_location,
@@ -711,7 +711,7 @@ class KaggleSight:
             # make a dict of all the StudyInstanceUIDs and their SOPInstanceUIDs
 
             run_size = len(case_list_contents) - len(predictions)
-            # make the command to run deepsight
+            # make the command to run DS
             cmd = (deepsight_script_path +
                    input_dir + ' -o ' +
                    deepsight_out + ' ' + '-cl ' +
@@ -722,7 +722,7 @@ class KaggleSight:
             print(
                 f"Running KaggleSight on {run_size} cases, please be patient..."
             )
-            # print the command to run deepsight
+            # print the command to run DS
             print(cmd)
             # run the command
             os.system(cmd)
@@ -842,7 +842,7 @@ class KaggleSight:
 def build_predictions_cache(root_directory, location_directory):
     """
     Walks a directory and all its subdirectories and builds a master dictionary
-    of all the predictions made by KaggleSight to use in deepsight api calls.
+    of all the predictions made by KaggleSight to use in DS api calls.
     """
     predictions_cache = {}
     for root, dirs, files in os.walk(root_directory):
