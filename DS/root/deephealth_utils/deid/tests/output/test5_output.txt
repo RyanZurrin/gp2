@@ -1,5 +1,0 @@
-Please reschedule the following patients (ID #, Health Insurance #)
-
-[**ID Number**], [**ID Number**]
-[**ID Number**], [**ID Number**]
-[**ID Number**], [**ID Number**]

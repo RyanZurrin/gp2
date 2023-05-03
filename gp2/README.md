@@ -1,15 +1,18 @@
 # GP2 Example
 
 This example demonstrates how to uee the GP2 module for optimizing any classifier. In this case, we'll be using the KUNetPlus2D classifier.
+
 ## Dependencies
 
-Make sure to have the following libraries installed before running the example:
-
-- numpy
-- matplotlib
-- tensorflow
-- keras
-- keras-unet-collection
+Install the required dependencies by createing a new Anaconda environment using the `GP2.yml` file
+in the root directory of the project:
+```bash
+conda env create -f GP2.yml
+```
+Activate the environment using:
+```bash
+conda activate GP2
+```
 
 ## Example Code
 

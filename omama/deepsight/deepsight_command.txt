@@ -1,7 +1,0 @@
-/hpcstor6/scratch01/r/ryan.zurrin001/deepsight/deepsight.sh -i /home/ryan.zurrin001/Projects/CS410-Omama/omama/deepsight/deepsight_run_files -o /hpcstor6/scratch01/r/ryan.zurrin001/deepsight/deepsight_outputs/output6 --additional_params --checks_to_ignore SAC-30 SAC-60 SAC-50 FAC-140 FAC-200
-
-
-
-
-
-PAC-10 FAC-140 FAC-200 SAC-30 GE-160 SAC-40 SAC-60 SAC-50 SAC-130 HOL-10 HOL-160 FAC-160 FAC-24 FAC-170 FAC-30 FAC-23 PAC-30 FAC-21 FAC-27 FAC-80 FAC-90 FAC-20 IAC-20 HOL-30 HOL-50 HOL-60 HOL-110 HOL-140 HOL-190 HOL-200 HOL-80 HOL-30 HOL-50 HOL-60 HOL-110 HOL-140 HOL-190 HOL-200 HOL-80
