@@ -1,2 +1,0 @@
-# centaur
-Centaur main repository
