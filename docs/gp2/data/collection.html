@@ -32,28 +32,61 @@ from .point import Point
 
 
 class Collection:
+    &#34;&#34;&#34; A collection of DataPoints
+    &#34;&#34;&#34;
 
     def __init__(self):
         self.id = str(uuid4())
         self.data = {}
 
     def add(self, datapoint):
+        &#34;&#34;&#34; Add a DataPoint to the collection
+
+        Parameters
+        ----------
+        datapoint
+            The DataPoint to add
+
+        &#34;&#34;&#34;
         self.data[datapoint.id] = datapoint.value
 
     def remove(self, datapoint):
         self.data.pop(datapoint.id)
-        
+
     def get(self, index):
-        &#39;&#39;&#39;
-        &#39;&#39;&#39;
+        &#34;&#34;&#34; Get a DataPoint from the specified index in the collection
+
+        Parameters
+        ----------
+        index : int
+            The index of the DataPoint to get
+
+        Returns
+        -------
+        DataPoint
+            The DataPoint at the specified index
+        &#34;&#34;&#34;
         return self.data[list(self.data.keys())[index]]
 
-    def get_point(self, id):
+    def get_point(self, _id):
+        &#34;&#34;&#34; Get a DataPoint from the specified id in the collection
 
-        return self.data[id]
+        Parameters
+        ----------
+        _id : str
+            The id of the DataPoint to get
+
+        Returns
+        -------
+        DataPoint
+            The DataPoint with the specified id
+        &#34;&#34;&#34;
+
+        return self.data[_id]
 
     def shuffle(self):
-
+        &#34;&#34;&#34; Shuffle the collection
+        &#34;&#34;&#34;
         all_ids = list(self.data.keys())
         np.random.shuffle(all_ids)
 
@@ -62,17 +95,16 @@ class Collection:
             shuffled_data[k] = self.data[k]
 
         self.data = shuffled_data
-        
 
     def to_array(self):
-        &#39;&#39;&#39;
-        &#39;&#39;&#39;
+        &#34;&#34;&#34; Convert the collection to a numpy array
+        &#34;&#34;&#34;
 
         datasize = len(self.data.keys())
         datashape = self.get(0).shape
         datatype = self.get(0).dtype
 
-        a = np.zeros(((datasize,)+datashape), dtype=datatype)
+        a = np.zeros(((datasize,) + datashape), dtype=datatype)
         ids = []
 
         id_list = list(self.data.keys())
@@ -86,25 +118,34 @@ class Collection:
 
     @staticmethod
     def from_point_list(datalist):
-        &#39;&#39;&#39;
-        dataList needs to be a list of DataPoints
-        &#39;&#39;&#39;
+        &#34;&#34;&#34; dataList needs to be a list of DataPoints
+
+        Parameters
+        ----------
+        datalist : list
+            A list of DataPoints
+        &#34;&#34;&#34;
         c = Collection()
 
         for i in datalist:
-
             c.add(i)
 
         return c
 
     @staticmethod
     def from_list(datalist, keys=None):
-        &#39;&#39;&#39;
-        datalist can be anything
-        &#39;&#39;&#39;
+        &#34;&#34;&#34; datalist can be anything
+
+        Parameters
+        ----------
+        datalist : list
+            A list of DataPoints
+        keys : list
+            A list of keys to use for the DataPoints
+        &#34;&#34;&#34;
         c = Collection()
 
-        for i,v in enumerate(datalist):
+        for i, v in enumerate(datalist):
 
             p = Point(v)
 
@@ -132,34 +173,67 @@ class Collection:
 <span>class <span class="ident">Collection</span></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>A collection of DataPoints</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Collection:
+    &#34;&#34;&#34; A collection of DataPoints
+    &#34;&#34;&#34;
 
     def __init__(self):
         self.id = str(uuid4())
         self.data = {}
 
     def add(self, datapoint):
+        &#34;&#34;&#34; Add a DataPoint to the collection
+
+        Parameters
+        ----------
+        datapoint
+            The DataPoint to add
+
+        &#34;&#34;&#34;
         self.data[datapoint.id] = datapoint.value
 
     def remove(self, datapoint):
         self.data.pop(datapoint.id)
-        
+
     def get(self, index):
-        &#39;&#39;&#39;
-        &#39;&#39;&#39;
+        &#34;&#34;&#34; Get a DataPoint from the specified index in the collection
+
+        Parameters
+        ----------
+        index : int
+            The index of the DataPoint to get
+
+        Returns
+        -------
+        DataPoint
+            The DataPoint at the specified index
+        &#34;&#34;&#34;
         return self.data[list(self.data.keys())[index]]
 
-    def get_point(self, id):
+    def get_point(self, _id):
+        &#34;&#34;&#34; Get a DataPoint from the specified id in the collection
 
-        return self.data[id]
+        Parameters
+        ----------
+        _id : str
+            The id of the DataPoint to get
+
+        Returns
+        -------
+        DataPoint
+            The DataPoint with the specified id
+        &#34;&#34;&#34;
+
+        return self.data[_id]
 
     def shuffle(self):
-
+        &#34;&#34;&#34; Shuffle the collection
+        &#34;&#34;&#34;
         all_ids = list(self.data.keys())
         np.random.shuffle(all_ids)
 
@@ -168,17 +242,16 @@ class Collection:
             shuffled_data[k] = self.data[k]
 
         self.data = shuffled_data
-        
 
     def to_array(self):
-        &#39;&#39;&#39;
-        &#39;&#39;&#39;
+        &#34;&#34;&#34; Convert the collection to a numpy array
+        &#34;&#34;&#34;
 
         datasize = len(self.data.keys())
         datashape = self.get(0).shape
         datatype = self.get(0).dtype
 
-        a = np.zeros(((datasize,)+datashape), dtype=datatype)
+        a = np.zeros(((datasize,) + datashape), dtype=datatype)
         ids = []
 
         id_list = list(self.data.keys())
@@ -192,25 +265,34 @@ class Collection:
 
     @staticmethod
     def from_point_list(datalist):
-        &#39;&#39;&#39;
-        dataList needs to be a list of DataPoints
-        &#39;&#39;&#39;
+        &#34;&#34;&#34; dataList needs to be a list of DataPoints
+
+        Parameters
+        ----------
+        datalist : list
+            A list of DataPoints
+        &#34;&#34;&#34;
         c = Collection()
 
         for i in datalist:
-
             c.add(i)
 
         return c
 
     @staticmethod
     def from_list(datalist, keys=None):
-        &#39;&#39;&#39;
-        datalist can be anything
-        &#39;&#39;&#39;
+        &#34;&#34;&#34; datalist can be anything
+
+        Parameters
+        ----------
+        datalist : list
+            A list of DataPoints
+        keys : list
+            A list of keys to use for the DataPoints
+        &#34;&#34;&#34;
         c = Collection()
 
-        for i,v in enumerate(datalist):
+        for i, v in enumerate(datalist):
 
             p = Point(v)
 
@@ -230,19 +312,32 @@ class Collection:
 <span>def <span class="ident">from_list</span></span>(<span>datalist, keys=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>datalist can be anything</p></div>
+<div class="desc"><p>datalist can be anything</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>datalist</code></strong> :&ensp;<code>list</code></dt>
+<dd>A list of DataPoints</dd>
+<dt><strong><code>keys</code></strong> :&ensp;<code>list</code></dt>
+<dd>A list of keys to use for the DataPoints</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def from_list(datalist, keys=None):
-    &#39;&#39;&#39;
-    datalist can be anything
-    &#39;&#39;&#39;
+    &#34;&#34;&#34; datalist can be anything
+
+    Parameters
+    ----------
+    datalist : list
+        A list of DataPoints
+    keys : list
+        A list of keys to use for the DataPoints
+    &#34;&#34;&#34;
     c = Collection()
 
-    for i,v in enumerate(datalist):
+    for i, v in enumerate(datalist):
 
         p = Point(v)
 
@@ -258,20 +353,28 @@ def from_list(datalist, keys=None):
 <span>def <span class="ident">from_point_list</span></span>(<span>datalist)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>dataList needs to be a list of DataPoints</p></div>
+<div class="desc"><p>dataList needs to be a list of DataPoints</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>datalist</code></strong> :&ensp;<code>list</code></dt>
+<dd>A list of DataPoints</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def from_point_list(datalist):
-    &#39;&#39;&#39;
-    dataList needs to be a list of DataPoints
-    &#39;&#39;&#39;
+    &#34;&#34;&#34; dataList needs to be a list of DataPoints
+
+    Parameters
+    ----------
+    datalist : list
+        A list of DataPoints
+    &#34;&#34;&#34;
     c = Collection()
 
     for i in datalist:
-
         c.add(i)
 
     return c</code></pre>
@@ -284,12 +387,25 @@ def from_point_list(datalist):
 <span>def <span class="ident">add</span></span>(<span>self, datapoint)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Add a DataPoint to the collection</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>datapoint</code></strong></dt>
+<dd>The DataPoint to add</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def add(self, datapoint):
+    &#34;&#34;&#34; Add a DataPoint to the collection
+
+    Parameters
+    ----------
+    datapoint
+        The DataPoint to add
+
+    &#34;&#34;&#34;
     self.data[datapoint.id] = datapoint.value</code></pre>
 </details>
 </dd>
@@ -297,29 +413,71 @@ def from_point_list(datalist):
 <span>def <span class="ident">get</span></span>(<span>self, index)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get a DataPoint from the specified index in the collection</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>index</code></strong> :&ensp;<code>int</code></dt>
+<dd>The index of the DataPoint to get</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>DataPoint</code></dt>
+<dd>The DataPoint at the specified index</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get(self, index):
-    &#39;&#39;&#39;
-    &#39;&#39;&#39;
+    &#34;&#34;&#34; Get a DataPoint from the specified index in the collection
+
+    Parameters
+    ----------
+    index : int
+        The index of the DataPoint to get
+
+    Returns
+    -------
+    DataPoint
+        The DataPoint at the specified index
+    &#34;&#34;&#34;
     return self.data[list(self.data.keys())[index]]</code></pre>
 </details>
 </dd>
 <dt id="gp2.data.collection.Collection.get_point"><code class="name flex">
-<span>def <span class="ident">get_point</span></span>(<span>self, id)</span>
+<span>def <span class="ident">get_point</span></span>(<span>self, _id)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get a DataPoint from the specified id in the collection</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>The id of the DataPoint to get</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>DataPoint</code></dt>
+<dd>The DataPoint with the specified id</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_point(self, id):
+<pre><code class="python">def get_point(self, _id):
+    &#34;&#34;&#34; Get a DataPoint from the specified id in the collection
 
-    return self.data[id]</code></pre>
+    Parameters
+    ----------
+    _id : str
+        The id of the DataPoint to get
+
+    Returns
+    -------
+    DataPoint
+        The DataPoint with the specified id
+    &#34;&#34;&#34;
+
+    return self.data[_id]</code></pre>
 </details>
 </dd>
 <dt id="gp2.data.collection.Collection.remove"><code class="name flex">
@@ -339,13 +497,14 @@ def from_point_list(datalist):
 <span>def <span class="ident">shuffle</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Shuffle the collection</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def shuffle(self):
-
+    &#34;&#34;&#34; Shuffle the collection
+    &#34;&#34;&#34;
     all_ids = list(self.data.keys())
     np.random.shuffle(all_ids)
 
@@ -360,20 +519,20 @@ def from_point_list(datalist):
 <span>def <span class="ident">to_array</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Convert the collection to a numpy array</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_array(self):
-    &#39;&#39;&#39;
-    &#39;&#39;&#39;
+    &#34;&#34;&#34; Convert the collection to a numpy array
+    &#34;&#34;&#34;
 
     datasize = len(self.data.keys())
     datashape = self.get(0).shape
     datatype = self.get(0).dtype
 
-    a = np.zeros(((datasize,)+datashape), dtype=datatype)
+    a = np.zeros(((datasize,) + datashape), dtype=datatype)
     ids = []
 
     id_list = list(self.data.keys())

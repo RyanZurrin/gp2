@@ -4,8 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-    <!-- <add favicon> -->
-<link rel="icon" href="favicon.ico" type="image" />
 <title>gp2 API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -69,83 +67,6 @@ from .gp2 import *</code></pre>
 </section>
 <section>
 </section>
-
-    </section>
-<section>
-<h1 class="section-title" id="header-gp2-example">GP2 Example</h1>
-<p>This example demonstrates how to use the GP2 module for optimizing any classifier. In this case, we'll be using the KUNetPlus2D classifier.</p>
-
-<h3>Dependencies</h3>
-<p>Make sure to have the following libraries installed before running the example:</p>
-<ul>
-  <li>numpy</li>
-  <li>matplotlib</li>
-  <li>tensorflow</li>
-  <li>keras</li>
-  <li>keras-unet-collection</li>
-</ul>
-
-<h3>Example Code</h3>
-<pre><code class="python">
-import sys
-import numpy as np
-
-# if gp2 module is back two directory from this file  add the following line:
-sys.path.insert(0, '../..')
-# add /.. for each directory back from your python file to the gp2 module
-
-import gp2
-from gp2 import Runner
-</code></pre>
-<h2>To get info about the model, run the following</h2>
-<pre><code class="python">help(gp2.KUNetPlus2D)</code></pre>
-<h3>To use the Keras <b>UnetPlus2D</b>, specify it as the classifier argument to
-    the Runner instance when creating it and pass in any other arguments you wish
-    to change for the model. Each model may not have exactly the same arguments,
-    so be sure to check the documentation for each model which can be done by
-    using the <b>help(gp2.ModelName)</b> function as shown above.</h3>
-<pre><code class="python">R = Runner(
-    verbose=True,
-    classifier='kunetplus2d',
-    discriminator='cnn',
-    filter_num=[16, 32, 64, 128, 256, 512, 1024],
-    stack_num_down=3,
-    stack_num_up=3,
-    activation='ReLU',
-    output_activation='Sigmoid',
-    batch_norm=True,
-    pool=True,
-    unpool=True,
-    deep_supervision=False,
-    weights=None,
-    freeze_backbone=True,
-    freeze_batch_norm=True,
-    optimizer=None,
-    loss=gp2.Util.hybrid_loss,
-    metric=None
-)</code></pre>
-<h2>Load data</h2>
-<pre><code class="python">images = np.load('/path/to/images.npy')
-masks = np.load('/path/to/masks.npy')</code></pre>
-<h2>Specify weights for the distribution of data into train, test, and val datasets for datasets A and B</h2>
-<pre><code class="python">weights = {
-    'A': 0.5,
-    'A_train': 0.1,
-    'A_val': 0.3,
-    'A_test': 0.6,
-    'B': 0.3,
-    'B_train': 0.7,
-    'B_val': 0.1,
-    'B_test': 0.2,
-    'Z': 0.2
-}</code></pre>
-<h2>To run training, use the Runner's run method, passing in the images, masks, weights, and the number of training loops to run for</h2>
-<pre><code class="python">R.run(images=images, masks=masks, weights=weights, runs=7)</code></pre>
-<h2>Use the Runner's plot method to easily visualize results</h2>
-<pre><code class="python">R.plot()</code></pre>
-</section>
-
-
 </article>
 <nav id="sidebar">
 <h1>Index</h1>

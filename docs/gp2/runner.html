@@ -443,13 +443,20 @@ class Runner:
     #
     # STEP 4 (calls 2+3+5)
     #
-    def run_discriminator(self, train_ratio=0.4, val_ratio=0.1, test_ratio=0.5,
+    def run_discriminator(self, epochs=100, batch_size=64, patience_counter=2,
+                          train_ratio=0.4, val_ratio=0.1, test_ratio=0.5,
                           threshold=1e-6):
         &#34;&#34;&#34; Train the discriminator using C_train/C_val. If the discriminator was
         trained, this will just predict.
 
         Parameters
         ----------
+        epochs : int
+            Number of epochs.
+        batch_size : int
+            Batch size.
+        patience_counter : int
+            Patience counter.
         train_ratio : float
             Ratio of training samples.
         val_ratio : float
@@ -503,7 +510,9 @@ class Runner:
             y_val_ = C_val_[:, 0, 0, 2]
 
             self.discriminator.train(X_train_images_, X_train_masks_, y_train_,
-                                     X_val_images_, X_val_masks_, y_val_)
+                                     X_val_images_, X_val_masks_, y_val_,
+                                     patience_counter=patience_counter,
+                                     epochs=epochs, batch_size=batch_size)
             self.discriminatorTrained = True
 
         if self.store_after_each_step:
@@ -841,7 +850,8 @@ class Runner:
             t0 = time.time()
             self.run_classifier(patience_counter=patience_counter,
                                 epochs=epochs, batch_size=batch_size)
-            self.run_discriminator()
+            self.run_discriminator(patience_counter=patience_counter,
+                                   epochs=epochs, batch_size=batch_size)
             l = self.find_machine_labels()
             if l == 0:
                 print(&#39;No more machine labels.&#39;)
@@ -982,7 +992,7 @@ Weights should be a dictionary with keys containing the following:
 <dl>
 <dt id="gp2.runner.Runner"><code class="flex name class">
 <span>class <span class="ident">Runner</span></span>
-<span>(</span><span>verbose=False, workingdir='/tmp/tmp1lscst1aGP2', store_after_each_step=False, classifier=None, discriminator=None, weights=None, **kwargs)</span>
+<span>(</span><span>verbose=False, workingdir='/tmp/tmp23r7yj43GP2', store_after_each_step=False, classifier=None, discriminator=None, weights=None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initialize the GP2 runner with specified classifier and
@@ -1362,13 +1372,20 @@ discriminator.</dd>
     #
     # STEP 4 (calls 2+3+5)
     #
-    def run_discriminator(self, train_ratio=0.4, val_ratio=0.1, test_ratio=0.5,
+    def run_discriminator(self, epochs=100, batch_size=64, patience_counter=2,
+                          train_ratio=0.4, val_ratio=0.1, test_ratio=0.5,
                           threshold=1e-6):
         &#34;&#34;&#34; Train the discriminator using C_train/C_val. If the discriminator was
         trained, this will just predict.
 
         Parameters
         ----------
+        epochs : int
+            Number of epochs.
+        batch_size : int
+            Batch size.
+        patience_counter : int
+            Patience counter.
         train_ratio : float
             Ratio of training samples.
         val_ratio : float
@@ -1422,7 +1439,9 @@ discriminator.</dd>
             y_val_ = C_val_[:, 0, 0, 2]
 
             self.discriminator.train(X_train_images_, X_train_masks_, y_train_,
-                                     X_val_images_, X_val_masks_, y_val_)
+                                     X_val_images_, X_val_masks_, y_val_,
+                                     patience_counter=patience_counter,
+                                     epochs=epochs, batch_size=batch_size)
             self.discriminatorTrained = True
 
         if self.store_after_each_step:
@@ -1760,7 +1779,8 @@ discriminator.</dd>
             t0 = time.time()
             self.run_classifier(patience_counter=patience_counter,
                                 epochs=epochs, batch_size=batch_size)
-            self.run_discriminator()
+            self.run_discriminator(patience_counter=patience_counter,
+                                   epochs=epochs, batch_size=batch_size)
             l = self.find_machine_labels()
             if l == 0:
                 print(&#39;No more machine labels.&#39;)
@@ -2238,7 +2258,8 @@ the classifier and discriminator, and relabeling.</p>
         t0 = time.time()
         self.run_classifier(patience_counter=patience_counter,
                             epochs=epochs, batch_size=batch_size)
-        self.run_discriminator()
+        self.run_discriminator(patience_counter=patience_counter,
+                               epochs=epochs, batch_size=batch_size)
         l = self.find_machine_labels()
         if l == 0:
             print(&#39;No more machine labels.&#39;)
@@ -2338,13 +2359,19 @@ the classifier and discriminator, and relabeling.</p>
 </details>
 </dd>
 <dt id="gp2.runner.Runner.run_discriminator"><code class="name flex">
-<span>def <span class="ident">run_discriminator</span></span>(<span>self, train_ratio=0.4, val_ratio=0.1, test_ratio=0.5, threshold=1e-06)</span>
+<span>def <span class="ident">run_discriminator</span></span>(<span>self, epochs=100, batch_size=64, patience_counter=2, train_ratio=0.4, val_ratio=0.1, test_ratio=0.5, threshold=1e-06)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Train the discriminator using C_train/C_val. If the discriminator was
 trained, this will just predict.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
+<dt><strong><code>epochs</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of epochs.</dd>
+<dt><strong><code>batch_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Batch size.</dd>
+<dt><strong><code>patience_counter</code></strong> :&ensp;<code>int</code></dt>
+<dd>Patience counter.</dd>
 <dt><strong><code>train_ratio</code></strong> :&ensp;<code>float</code></dt>
 <dd>Ratio of training samples.</dd>
 <dt><strong><code>val_ratio</code></strong> :&ensp;<code>float</code></dt>
@@ -2363,13 +2390,20 @@ trained, this will just predict.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def run_discriminator(self, train_ratio=0.4, val_ratio=0.1, test_ratio=0.5,
+<pre><code class="python">def run_discriminator(self, epochs=100, batch_size=64, patience_counter=2,
+                      train_ratio=0.4, val_ratio=0.1, test_ratio=0.5,
                       threshold=1e-6):
     &#34;&#34;&#34; Train the discriminator using C_train/C_val. If the discriminator was
     trained, this will just predict.
 
     Parameters
     ----------
+    epochs : int
+        Number of epochs.
+    batch_size : int
+        Batch size.
+    patience_counter : int
+        Patience counter.
     train_ratio : float
         Ratio of training samples.
     val_ratio : float
@@ -2423,7 +2457,9 @@ trained, this will just predict.</p>
         y_val_ = C_val_[:, 0, 0, 2]
 
         self.discriminator.train(X_train_images_, X_train_masks_, y_train_,
-                                 X_val_images_, X_val_masks_, y_val_)
+                                 X_val_images_, X_val_masks_, y_val_,
+                                 patience_counter=patience_counter,
+                                 epochs=epochs, batch_size=batch_size)
         self.discriminatorTrained = True
 
     if self.store_after_each_step:
