@@ -17,6 +17,13 @@ specific scratch space location. For the example, the Ocular Disease dataset is 
 subdirectories, respectively. To work with other segmentation datasets, make sure to update the dataset directory in the 
 notebook accordingly.
 
+## Dependencies
+
+* NumPy
+* Mahotas
+* skimage
+* matplotlib
+
 ## Notebooks
 
 The main notebook in this folder is responsible for:
@@ -40,13 +47,6 @@ To use the notebooks in this folder, follow these steps:
 5. The processed data can now be used with the GP2 framework for training and evaluating models.
 
 For other segmentation datasets, modify the notebook accordingly to load and process the specific dataset, and ensure that the data is saved in the appropriate format.
-
-## Dependencies
-
-* NumPy
-* Mahotas
-* skimage
-* matplotlib
 
 ## Contact
 

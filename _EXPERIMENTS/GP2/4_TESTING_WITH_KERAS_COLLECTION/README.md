@@ -24,7 +24,7 @@ The newly supported Keras UNet Collection classifiers are:
 | `unet_plus_2d` | U-net++         | [Zhou et al. (2018)](https://link.springer.com/chapter/10.1007/978-3-030-00889-5_1) |
 | `vnet_2d`      | V-net (modified for 2-d inputs) | [Milletari et al. (2016)](https://arxiv.org/abs/1606.04797) |
 
-# Dependencies
+## Dependencies
 
 Install the required dependencies by createing a new Anaconda environment using the `GP2.yml` file
 in the root directory of the project:
@@ -47,7 +47,7 @@ The notebooks in this folder are responsible for:
 5. Relabeling the data based on the classifier's and discriminator's results.
 6. Evaluating and plotting the performance of the classifier and discriminator.
 
-# Usage
+## Usage
 
 To use the notebooks in this folder, please make sure the required dependencies are installed and 
 then follow these steps:

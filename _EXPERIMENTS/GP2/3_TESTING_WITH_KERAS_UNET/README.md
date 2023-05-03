@@ -11,7 +11,7 @@ and unnormalized data, as well as changing the weights of the data distribution,
 the amount of data in the different training, validation, and test sets of A, B, and Z. As well
 as changing the hyperparameters and architecture settings of the Keras U-Net classifier.
 
-# Dependencies
+## Dependencies
 
 Install the required dependencies by createing a new Anaconda environment using the `GP2.yml` file
 in the root directory of the project:
@@ -35,7 +35,7 @@ The notebooks in this folder are responsible for:
 5. Relabeling the data based on the classifier's and discriminator's results.
 6. Evaluating and plotting the performance of the classifier and discriminator.
 
-# Usage
+## Usage
 
 To use the notebooks in this folder, please make sure the required dependencies are installed and 
 then follow these steps:
