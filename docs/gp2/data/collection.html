@@ -51,6 +51,13 @@ class Collection:
         self.data[datapoint.id] = datapoint.value
 
     def remove(self, datapoint):
+        &#34;&#34;&#34; Remove a DataPoint from the collection
+
+        Parameters
+        ----------
+        datapoint
+            The DataPoint to remove
+        &#34;&#34;&#34;
         self.data.pop(datapoint.id)
 
     def get(self, index):
@@ -198,6 +205,13 @@ class Collection:
         self.data[datapoint.id] = datapoint.value
 
     def remove(self, datapoint):
+        &#34;&#34;&#34; Remove a DataPoint from the collection
+
+        Parameters
+        ----------
+        datapoint
+            The DataPoint to remove
+        &#34;&#34;&#34;
         self.data.pop(datapoint.id)
 
     def get(self, index):
@@ -484,12 +498,24 @@ def from_point_list(datalist):
 <span>def <span class="ident">remove</span></span>(<span>self, datapoint)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Remove a DataPoint from the collection</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>datapoint</code></strong></dt>
+<dd>The DataPoint to remove</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def remove(self, datapoint):
+    &#34;&#34;&#34; Remove a DataPoint from the collection
+
+    Parameters
+    ----------
+    datapoint
+        The DataPoint to remove
+    &#34;&#34;&#34;
     self.data.pop(datapoint.id)</code></pre>
 </details>
 </dd>

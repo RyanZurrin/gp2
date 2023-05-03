@@ -23,6 +23,13 @@ class Collection:
         self.data[datapoint.id] = datapoint.value
 
     def remove(self, datapoint):
+        """ Remove a DataPoint from the collection
+
+        Parameters
+        ----------
+        datapoint
+            The DataPoint to remove
+        """
         self.data.pop(datapoint.id)
 
     def get(self, index):
