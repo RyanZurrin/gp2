@@ -1,38 +1,77 @@
-# omama
+# GP2 Framework
 
-### Modern deep learning systems can detect breast cancer early when trained with large amounts of data. We want to create the world’s largest publicly-available annotated mammography dataset with a collection of 70,000 breast cancer imaging studies with ground truth labels. This dataset will also be the first publicly available dataset that includes both 3D Digital Breast Tomosynthesis (DBT) and 2D Digital Mammography (DM) studies. The number of images of the proposed OMAMA-DB makes fully manual labeling infeasible. To tackle this problem, we will design intelligent annotation methods that join machine learning with human annotators.
+## Table of Contents
+* [Overview](#overview)
+* [Features](#features)
+* [Installation](#installation)
+* [Usage](#usage)
+* [Contributing](#contributing)
+* [License](#license)
+* [Contact](#contact)
 
-## Getting Started with environment setup
+## Overview
 
-### Install the O conda environment by running the following command:
-Linux and Mac:
-```  bash
-conda env create -f O.yml
-```
-Windows:
-```  bash
-conda env create -f O.win.yml
-```
+The GP2 Framework is a powerful and flexible framework for training and evaluating deep 
+learning segmentation models, specifically U-Net architectures, for image segmentation tasks. 
+Initially designed as part of the OMAMA-DB project, the framework has been further extended 
+and refined during the CS410 UMB Software Engineering Project. The framework facilitates 
+running various datasets through different U-Net classifiers, with the goal of improving 
+segmentation performance by adjusting hyperparameters, architecture settings, and data distribution.
 
-## Task List for OMAMA
-### IMMEDIATE TODO:
-- [ ] Update the project proposal document _**[by 4/5/2023]**_
-- [ ] make video of downloading and preparing data for standup _**[by 4/2/2023]**_
-- [ ] have 3 new datasets being created following the same structure from notebook we were told to copy _**[by 4/3/2023]**_
+## Features
 
-
-### LONGTERM TODO:
-- [ ] Run Kaggle single case test data through DeepSight classifier _**[by 2/17/2023]**_
-- [ ] Set up GP2 to use the Omama data with DeepSight _**[by 3/15/2023]**_
+* Supports a variety of U-Net classifiers from the Keras U-Net and Keras-UNet Collection, including custom U-Nets.
+* Provides options for data normalization and distribution across training, validation, and test sets.
+* Integrates with popular deep learning libraries such as TensorFlow and Keras.
+* Includes a range of Jupyter notebooks to demonstrate usage with various datasets and classifiers.
+* Easy-to-use API for configuring and running experiments with U-Net classifiers.
+* Provides performance metrics and visualizations to analyze the results of segmentation tasks.
 
 
-### DONE:
-- [x] Create a GitHub repo for the project
-- [x] Using GitHub issues as a general task management system
-- [x] Create a conda environment for the project
-- [x] First standup review meeting _**[2/10/2023]**_
-- [x] Access to Chimera was granted for all team members
-- [x] Copy GP2 Toy data to shared scratch space for team to use _**[by 2/12/2023]**_
-- [x] Have all the environment's setup on Chimera and a general workflow established _**[by 2/16/2023]**_
-- [x] Run the GP2 Jupyter Notebooks to gain a better understanding of API use **_[by 2/15/2023]**_
-- [x] Convert the Kaggle Dicom Header to the Omama Dicom Header (only the pixels on the two should be different) **_[by 2/14/2023]_**
+## Installation
+
+To install the GP2 Framework and its dependencies, follow these steps:
+
+1. Fork the [GP2 Framework repository](https://github.com/RyanZurrin/CS410-GP2).
+2. Clone the forked repository to your local machine.
+   ```bash
+    git clone https://github.com/<your-username>/CS410-GP2.git
+   ```
+3. Navigate to the root directory of the repository.
+   ```bash
+    cd CS410-GP2
+   ```
+4. Create a Conda environment using the provided GP2.yml file.
+   ```bash
+    conda env create -f GP2.yml
+   ```
+5. Activate the Conda environment.
+   ```bash
+    conda activate GP2
+   ```
+   
+## Usage
+
+1. Navigate to one of the EXAMPLES/GP2 folders (e.g., [1_DATA_CONVERSION](EXAMPLES/GP2/1_DATA_CONVERSION), [2_TESTING_WITH_ORIGINAL_UNET](EXAMPLES/GP2/2_TESTING_WITH_ORIGINAL_UNET), etc.) 
+to find Jupyter notebooks demonstrating how to use the GP2 Framework with various datasets and classifiers.
+2. Follow the README.md in the respective examples folder for detailed instructions on using the notebooks and setting up the data.
+3. Modify the notebook cells as needed to configure the U-Net classifiers, adjust hyperparameters, and change data distribution settings.
+4. Run the notebook cells to perform the segmentation tasks and review the performance metrics and visualizations generated.
+
+Refer to the README.md files in each milestone folder for specific information on the experiments performed and the datasets used.
+
+## Contributing
+
+Contributions to the GP2 Framework are welcome. Please follow these guidelines:
+
+1. Fork the repository and create a new branch for your feature or bugfix.
+2. Commit your changes, ensuring that the code is well-documented and follows the project's coding style.
+3. Create a pull request with a clear description of the changes made and reference any related issues.
+4. The project maintainers will review your pull request and provide feedback or merge the changes
+
+## License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+For any questions, issues, or suggestions related to the GP2 Framework, please contact the project team members.
