@@ -31,14 +31,24 @@ from .point import Point
 
 import pickle
 
+
 class Manager:
+    &#34;&#34;&#34; A class to manage collections of data.&#34;&#34;&#34;
 
     def __init__(self):
+        &#34;&#34;&#34; Initialize the manager.&#34;&#34;&#34;
         self.collections = {}
         self.names = {}
 
     def register(self, collection, name=None):
-
+        &#34;&#34;&#34; Register a collection with the manager.
+        Parameters
+        ----------
+        collection : Collection
+            The collection to register.
+        name : str
+            The name to register the collection with.
+        &#34;&#34;&#34;
         # here we need to remove the old collection
         if name:
             for c in self.names:
@@ -51,12 +61,21 @@ class Manager:
 
         # register this collection + name if given
         self.collections[collection.id] = collection
-        
+
         if name:
             self.names[collection.id] = name
 
     def get(self, name):
-
+        &#34;&#34;&#34; Get a collection by name.
+        Parameters
+        ----------
+        name : str
+            The name of the collection to get.
+        Returns
+        -------
+        Collection
+            The collection with the given name.
+        &#34;&#34;&#34;
         # get name
         for c in self.names:
             if self.names[c] == name:
@@ -64,34 +83,82 @@ class Manager:
 
     @staticmethod
     def add(collection, datapoint):
-
+        &#34;&#34;&#34; Add a datapoint to a collection.
+        Parameters
+        ----------
+        collection : Collection
+            The collection to add the datapoint to.
+        datapoint : Point
+            The datapoint to add.
+        Returns
+        -------
+        Collection
+            The collection with the added datapoint.
+        &#34;&#34;&#34;
         collection.add(datapoint)
         return collection
 
     @staticmethod
     def remove(collection, datapoint):
-
+        &#34;&#34;&#34; Remove a datapoint from a collection.
+        Parameters
+        ----------
+        collection : Collection
+            The collection to remove the datapoint from.
+        datapoint : Point
+            The datapoint to remove.
+        Returns
+        -------
+        Collection
+            The collection with the removed datapoint.
+        &#34;&#34;&#34;
         collection.remove(datapoint)
         return collection
 
     @staticmethod
     def remove_and_add(old_collection, new_collection, datapoint):
-        
+        &#34;&#34;&#34; Remove a datapoint from one collection and add it to another.
+        Parameters
+        ----------
+        old_collection : Collection
+            The collection to remove the datapoint from.
+        new_collection : Collection
+            The collection to add the datapoint to.
+        datapoint : Point
+            The datapoint to remove and add.
+        Returns
+        -------
+        Collection
+            The old collection with the removed datapoint.
+        Collection
+            The new collection with the added datapoint.
+        &#34;&#34;&#34;
         old_collection.remove(datapoint)
         new_collection.add(datapoint)
 
         return old_collection, new_collection
 
     def find(self, datapoint_id, show_names=False):
-
+        &#34;&#34;&#34; Find a collection by datapoint id.
+        Parameters
+        ----------
+        datapoint_id : int
+            The id of the datapoint to find.
+        show_names : bool
+            Whether to return the collection names instead of the collections.
+        Returns
+        -------
+        list
+            The collections containing the datapoint.
+        &#34;&#34;&#34;
         collections = []
 
         # also support point objects
-        if type(datapoint_id)==Point:
+        if type(datapoint_id) == Point:
             datapoint_id = datapoint_id.id
 
         for c in self.collections:
-            
+
             if datapoint_id in self.collections[c].data:
                 collections.append(self.collections[c])
 
@@ -99,27 +166,39 @@ class Manager:
         collections_with_names = {}
 
         if show_names:
-            for i,c in enumerate(collections):
+            for i, c in enumerate(collections):
 
                 if collections[i].id in self.names:
                     name = self.names[collections[i].id]
                 else:
-                    name = &#39;unknown&#39;+str(i)
+                    name = &#39;unknown&#39; + str(i)
                 collections_with_names[name] = collections[i]
             collections = collections_with_names
 
-
         return collections
 
-
     def save(self, filepath):
-
+        &#34;&#34;&#34; Save the manager to a file.
+        Parameters
+        ----------
+        filepath : str
+            The filepath to save the manager to.
+        &#34;&#34;&#34;
         with open(filepath, &#39;wb&#39;) as f:
             pickle.dump(self, f)
 
     @staticmethod
     def load(filepath):
-
+        &#34;&#34;&#34; Load a manager from a file.
+        Parameters
+        ----------
+        filepath : str
+            The filepath to load the manager from.
+        Returns
+        -------
+        Manager
+            The loaded manager.
+        &#34;&#34;&#34;
         with open(filepath, &#39;rb&#39;) as f:
             m = pickle.load(f)
 
@@ -139,19 +218,29 @@ class Manager:
 <span>class <span class="ident">Manager</span></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>A class to manage collections of data.</p>
+<p>Initialize the manager.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Manager:
+    &#34;&#34;&#34; A class to manage collections of data.&#34;&#34;&#34;
 
     def __init__(self):
+        &#34;&#34;&#34; Initialize the manager.&#34;&#34;&#34;
         self.collections = {}
         self.names = {}
 
     def register(self, collection, name=None):
-
+        &#34;&#34;&#34; Register a collection with the manager.
+        Parameters
+        ----------
+        collection : Collection
+            The collection to register.
+        name : str
+            The name to register the collection with.
+        &#34;&#34;&#34;
         # here we need to remove the old collection
         if name:
             for c in self.names:
@@ -164,12 +253,21 @@ class Manager:
 
         # register this collection + name if given
         self.collections[collection.id] = collection
-        
+
         if name:
             self.names[collection.id] = name
 
     def get(self, name):
-
+        &#34;&#34;&#34; Get a collection by name.
+        Parameters
+        ----------
+        name : str
+            The name of the collection to get.
+        Returns
+        -------
+        Collection
+            The collection with the given name.
+        &#34;&#34;&#34;
         # get name
         for c in self.names:
             if self.names[c] == name:
@@ -177,34 +275,82 @@ class Manager:
 
     @staticmethod
     def add(collection, datapoint):
-
+        &#34;&#34;&#34; Add a datapoint to a collection.
+        Parameters
+        ----------
+        collection : Collection
+            The collection to add the datapoint to.
+        datapoint : Point
+            The datapoint to add.
+        Returns
+        -------
+        Collection
+            The collection with the added datapoint.
+        &#34;&#34;&#34;
         collection.add(datapoint)
         return collection
 
     @staticmethod
     def remove(collection, datapoint):
-
+        &#34;&#34;&#34; Remove a datapoint from a collection.
+        Parameters
+        ----------
+        collection : Collection
+            The collection to remove the datapoint from.
+        datapoint : Point
+            The datapoint to remove.
+        Returns
+        -------
+        Collection
+            The collection with the removed datapoint.
+        &#34;&#34;&#34;
         collection.remove(datapoint)
         return collection
 
     @staticmethod
     def remove_and_add(old_collection, new_collection, datapoint):
-        
+        &#34;&#34;&#34; Remove a datapoint from one collection and add it to another.
+        Parameters
+        ----------
+        old_collection : Collection
+            The collection to remove the datapoint from.
+        new_collection : Collection
+            The collection to add the datapoint to.
+        datapoint : Point
+            The datapoint to remove and add.
+        Returns
+        -------
+        Collection
+            The old collection with the removed datapoint.
+        Collection
+            The new collection with the added datapoint.
+        &#34;&#34;&#34;
         old_collection.remove(datapoint)
         new_collection.add(datapoint)
 
         return old_collection, new_collection
 
     def find(self, datapoint_id, show_names=False):
-
+        &#34;&#34;&#34; Find a collection by datapoint id.
+        Parameters
+        ----------
+        datapoint_id : int
+            The id of the datapoint to find.
+        show_names : bool
+            Whether to return the collection names instead of the collections.
+        Returns
+        -------
+        list
+            The collections containing the datapoint.
+        &#34;&#34;&#34;
         collections = []
 
         # also support point objects
-        if type(datapoint_id)==Point:
+        if type(datapoint_id) == Point:
             datapoint_id = datapoint_id.id
 
         for c in self.collections:
-            
+
             if datapoint_id in self.collections[c].data:
                 collections.append(self.collections[c])
 
@@ -212,27 +358,39 @@ class Manager:
         collections_with_names = {}
 
         if show_names:
-            for i,c in enumerate(collections):
+            for i, c in enumerate(collections):
 
                 if collections[i].id in self.names:
                     name = self.names[collections[i].id]
                 else:
-                    name = &#39;unknown&#39;+str(i)
+                    name = &#39;unknown&#39; + str(i)
                 collections_with_names[name] = collections[i]
             collections = collections_with_names
 
-
         return collections
 
-
     def save(self, filepath):
-
+        &#34;&#34;&#34; Save the manager to a file.
+        Parameters
+        ----------
+        filepath : str
+            The filepath to save the manager to.
+        &#34;&#34;&#34;
         with open(filepath, &#39;wb&#39;) as f:
             pickle.dump(self, f)
 
     @staticmethod
     def load(filepath):
-
+        &#34;&#34;&#34; Load a manager from a file.
+        Parameters
+        ----------
+        filepath : str
+            The filepath to load the manager from.
+        Returns
+        -------
+        Manager
+            The loaded manager.
+        &#34;&#34;&#34;
         with open(filepath, &#39;rb&#39;) as f:
             m = pickle.load(f)
 
@@ -244,14 +402,38 @@ class Manager:
 <span>def <span class="ident">add</span></span>(<span>collection, datapoint)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Add a datapoint to a collection.
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>collection</code></strong> :&ensp;<code>Collection</code></dt>
+<dd>The collection to add the datapoint to.</dd>
+<dt><strong><code>datapoint</code></strong> :&ensp;<code>Point</code></dt>
+<dd>The datapoint to add.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Collection</code></dt>
+<dd>The collection with the added datapoint.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def add(collection, datapoint):
-
+    &#34;&#34;&#34; Add a datapoint to a collection.
+    Parameters
+    ----------
+    collection : Collection
+        The collection to add the datapoint to.
+    datapoint : Point
+        The datapoint to add.
+    Returns
+    -------
+    Collection
+        The collection with the added datapoint.
+    &#34;&#34;&#34;
     collection.add(datapoint)
     return collection</code></pre>
 </details>
@@ -260,14 +442,34 @@ def add(collection, datapoint):
 <span>def <span class="ident">load</span></span>(<span>filepath)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Load a manager from a file.
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>filepath</code></strong> :&ensp;<code>str</code></dt>
+<dd>The filepath to load the manager from.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="gp2.data.manager.Manager" href="#gp2.data.manager.Manager">Manager</a></code></dt>
+<dd>The loaded manager.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def load(filepath):
-
+    &#34;&#34;&#34; Load a manager from a file.
+    Parameters
+    ----------
+    filepath : str
+        The filepath to load the manager from.
+    Returns
+    -------
+    Manager
+        The loaded manager.
+    &#34;&#34;&#34;
     with open(filepath, &#39;rb&#39;) as f:
         m = pickle.load(f)
 
@@ -278,14 +480,38 @@ def load(filepath):
 <span>def <span class="ident">remove</span></span>(<span>collection, datapoint)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Remove a datapoint from a collection.
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>collection</code></strong> :&ensp;<code>Collection</code></dt>
+<dd>The collection to remove the datapoint from.</dd>
+<dt><strong><code>datapoint</code></strong> :&ensp;<code>Point</code></dt>
+<dd>The datapoint to remove.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Collection</code></dt>
+<dd>The collection with the removed datapoint.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def remove(collection, datapoint):
-
+    &#34;&#34;&#34; Remove a datapoint from a collection.
+    Parameters
+    ----------
+    collection : Collection
+        The collection to remove the datapoint from.
+    datapoint : Point
+        The datapoint to remove.
+    Returns
+    -------
+    Collection
+        The collection with the removed datapoint.
+    &#34;&#34;&#34;
     collection.remove(datapoint)
     return collection</code></pre>
 </details>
@@ -294,14 +520,46 @@ def remove(collection, datapoint):
 <span>def <span class="ident">remove_and_add</span></span>(<span>old_collection, new_collection, datapoint)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Remove a datapoint from one collection and add it to another.
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>old_collection</code></strong> :&ensp;<code>Collection</code></dt>
+<dd>The collection to remove the datapoint from.</dd>
+<dt><strong><code>new_collection</code></strong> :&ensp;<code>Collection</code></dt>
+<dd>The collection to add the datapoint to.</dd>
+<dt><strong><code>datapoint</code></strong> :&ensp;<code>Point</code></dt>
+<dd>The datapoint to remove and add.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Collection</code></dt>
+<dd>The old collection with the removed datapoint.</dd>
+<dt><code>Collection</code></dt>
+<dd>The new collection with the added datapoint.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
 def remove_and_add(old_collection, new_collection, datapoint):
-    
+    &#34;&#34;&#34; Remove a datapoint from one collection and add it to another.
+    Parameters
+    ----------
+    old_collection : Collection
+        The collection to remove the datapoint from.
+    new_collection : Collection
+        The collection to add the datapoint to.
+    datapoint : Point
+        The datapoint to remove and add.
+    Returns
+    -------
+    Collection
+        The old collection with the removed datapoint.
+    Collection
+        The new collection with the added datapoint.
+    &#34;&#34;&#34;
     old_collection.remove(datapoint)
     new_collection.add(datapoint)
 
@@ -315,21 +573,45 @@ def remove_and_add(old_collection, new_collection, datapoint):
 <span>def <span class="ident">find</span></span>(<span>self, datapoint_id, show_names=False)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Find a collection by datapoint id.
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>datapoint_id</code></strong> :&ensp;<code>int</code></dt>
+<dd>The id of the datapoint to find.</dd>
+<dt><strong><code>show_names</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Whether to return the collection names instead of the collections.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>The collections containing the datapoint.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def find(self, datapoint_id, show_names=False):
-
+    &#34;&#34;&#34; Find a collection by datapoint id.
+    Parameters
+    ----------
+    datapoint_id : int
+        The id of the datapoint to find.
+    show_names : bool
+        Whether to return the collection names instead of the collections.
+    Returns
+    -------
+    list
+        The collections containing the datapoint.
+    &#34;&#34;&#34;
     collections = []
 
     # also support point objects
-    if type(datapoint_id)==Point:
+    if type(datapoint_id) == Point:
         datapoint_id = datapoint_id.id
 
     for c in self.collections:
-        
+
         if datapoint_id in self.collections[c].data:
             collections.append(self.collections[c])
 
@@ -337,15 +619,14 @@ def remove_and_add(old_collection, new_collection, datapoint):
     collections_with_names = {}
 
     if show_names:
-        for i,c in enumerate(collections):
+        for i, c in enumerate(collections):
 
             if collections[i].id in self.names:
                 name = self.names[collections[i].id]
             else:
-                name = &#39;unknown&#39;+str(i)
+                name = &#39;unknown&#39; + str(i)
             collections_with_names[name] = collections[i]
         collections = collections_with_names
-
 
     return collections</code></pre>
 </details>
@@ -354,13 +635,33 @@ def remove_and_add(old_collection, new_collection, datapoint):
 <span>def <span class="ident">get</span></span>(<span>self, name)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get a collection by name.
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of the collection to get.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Collection</code></dt>
+<dd>The collection with the given name.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get(self, name):
-
+    &#34;&#34;&#34; Get a collection by name.
+    Parameters
+    ----------
+    name : str
+        The name of the collection to get.
+    Returns
+    -------
+    Collection
+        The collection with the given name.
+    &#34;&#34;&#34;
     # get name
     for c in self.names:
         if self.names[c] == name:
@@ -371,13 +672,28 @@ def remove_and_add(old_collection, new_collection, datapoint):
 <span>def <span class="ident">register</span></span>(<span>self, collection, name=None)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Register a collection with the manager.
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>collection</code></strong> :&ensp;<code>Collection</code></dt>
+<dd>The collection to register.</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name to register the collection with.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def register(self, collection, name=None):
-
+    &#34;&#34;&#34; Register a collection with the manager.
+    Parameters
+    ----------
+    collection : Collection
+        The collection to register.
+    name : str
+        The name to register the collection with.
+    &#34;&#34;&#34;
     # here we need to remove the old collection
     if name:
         for c in self.names:
@@ -390,7 +706,7 @@ def remove_and_add(old_collection, new_collection, datapoint):
 
     # register this collection + name if given
     self.collections[collection.id] = collection
-    
+
     if name:
         self.names[collection.id] = name</code></pre>
 </details>
@@ -399,13 +715,24 @@ def remove_and_add(old_collection, new_collection, datapoint):
 <span>def <span class="ident">save</span></span>(<span>self, filepath)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Save the manager to a file.
+Parameters</p>
+<hr>
+<dl>
+<dt><strong><code>filepath</code></strong> :&ensp;<code>str</code></dt>
+<dd>The filepath to save the manager to.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def save(self, filepath):
-
+    &#34;&#34;&#34; Save the manager to a file.
+    Parameters
+    ----------
+    filepath : str
+        The filepath to save the manager to.
+    &#34;&#34;&#34;
     with open(filepath, &#39;wb&#39;) as f:
         pickle.dump(self, f)</code></pre>
 </details>

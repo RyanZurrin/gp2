@@ -1,4 +1,6 @@
-# GP2 Framework
+# [GP2 Framework](https://ryanzurrin.github.io/CS410-GP2/gp2/index.html)
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Table of Contents
 * [Overview](#overview)
