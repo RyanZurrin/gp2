@@ -7,6 +7,8 @@ import numpy as np
 import os
 import tempfile
 
+# set the version number
+__version__ = '0.0.1'
 
 def validate_weights(weights, tolerance=1e-6):
     """ Validate the weights for training.
