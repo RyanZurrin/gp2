@@ -3,21 +3,23 @@ import os
 import warnings
 
 
-
 class Util:
     @staticmethod
     def disable_tensorflow_logging():
-        import tensorflow as tf
-        """ Disables tensorflow logging """
+        import warnings
+        import os
         os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-        logging.getLogger('tensorflow').disabled = True
-        logger = tf.get_logger()
-        logger.setLevel(logging.ERROR)
         warnings.filterwarnings('ignore', category=UserWarning,
                                 module='tensorflow')
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         warnings.filterwarnings("ignore", category=FutureWarning)
-        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        import logging
+        import tensorflow as tf
+        logger = tf.get_logger()
+        logger.setLevel(logging.ERROR)
+        from tensorflow.python.keras.utils.generic_utils import \
+            CustomMaskWarning
+        warnings.filterwarnings('ignore', category=CustomMaskWarning)
 
     @staticmethod
     def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
@@ -69,7 +71,8 @@ class Util:
 
         # funnel data
         Z = images[A_split + B_split:A_split + B_split + Z_split, :, :, 0]
-        Z_labels = labels[A_split + B_split:A_split + B_split + Z_split, :, :, 0]
+        Z_labels = labels[A_split + B_split:A_split + B_split + Z_split, :, :,
+                   0]
 
         Z = np.stack((Z, Z_labels), axis=-1)
 
