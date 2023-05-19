@@ -1,0 +1,84 @@
+Acceptance Criteria Number,Tag,production,research,demo
+PAC-10,patient age,1,0,0
+PAC-30,breast implant,1,0,0
+SAC-20,extra views,0,0,0
+SAC-30,lmlo missing,1,0,0
+SAC-40,rmlo missing,1,0,0
+SAC-50,lcc missing,1,0,0
+SAC-60,rcc missing,1,0,0
+SAC-70,patient name inconsistent,1,0,0
+SAC-80,patient birth date inconsistent,1,0,0
+SAC-81,patient age inconsistent,1,0,0
+SAC-90,patient id inconsistent,1,1,1
+SAC-100,study instance uid inconsistent,1,1,0
+SAC-110,study date,1,0,0
+SAC-120,files too large,1,0,0
+SAC-130,no corresponding dxm for bt,1,0,0
+SAC-131,no corresponding bt for dxm,1,0,0
+SAC-132,consistent 2D/3D image modalities,0,0,0
+SAC-140,manufacturer,1,1,0
+SAC-150,manufacturer model name inconsistent,0,0,0
+FAC-10,dicom cannot be read,1,1,1
+FAC-20,wrong sop class uid,1,1,1
+FAC-21,modality not 'MG',1,0,0
+FAC-23,body part examined not 'BREAST',1,0,0
+FAC-24,lossy image compression,1,0,0
+FAC-25,field of view horizontal flip,0,0,0
+FAC-26,quality control image,1,1,1
+FAC-27,burned in annotation,1,0,0
+FAC-29,wrong image laterality,1,0,0
+FAC-30,wrong Patient Orientation values,1,0,0
+FAC-80,manufacturer missing,1,1,1
+FAC-90,manufacturer model name missing,1,1,0
+FAC-100,pixel data missing,1,1,1
+FAC-101,error in extracting pixel array,1,1,1
+FAC-110,presentation intent type,1,1,1
+FAC-130,manufacturer specs wrong,1,1,0
+FAC-140,manufacturer not supported,1,1,0
+FAC-150,file too large,1,0,0
+FAC-160,view not mlo or cc,1,0,0
+FAC-170,modified view,1,0,0
+FAC-180,study description,0,0,0
+FAC-181,partial view,1,0,0
+FAC-190,check image classification,1,0,0
+FAC-200,report attribute missing,1,0,0
+FAC-210,transfer syntax,1,1,0
+IAC-20,pixel intensity,1,0,1
+IAC-30,breast orientation expected,0,0,0
+HOL-10,image type,1,0,0
+HOL-20,estimated radiographic magnification factor,1,0,0
+HOL-30,photometric interpretation,1,0,0
+HOL-40,bits allocated,1,0,0
+HOL-50,bits stored,1,0,0
+HOL-60,high bit,1,0,0
+HOL-80,mismatch between WindowCenter WindowWidth and WindowCenterWidthExplanation,1,0,0
+HOL-110,grid,1,0,0
+HOL-120,focal spots,1,0,0
+HOL-130,exposure status,1,0,0
+HOL-140,rows,1,0,0
+HOL-150,columns,1,0,0
+HOL-160,window center,1,0,0
+HOL-170,window width,1,0,0
+HOL-180,pixel intensity relationship,1,0,0
+HOL-190,pixel intensity relationship sign,1,0,0
+HOL-200,presentation lut shape,1,0,0
+HOL-210,series description,1,0,0
+GE-10,image type,1,0,0
+GE-20,estimated radiographic magnification factor,1,0,0
+GE-30,photometric interpretation,1,0,0
+GE-40,bits allocated,1,0,0
+GE-50,bits stored,1,0,0
+GE-60,high bit,1,0,0
+GE-70,volumetric properties,1,0,0
+GE-80,window center and width explanation,1,0,0
+GE-90,voi lut function,1,0,0
+GE-110,grid,1,0,0
+GE-120,focal spots,1,0,0
+GE-130,exposure status,1,0,0
+GE-140,rows,1,0,0
+GE-150,columns,1,0,0
+GE-160,window center,1,0,0
+GE-170,window width,1,0,0
+GE-180,pixel intensity relationship,1,0,0
+GE-190,pixe intensity relationship sign,1,0,0
+GE-200,presentation lut shape,1,0,0
