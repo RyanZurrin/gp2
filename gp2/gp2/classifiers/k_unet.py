@@ -1,10 +1,5 @@
-from keras import losses
-from tensorflow.keras import optimizers
-
 from .base_keras_segmentation_classifier import \
     BaseKerasSegmentationClassifier
-
-from keras_unet.models import custom_unet as custom
 from gp2.gp2.util import Util
 
 
@@ -87,6 +82,10 @@ class KUNet(BaseKerasSegmentationClassifier):
         [2]: https://arxiv.org/pdf/1411.4280.pdf
         [3]: https://arxiv.org/abs/1804.03999
         """
+        from keras import losses
+        from tensorflow.keras import optimizers
+        from keras_unet.models import custom_unet as custom
+
         super().__init__(verbose=verbose, workingdir=workingdir)
 
         self.input_shape = input_shape

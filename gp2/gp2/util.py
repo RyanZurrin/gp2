@@ -1,18 +1,23 @@
 import logging
 import os
+import warnings
 
-import matplotlib.pyplot as plt
-import numpy as np
-import tensorflow as tf
-from keras_unet_collection import losses
 
 
 class Util:
     @staticmethod
     def disable_tensorflow_logging():
+        import tensorflow as tf
         """ Disables tensorflow logging """
-        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
         logging.getLogger('tensorflow').disabled = True
+        logger = tf.get_logger()
+        logger.setLevel(logging.ERROR)
+        warnings.filterwarnings('ignore', category=UserWarning,
+                                module='tensorflow')
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
 
     @staticmethod
     def create_A_B_Z_split(images, labels, dataset_size=1000, weights=None):
@@ -36,12 +41,8 @@ class Util:
         Z : numpy array
             The Z split
         """
-        #
-        # We split as follows
-        # A 0.4*dataset_size
-        # B 0.4*dataset_size
-        # Z 0.2*dataset_size
-        #
+        import numpy as np
+
         A_split = int(0.4 * dataset_size)
         B_split = int(0.2 * dataset_size)
         Z_split = int(0.4 * dataset_size)
@@ -104,7 +105,7 @@ class Util:
         test : numpy array
             The test split
         """
-
+        import numpy as np
         if shuffle:
             np.random.shuffle(dataset)
 
@@ -156,6 +157,7 @@ class Util:
         -------
         None
         """
+        import matplotlib.pyplot as plt
         fig, ax1 = plt.subplots(1, 1, figsize=(3, 3), dpi=80)
         line1, = ax1.plot(x, y1, color='tab:red', label='Classifier')
         line2, = ax1.plot(x, y2, color='tab:blue', label='Discriminator')
@@ -189,6 +191,7 @@ class Util:
         float
             The dice coefficient.
         """
+        import tensorflow as tf
         y_true_flat = tf.reshape(y_true, [-1])
         y_pred_flat = tf.reshape(y_pred, [-1])
         intersection = tf.reduce_sum(y_true_flat * y_pred_flat)
@@ -199,17 +202,18 @@ class Util:
     @staticmethod
     def bce_dice_loss(y_true, y_pred):
         """ Calculate the loss.
-    Parameters
-    ----------
-    y_true : numpy.ndarray
-        The true masks.
-    y_pred : numpy.ndarray
-        The predicted masks.
-    Returns
-    -------
-    float
-        The loss.
-    """
+        Parameters
+        ----------
+        y_true : numpy.ndarray
+            The true masks.
+        y_pred : numpy.ndarray
+            The predicted masks.
+        Returns
+        -------
+        float
+            The loss.
+        """
+        import tensorflow as tf
         return tf.keras.losses.binary_crossentropy(y_true, y_pred) + \
             (1 - Util.dice_coeff(y_true, y_pred))
 
@@ -229,6 +233,8 @@ class Util:
         float
             The loss.
         """
+        import tensorflow as tf
+        from keras_unet_collection import losses
         # check that the types of both y_true and y_pred are the same
         y_true = tf.cast(y_true, tf.float32)
         y_pred = tf.cast(y_pred, tf.float32)

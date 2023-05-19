@@ -1,9 +1,5 @@
-from keras import losses
-from tensorflow.keras import optimizers
-
 from .base_keras_segmentation_classifier import \
     BaseKerasSegmentationClassifier
-from keras_unet_collection import models
 from gp2.gp2.util import Util
 
 
@@ -101,6 +97,10 @@ class KUNet3Plus2D(BaseKerasSegmentationClassifier):
             model: a keras model.
 
         """
+        from keras import losses
+        from tensorflow.keras import optimizers
+        from keras_unet_collection import models
+
         super().__init__(verbose=verbose, workingdir=workingdir)
 
         print(f'KUNet3Plus2D: {optimizer}, {loss}, {metric}')

@@ -1,9 +1,5 @@
-from keras import losses
-from tensorflow.keras import optimizers
-
 from .base_keras_segmentation_classifier import \
     BaseKerasSegmentationClassifier
-from keras_unet_collection import models
 from gp2.gp2.util import Util
 
 
@@ -96,6 +92,9 @@ class KUNet2D(BaseKerasSegmentationClassifier):
         model: tensorflow.keras.models.Model
             model containing the U-net with an optional ImageNet-trained backbone.
         """
+        from keras import losses
+        from tensorflow.keras import optimizers
+        from keras_unet_collection import models
         super().__init__(verbose=verbose, workingdir=workingdir)
 
         self.input_size = input_size

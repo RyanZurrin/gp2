@@ -1,13 +1,12 @@
 import os
 import pickle
-from tensorflow.keras import callbacks
 from .classifier import Classifier
 from gp2.gp2.util import Util
 
 
 class BaseKerasSegmentationClassifier(Classifier):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, verbose, workingdir, **kwargs):
+        super().__init__(verbose, workingdir, **kwargs)
 
     def build(self):
         """ Build the model. """
@@ -45,6 +44,7 @@ class BaseKerasSegmentationClassifier(Classifier):
         call_backs : list
             The list of callbacks to use.
         """
+        from tensorflow.keras import callbacks
         super().train(X_train, y_train, X_val, y_val, patience_counter)
         checkpoint_file = os.path.join(self.workingdir, self.name)
         checkpoint_file = Util.create_numbered_file(checkpoint_file,

@@ -1,9 +1,7 @@
-from keras import losses
-from tensorflow.keras import optimizers
 from gp2.gp2.util import Util
 from .base_keras_segmentation_classifier import \
     BaseKerasSegmentationClassifier
-from keras_unet_collection import models
+
 
 
 class KATTUnet2D(BaseKerasSegmentationClassifier):
@@ -35,7 +33,7 @@ class KATTUnet2D(BaseKerasSegmentationClassifier):
                  verbose=False,
                  workingdir='/tmp',
                  ):
-        '''
+        """
         Attention U-net with an optional ImageNet backbone
 
         att_unet_2d(input_size, filter_num, n_labels, stack_num_down=2, stack_num_up=2, activation='ReLU',
@@ -90,7 +88,10 @@ class KATTUnet2D(BaseKerasSegmentationClassifier):
         ----------
             model: a keras model
 
-        '''
+        """
+        from keras import losses
+        from tensorflow.keras import optimizers
+        from keras_unet_collection import models
         super().__init__(verbose=verbose, workingdir=workingdir)
 
         self.input_size = input_size

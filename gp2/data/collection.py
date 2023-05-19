@@ -1,4 +1,3 @@
-import numpy as np
 from uuid import uuid4
 from .point import Point
 
@@ -66,6 +65,7 @@ class Collection:
     def shuffle(self):
         """ Shuffle the collection
         """
+        import numpy as np
         all_ids = list(self.data.keys())
         np.random.shuffle(all_ids)
 
@@ -78,7 +78,7 @@ class Collection:
     def to_array(self):
         """ Convert the collection to a numpy array
         """
-
+        import numpy as np
         datasize = len(self.data.keys())
         datashape = self.get(0).shape
         datatype = self.get(0).dtype

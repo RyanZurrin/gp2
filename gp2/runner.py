@@ -3,12 +3,9 @@ from .gp2 import UNet, UNetPLUS, KUNet, KATTUnet2D, KR2UNet2dD, KResUNet2D, \
     KUNet2D, KUNet3Plus2D, KUNetPlus2D, KVNet2D, CNNDiscriminator, \
     CNNDiscriminatorPLUS, Util
 import time
-import numpy as np
 import os
 import tempfile
 
-# set the version number
-__version__ = '0.0.1'
 
 def validate_weights(weights, tolerance=1e-6):
     """ Validate the weights for training.
@@ -40,6 +37,7 @@ def validate_weights(weights, tolerance=1e-6):
     ValueError
         If the weights are not valid.
     """
+    import numpy as np
     # Check if A_train + A_val + A_test = 1
     A_sum = weights['A_train'] + weights['A_val'] + weights['A_test']
     if not np.isclose(A_sum, 1, rtol=tolerance):
@@ -103,13 +101,15 @@ class Runner:
             Additional keyword arguments to pass to the classifier and
             discriminator.
         """
-
+        import numpy as np
         self.weights = weights
         self.store_after_each_step = store_after_each_step
 
         self.workingdir = workingdir
 
         self.verbose = verbose
+        if not self.verbose:
+            Util.disable_tensorflow_logging()
 
         self.M = Manager()
 
@@ -271,6 +271,7 @@ class Runner:
         -------
         None
         """
+        import numpy as np
         M = self.M
 
         A_train = M.get('A_train')
@@ -322,6 +323,7 @@ class Runner:
     #
     def create_C_dataset(self):
         """ Create the C dataset from the classifier predictions (internal!)."""
+        import numpy as np
         M = self.M
 
         A_test = M.get('A_test')
@@ -528,6 +530,7 @@ class Runner:
         """ This finds all machine labels, as indicated from the Discriminator
         and create dataset D.  Returns number of machine labels found.
         """
+        import numpy as np
         M = self.M
 
         C_test = M.get('C_test')
@@ -588,6 +591,7 @@ class Runner:
         -------
         None
         """
+        import numpy as np
 
         M = self.M
 
@@ -671,6 +675,7 @@ class Runner:
         -------
         None
         """
+        import numpy as np
         M = self.M
 
         D_relabeled = M.get('D_relabeled')
@@ -760,6 +765,7 @@ class Runner:
         -------
         None
         """
+        import numpy as np
         print('Transfer from', source.name, 'to', target.name)
         M = self.M
         source_uniq_ids = list(source.data.keys())
@@ -820,7 +826,7 @@ class Runner:
 
         for run in range(runs):
             print('******')
-            print('Loop', run+1)
+            print('Loop', run + 1)
             t0 = time.time()
             self.run_classifier(patience_counter=patience_counter,
                                 epochs=epochs, batch_size=batch_size)
@@ -835,7 +841,7 @@ class Runner:
                          balance=balance,
                          fillup=fillup)
             print('TOOK', time.time() - t0, 'seconds')
-            print('==== DONE LOOP', run+1, '====')
+            print('==== DONE LOOP', run + 1, '====')
 
     #
     # PLOT!

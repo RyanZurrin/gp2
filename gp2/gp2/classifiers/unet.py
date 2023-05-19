@@ -4,16 +4,6 @@ from gp2.gp2.util import Util
 import os
 import pickle
 
-import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, concatenate, Conv2D, MaxPooling2D, \
-    Activation, UpSampling2D, BatchNormalization
-from tensorflow.keras.optimizers import RMSprop
-from tensorflow.keras import backend as K
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, \
-    ReduceLROnPlateau
-from tensorflow.keras.losses import binary_crossentropy
-
 
 class UNet(Classifier):
 
@@ -26,6 +16,10 @@ class UNet(Classifier):
         self.model = self.build()
 
     def build(self, input_shape=(512, 512, 1), num_classes=1):
+        from tensorflow.keras.models import Model
+        from tensorflow.keras.layers import Input, concatenate, Conv2D, \
+            MaxPooling2D,  Activation, UpSampling2D, BatchNormalization
+        from tensorflow.keras.optimizers import RMSprop
         super().build()
 
         inputs = Input(shape=input_shape)
@@ -184,6 +178,8 @@ class UNet(Classifier):
 
     def train(self, X_train, y_train, X_val, y_val,
               patience_counter=2, batch_size=64, epochs=100):
+        from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, \
+            ReduceLROnPlateau
         super().train(X_train, y_train, X_val, y_val, patience_counter)
 
         checkpoint_file = os.path.join(self.workingdir, 'unet')
@@ -229,6 +225,7 @@ class UNet(Classifier):
 
     @staticmethod
     def bce_dice_loss(y_true, y_pred):
+        import tensorflow as tf
         y_true_f = tf.reshape(y_true, [-1])
         y_pred_f = tf.reshape(y_pred, [-1])
         return tf.keras.losses.binary_crossentropy(y_true, y_pred) + (
@@ -236,6 +233,7 @@ class UNet(Classifier):
 
     @staticmethod
     def dice_coeff(y_true, y_pred):
+        import tensorflow as tf
         y_true_f = tf.reshape(y_true, [-1])
         y_pred_f = tf.reshape(y_pred, [-1])
         intersection = tf.math.reduce_sum(y_true_f * y_pred_f)

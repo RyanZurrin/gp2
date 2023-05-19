@@ -1,11 +1,4 @@
-from tensorflow.keras import layers
-from tensorflow.keras import losses
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.regularizers import l1_l2
 from .base_cnn_discriminator import BaseCNNDiscriminator, CustomMaskLayer
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, concatenate, Conv2D, MaxPooling2D, \
-    LeakyReLU, Dropout, Flatten, Dense
 
 
 class CNNDiscriminatorPLUS(BaseCNNDiscriminator):
@@ -23,6 +16,25 @@ class CNNDiscriminatorPLUS(BaseCNNDiscriminator):
                  kernel_regularizer=None,
                  workingdir='/tmp',
                  verbose=True):
+        """ Initializes the class.
+
+        :param image_shape: The shape of the input images.
+        :param num_classes: The number of classes.
+        :param mask_layer: The mask layer.
+        :param conv_layers: The convolution layers.
+        :param dense_layers: The dense layers.
+        :param optimizer: The optimizer.
+        :param loss_function: The loss function.
+        :param metrics: The metrics.
+        :param activation: The activation function.
+        :param alpha: The alpha value.
+        :param kernel_regularizer: The kernel regularizer.
+        :param workingdir: The working directory.
+        :param verbose: The verbosity.
+        """
+        from tensorflow.keras import losses
+        from tensorflow.keras.optimizers import Adam
+        from tensorflow.keras.regularizers import l1_l2
         super().__init__(workingdir)
         self.image_shape = image_shape
         self.num_classes = num_classes
@@ -47,6 +59,14 @@ class CNNDiscriminatorPLUS(BaseCNNDiscriminator):
         self.model = self.build()
 
     def create_convolution_layers(self, input_img, input_shape=None):
+        """ Creates the convolution layers.
+
+        :param input_img: The input image.
+        :param input_shape: The shape of the input image.
+        :return: The convolution layers.
+        """
+        from tensorflow.keras import layers
+        from tensorflow.keras.layers import Conv2D, MaxPooling2D, LeakyReLU, Dropout
         model = input_img
         for filters, kernel_size, dropout_rate in self.conv_layers:
             model = Conv2D(filters, kernel_size, padding='same',
@@ -61,6 +81,14 @@ class CNNDiscriminatorPLUS(BaseCNNDiscriminator):
         return model
 
     def build(self):
+        """ Builds the model.
+
+        :return: The model.
+        """
+        from tensorflow.keras import layers
+        from tensorflow.keras.models import Model
+        from tensorflow.keras.layers import Input, concatenate, LeakyReLU, \
+            Dropout, Flatten, Dense
         image_input = Input(shape=self.image_shape)
         image_model = self.create_convolution_layers(image_input)
 

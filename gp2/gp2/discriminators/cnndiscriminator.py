@@ -1,22 +1,7 @@
 from .discriminator import Discriminator
-
-
-import numpy as np
 import os
 import pickle
-
-from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
-from tensorflow.keras import losses
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, concatenate, Conv2D, MaxPooling2D, \
-    LeakyReLU, Dropout, Flatten, Dense
-
 from gp2.gp2.util import Util
-
 
 class CNNDiscriminator(Discriminator):
 
@@ -26,6 +11,15 @@ class CNNDiscriminator(Discriminator):
         self.model = self.build()
 
     def create_convolution_layers(self, input_img, input_shape):
+        """ Create the convolution layers
+
+        Args:
+            input_img:  (tf.keras.layers.Input) input layer
+            input_shape:  (tuple) input shape
+
+        Returns:
+        """
+        from tensorflow.keras.layers import Conv2D,  MaxPooling2D, LeakyReLU, Dropout
         # 512
         model = Conv2D(16, (3, 3), padding='same', input_shape=input_shape)(
             input_img)
@@ -61,6 +55,15 @@ class CNNDiscriminator(Discriminator):
         return model
 
     def build(self, image_shape=(512, 512, 1), num_classes=2):
+        """ Builds the model.
+
+        :param image_shape: The shape of the input images.
+        :param num_classes: The number of classes.
+        :return: The model.
+        """
+        from tensorflow.keras.layers import Input, concatenate,  LeakyReLU, \
+            Dropout, Flatten, Dense
+        from tensorflow.keras.models import Model
         super().build()
 
         image_input = Input(shape=image_shape)
@@ -91,6 +94,21 @@ class CNNDiscriminator(Discriminator):
     def train(self, X_train_images, X_train_masks, y_train,
               X_val_images, X_val_masks, y_val,
               patience_counter=10, batch_size=64, epochs=100):
+        """ Trains the model.
+
+        :param X_train_images: The training images.
+        :param X_train_masks: The training masks.
+        :param y_train: The training labels.
+        :param X_val_images: The validation images.
+        :param X_val_masks: The validation masks.
+        :param y_val: The validation labels.
+        :param patience_counter: The patience counter for early stopping.
+        :param batch_size: The batch size.
+        :param epochs: The number of epochs.
+        :return:
+        """
+        from tensorflow.keras.utils import to_categorical
+        from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
         super().train(X_train_images, X_train_masks, y_train,
                       X_val_images, X_val_masks, y_val)
 
@@ -110,14 +128,6 @@ class CNNDiscriminator(Discriminator):
         y_train = to_categorical(y_train)
         y_val = to_categorical(y_val)
 
-        # print('y_train')
-        # print(y_train.shape)
-        # print(y_train[0:10])
-
-        # print('y_val')
-        # print(y_val.shape)
-        # print(y_val[0:10])
-
         history = self.model.fit(x=[X_train_images, X_train_masks], y=y_train,
                                  batch_size=batch_size,
                                  epochs=epochs,
@@ -136,6 +146,15 @@ class CNNDiscriminator(Discriminator):
         print('History saved to', history_file)
 
     def predict(self, X_test_images, X_test_masks, y_test):
+        """ Predicts the labels for the given test data.
+
+        :param X_test_images: The test images.
+        :param X_test_masks: The test masks.
+        :param y_test: The test labels.
+        :return: The predicted labels and the scores.
+        """
+        import numpy as np
+        from tensorflow.keras.utils import to_categorical
         predictions = self.model.predict(x=[X_test_images, X_test_masks])
 
         # grab the most likely label from the categorical representation
