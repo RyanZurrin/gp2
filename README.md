@@ -34,33 +34,24 @@ segmentation performance by adjusting hyperparameters, architecture settings, an
 
 To install the GP2 Framework and its dependencies, follow these steps:
 
-1. Fork the [GP2 Framework repository](https://github.com/RyanZurrin/CS410-GP2).
-2. Clone the forked repository to your local machine.
-   ```bash
-    git clone https://github.com/<your-username>/CS410-GP2.git
-   ```
-3. Navigate to the root directory of the repository.
-   ```bash
-    cd CS410-GP2
-   ```
-4. Create a Conda environment using the provided GP2.yml file.
-   ```bash
-    conda env create -f GP2.yml
-   ```
-5. Activate the Conda environment.
-   ```bash
-    conda activate GP2
-   ```
-   
+1. Create a new Anaconda environment with a specified Python version:
+```bash
+conda create -n GP2 python=3.8
+```
+2. Activate the new environment:
+```bash
+conda activate GP2
+```
+3.Install the GP2 Framework within your newly created environment:
+```bash
+pip install gp2
+```
+
 ## Usage
+1. After installation, the GP2 Framework can be imported and used in Python scripts or Jupyter notebooks.
+2. Follow the provided examples to learn how to set up and run experiments, and modify them as needed to suit your own needs.
 
-1. Navigate to one of the EXAMPLES/GP2 folders (e.g., [1_DATA_CONVERSION](EXAMPLES/GP2/1_DATA_CONVERSION), [2_TESTING_WITH_ORIGINAL_UNET](EXAMPLES/GP2/2_TESTING_WITH_ORIGINAL_UNET), etc.) 
-to find Jupyter notebooks demonstrating how to use the GP2 Framework with various datasets and classifiers.
-2. Follow the README.md in the respective examples folder for detailed instructions on using the notebooks and setting up the data.
-3. Modify the notebook cells as needed to configure the U-Net classifiers, adjust hyperparameters, and change data distribution settings.
-4. Run the notebook cells to perform the segmentation tasks and review the performance metrics and visualizations generated.
-
-Refer to the README.md files in each milestone folder for specific information on the experiments performed and the datasets used.
+Refer to the documentation for more detailed information on how to use the framework.
 
 ## Contributing
 

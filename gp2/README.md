@@ -4,34 +4,32 @@ This example demonstrates how to uee the GP2 module for optimizing any classifie
 
 ## Dependencies
 
-Install the required dependencies by createing a new Anaconda environment using the `GP2.yml` file
-in the root directory of the project:
+Create a new Anaconda environment with a specified Python version:
 ```bash
-conda env create -f GP2.yml
+conda create -n GP2 python=3.9
 ```
-Activate the environment using:
+Activate the new environment:
 ```bash
 conda activate GP2
+```
+Now, you can install the GP2 module within your newly created environment:
+```bash
+pip install gp2
 ```
 
 ## Example Code
 
-
 ```python
-import sys
 import numpy as np
 
-sys.path.insert(0, '../..')
-
+# Import gp2 and its components
 import gp2
 from gp2 import Runner
-```
+
 # To get info about the model, run the following:
-``` python
 help(gp2.KUNetPlus2D)
-```
+
 # To use the Keras UnetPlus2D Unet, specify it as the classifier argument to the Runner instance when creating it:
-``` python
 R = Runner(
     verbose=True,
     classifier='kunetplus2d',
@@ -52,16 +50,12 @@ R = Runner(
     loss=gp2.Util.hybrid_loss,
     metric=None
 )
-```
 
 # Load data
-``` python
 images = np.load('/path/to/images.npy')
 masks = np.load('/path/to/masks.npy')
-```
 
 # Specify weights for the distribution of data into train, test, and val datasets for datasets A and B
-``` python
 weights = {
     'A': 0.5,
     'A_train': 0.1,
@@ -73,18 +67,15 @@ weights = {
     'B_test': 0.2,
     'Z': 0.2
 }
-```
-
 
 # To run training, use the Runner's run method, passing in the images, masks, weights, and the number of training loops to run for:
-``` python
 R.run(images=images, masks=masks, weights=weights, runs=7)
-```
 
 # Use the Runner's plot method to easily visualize results
-``` python
 R.plot()
+
 ```
+
 
 # Additional Information
 In this section, we provide an overview of various optimizers, loss functions, and metric functions that you can use when working with the GP2 module. When training your model, it's essential to choose the appropriate optimizer, loss function, and metric function for your specific task. We'll briefly describe each option, which should help you make an informed decision when configuring your model.
