@@ -36,7 +36,7 @@ To install the GP2 Framework and its dependencies, follow these steps:
 
 1. Create a new Anaconda environment with a specified Python version:
 ```bash
-conda create -n GP2 python=3.8
+conda create -n GP2 python=3.9
 ```
 2. Activate the new environment:
 ```bash
