@@ -3,51 +3,104 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Table of Contents
-* [Overview](#overview)
-* [Features](#features)
-* [Installation](#installation)
-* [Usage](#usage)
-* [Contributing](#contributing)
-* [License](#license)
-* [Contact](#contact)
+
+- [GP2 Framework](#gp2-framework)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Features](#features)
+  - [Installation](#installation)
+  - [Docker Support](#docker-support)
+    - [Docker Installation](#docker-installation)
+    - [Docker Usage](#docker-usage)
+  - [Usage](#usage)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Contact](#contact)
 
 ## Overview
 
-The GP2 Framework is a powerful and flexible framework for training and evaluating deep 
-learning segmentation models, specifically U-Net architectures, for image segmentation tasks. 
-Initially designed as part of the OMAMA-DB project, the framework has been further extended 
-and refined during the CS410 UMB Software Engineering Project. The framework facilitates 
-running various datasets through different U-Net classifiers, with the goal of improving 
+The GP2 Framework is a powerful and flexible framework for training and evaluating deep
+learning segmentation models, specifically U-Net architectures, for image segmentation tasks.
+Initially designed as part of the OMAMA-DB project, the framework has been further extended
+and refined during the CS410 UMB Software Engineering Project. The framework facilitates
+running various datasets through different U-Net classifiers, with the goal of improving
 segmentation performance by adjusting hyperparameters, architecture settings, and data distribution.
 
 ## Features
 
-* Supports a variety of U-Net classifiers from the Keras U-Net and Keras-UNet Collection, including custom U-Nets.
-* Provides options for data normalization and distribution across training, validation, and test sets.
-* Integrates with popular deep learning libraries such as TensorFlow and Keras.
-* Includes a range of Jupyter notebooks to demonstrate usage with various datasets and classifiers.
-* Easy-to-use API for configuring and running experiments with U-Net classifiers.
-* Provides performance metrics and visualizations to analyze the results of segmentation tasks.
-
+- Supports a variety of U-Net classifiers from the Keras U-Net and Keras-UNet Collection, including custom U-Nets.
+- Provides options for data normalization and distribution across training, validation, and test sets.
+- Integrates with popular deep learning libraries such as TensorFlow and Keras.
+- Includes a range of Jupyter notebooks to demonstrate usage with various datasets and classifiers.
+- Easy-to-use API for configuring and running experiments with U-Net classifiers.
+- Provides performance metrics and visualizations to analyze the results of segmentation tasks.
 
 ## Installation
 
 To install the GP2 Framework and its dependencies, follow these steps:
 
 1. Create a new Anaconda environment with a specified Python version:
+
 ```bash
 conda create -n GP2 python=3.9
 ```
+
 2. Activate the new environment:
+
 ```bash
 conda activate GP2
 ```
+
 3.Install the GP2 Framework within your newly created environment:
+
 ```bash
 pip install gp2
 ```
 
+## Docker Support
+
+The GP2 Framework also supports Docker, simplifying setup and usage. You can build a container with all necessary dependencies using our Dockerfile or pull the latest image directly from Docker Hub.
+
+### Docker Installation
+
+1. Install Docker on your system. Refer to Docker's official documentation for instructions based on your operating system.
+2. You can pull the pre-built Docker image from Docker Hub:
+
+```bash
+docker run -it highrez/gp2
+```
+
+Or, you can build the Docker image locally:
+
+1. Clone the GP2 Framework repository to your local machine:
+
+```bash
+git clone https://github.com/your-username/GP2-Framework.git
+
+```
+
+2. Navigate to the cloned repository's root directory
+
+```bash
+cd CS410-GP2
+```
+
+3. Build the Docker image from the provided Dockerfile
+
+```bash
+docker build .
+```
+
+### Docker Usage
+
+1. After building the image locally take note of the docker id that is provided and use that in the following command to run the container:
+
+```bash
+docker run -it "provide the docker id here"
+```
+
 ## Usage
+
 1. After installation, the GP2 Framework can be imported and used in Python scripts or Jupyter notebooks.
 2. Follow the provided examples to learn how to set up and run experiments, and modify them as needed to suit your own needs.
 
@@ -63,6 +116,7 @@ Contributions to the GP2 Framework are welcome. Please follow these guidelines:
 4. The project maintainers will review your pull request and provide feedback or merge the changes
 
 ## License
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Contact
