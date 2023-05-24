@@ -12,6 +12,7 @@
   - [Docker Support](#docker-support)
     - [Docker Installation](#docker-installation)
     - [Docker Usage](#docker-usage)
+    - [Working With Datasets](#working-with-datasets)
   - [Usage](#usage)
   - [Contributing](#contributing)
   - [License](#license)
@@ -99,12 +100,27 @@ docker build .
 docker run -it "provide the docker id here"
 ```
 
+### Working with Datasets
+
+When working with locally saved datasets, you can use Docker's bind mount feature to access your data from within the GP2 Framework Docker container. This can be done as follows:
+
+1. Ensure you have your dataset saved in a directory on your local machine. For example, let's assume you have a directory named `/home/gp2_data`.
+
+2. When running your Docker container, you can use the `-v` flag to bind mount your local directory to a directory inside the container. For instance, you can bind the local directory `/home/gp2_data` to the `/home` directory inside the container like so:
+
+```bash
+docker run -v /home/gp2_data:/home -it highrez/gp2:latest
+```
+
+
 ## Usage
 
 1. After installation, the GP2 Framework can be imported and used in Python scripts or Jupyter notebooks.
 2. Follow the provided examples to learn how to set up and run experiments, and modify them as needed to suit your own needs.
 
 Refer to the documentation for more detailed information on how to use the framework.
+
+
 
 ## Contributing
 
