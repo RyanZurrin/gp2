@@ -112,6 +112,12 @@ When working with locally saved datasets, you can use Docker's bind mount featur
 docker run -v /home/gp2_data:/home -it highrez/gp2:latest
 ```
 
+This command starts the Docker container and binds your local directory /home/gp2_data to the /home directory inside the container. Any changes you make inside the /home directory in the container will be reflected in your local directory /home/gp2_data, and vice versa.
+
+Please modify the local directory path to match your actual data directory. If you are using a Windows machine, ensure to use Windows-style paths.
+
+For more details on Docker's bind mount feature, you can refer to the [official Docker documentation](https://docs.docker.com/storage/bind-mounts/).
+
 
 ## Usage
 
