@@ -213,11 +213,11 @@ class UNet(Classifier):
 
         return history
 
-    def predict(self, X_test, y_test):
+    def predict(self, X_test, y_test, threshold=0.5):
         predictions = self.model.predict(X_test)
 
-        predictions[predictions >= 0.5] = 1.0
-        predictions[predictions < 0.5] = 0.0
+        predictions[predictions >= threshold] = 1.0
+        predictions[predictions < threshold] = 0.0
 
         scores = self.model.evaluate(X_test, y_test)
 
@@ -228,8 +228,8 @@ class UNet(Classifier):
         import tensorflow as tf
         y_true_f = tf.reshape(y_true, [-1])
         y_pred_f = tf.reshape(y_pred, [-1])
-        return tf.keras.losses.binary_crossentropy(y_true, y_pred) + (
-                    1 - UNet.dice_coeff(y_true, y_pred))
+        return tf.keras.losses.binary_crossentropy(y_true_f, y_pred_f) + (
+                1 - UNet.dice_coeff(y_true_f, y_pred_f))
 
     @staticmethod
     def dice_coeff(y_true, y_pred):

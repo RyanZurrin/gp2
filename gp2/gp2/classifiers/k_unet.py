@@ -120,7 +120,7 @@ class KUNet(BaseKerasSegmentationClassifier):
                             output_activation=self.output_activation
                             )
 
-        print('*** GP2 KUnet ***')
+        print('*** GP2 Keras UNet ***')
         print('Working directory:', self.workingdir)
 
         self.build()

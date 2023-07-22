@@ -21,7 +21,6 @@ class Classifier(ABC):
         """
         self.verbose = verbose
         self.workingdir = workingdir
-        pass
 
     @abstractmethod
     def build(self):

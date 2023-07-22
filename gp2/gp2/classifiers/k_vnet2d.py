@@ -20,7 +20,7 @@ class KVNet2D(BaseKerasSegmentationClassifier):
                  batch_norm=True,
                  pool=False,
                  unpool=False,
-                 name='vnet',
+                 name='kvnet2d',
                  optimizer=None,
                  loss=None,
                  metric=None,

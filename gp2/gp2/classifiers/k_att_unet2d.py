@@ -21,12 +21,12 @@ class KATTUnet2D(BaseKerasSegmentationClassifier):
                  output_activation='Sigmoid',
                  batch_norm=True,
                  pool=True,
-                 unpool=True,
+                 unpool=False,
                  backbone=None,
                  weights='imagenet',
                  freeze_backbone=True,
                  freeze_batch_norm=True,
-                 name='attunet',
+                 name='kattunet2d',
                  optimizer=None,
                  loss=None,
                  metric=None,
@@ -95,7 +95,7 @@ class KATTUnet2D(BaseKerasSegmentationClassifier):
         super().__init__(verbose=verbose, workingdir=workingdir)
 
         self.input_size = input_size
-        self.filter_num = filter_num or [32, 64, 128, 256, 512, 1024, 2048]
+        self.filter_num = filter_num or [16, 32, 64, 128, 256]
         self.n_labels = n_labels
         self.stack_num_down = stack_num_down
         self.stack_num_up = stack_num_up
@@ -130,7 +130,7 @@ class KATTUnet2D(BaseKerasSegmentationClassifier):
                                         freeze_backbone=self.freeze_backbone,
                                         freeze_batch_norm=self.freeze_batch_norm,
                                         name=self.name)
-        print('*** GP2 KATTUnet2D ***')
+        print('*** GP2 KATTUNet2D ***')
         print('Working directory:', self.workingdir)
 
         self.build()

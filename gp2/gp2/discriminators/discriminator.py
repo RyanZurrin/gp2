@@ -6,7 +6,6 @@ class Discriminator(ABC):
     def __init__(self, verbose=True, workingdir='/tmp', **kwargs):
         self.verbose = verbose
         self.workingdir = workingdir
-        pass
 
     @abstractmethod
     def build(self):

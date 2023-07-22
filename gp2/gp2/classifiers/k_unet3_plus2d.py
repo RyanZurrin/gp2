@@ -22,7 +22,7 @@ class KUNet3Plus2D(BaseKerasSegmentationClassifier):
                  pool=True,
                  unpool=True,
                  deep_supervision=False,
-                 name='unet3plus',
+                 name='kunet3plus2d',
                  optimizer=None,
                  loss=None,
                  metric=None,

@@ -82,14 +82,14 @@ class UNetPLUS(BaseKerasSegmentationClassifier):
         self.loss = loss or losses.binary_crossentropy
         self.metrics = metrics or [Util.dice_coeff]
 
-        print('*** GP2  KUNet2D ***')
+        print('*** GP2  UNetPLUS ***')
         print('Working directory:', self.workingdir)
 
         self.model = self.build()
 
         if verbose:
             print('Verbose mode active!')
-            print(str(vars(self)))
+            print(vars(self))
             self.model.summary()
 
     def build(self):
@@ -100,15 +100,13 @@ class UNetPLUS(BaseKerasSegmentationClassifier):
         model : keras.Model
             The model.
         """
-        super().build()
-
         inputs = layers.Input(shape=self.input_shape)
 
         # Contracting path (encoder)
         x = inputs
         skips = []
         for i in range(self.depth):
-            for j in range(self.num_layers):
+            for _ in range(self.num_layers):
                 x = layers.Conv2D(self.base_filters * (2 ** i),
                                   self.kernel_size,
                                   padding=self.padding,
@@ -122,7 +120,7 @@ class UNetPLUS(BaseKerasSegmentationClassifier):
             x = layers.MaxPooling2D((2, 2))(x)
 
         # Bottleneck (encoder)
-        for i in range(self.num_layers):
+        for _ in range(self.num_layers):
             x = layers.Conv2D(self.base_filters * (2 ** self.depth),
                               self.kernel_size,
                               padding=self.padding,
@@ -140,7 +138,7 @@ class UNetPLUS(BaseKerasSegmentationClassifier):
                                        strides=(2, 2),
                                        padding='same')(x)
             x = layers.concatenate([x, skips[i]])
-            for j in range(self.num_layers):
+            for _ in range(self.num_layers):
                 x = layers.Conv2D(self.base_filters * (2 ** i),
                                   self.kernel_size,
                                   padding=self.padding,

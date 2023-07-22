@@ -1,11 +1,26 @@
-from .data import *
-from .gp2 import UNet, UNetPLUS, KUNet, KATTUnet2D, KR2UNet2dD, KResUNet2D, \
-    KUNet2D, KUNet3Plus2D, KUNetPlus2D, KVNet2D, CNNDiscriminator, \
-    CNNDiscriminatorPLUS, Util
+import argparse
 import time
 import os
 import tempfile
 
+from .data import *
+from .gp2 import UNet, UNetPLUS, KUNet, KATTUnet2D, KR2UNet2dD, KResUNet2D, \
+    KUNet2D, KUNet3Plus2D, KUNetPlus2D, KVNet2D, CNNDiscriminator, \
+    CNNDiscriminatorPLUS, Util
+
+
+
+DEFAULT_WEIGHTS = {
+    'A': 0.5,
+    'A_train': 0.1,
+    'A_val': 0.3,
+    'A_test': 0.6,
+    'B': 0.3,
+    'B_train': 0.7,
+    'B_val': 0.1,
+    'B_test': 0.2,
+    'Z': 0.2
+}
 
 def validate_weights(weights, tolerance=1e-6):
     """ Validate the weights for training.
@@ -101,78 +116,58 @@ class Runner:
             Additional keyword arguments to pass to the classifier and
             discriminator.
         """
-        import numpy as np
+        self.verbose = verbose
+        self.workingdir = workingdir
         self.weights = weights
         self.store_after_each_step = store_after_each_step
+        self.classifier_scores = []
+        self.discriminator_scores = []
 
-        self.workingdir = workingdir
-
-        self.verbose = verbose
         if not self.verbose:
             Util.disable_tensorflow_logging()
 
         self.M = Manager()
-
         self.dataset_size = None
 
-        # Initialize the classifier
-        self.classifier_scores = []
-        if classifier is None or isinstance(classifier,
-                                            UNet) or classifier == 'unet':
-            self.classifier = UNet(verbose=self.verbose,
-                                   workingdir=self.workingdir)
-        elif isinstance(classifier, KUNet) or classifier == 'kunet':
-            self.classifier = KUNet(verbose=self.verbose,
-                                    workingdir=self.workingdir,
-                                    **kwargs)
-        elif isinstance(classifier, UNetPLUS) or classifier == 'unetplus':
-            self.classifier = UNetPLUS(verbose=self.verbose,
-                                       workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier, KATTUnet2D) or classifier == 'kattunet2d':
-            self.classifier = KATTUnet2D(verbose=self.verbose,
-                                         workingdir=self.workingdir,
-                                         **kwargs)
-        elif isinstance(classifier, KUNet2D) or classifier == 'kunet2d':
-            self.classifier = KUNet2D(verbose=self.verbose,
-                                      workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier, KUNetPlus2D) or classifier == 'kunetplus2d':
-            self.classifier = KUNetPlus2D(verbose=self.verbose,
-                                          workingdir=self.workingdir,
-                                          **kwargs)
-        elif isinstance(classifier, KResUNet2D) or classifier == 'kresunet2d':
-            self.classifier = KResUNet2D(verbose=self.verbose,
-                                         workingdir=self.workingdir,
-                                         **kwargs)
-        elif isinstance(classifier,
-                        KUNet3Plus2D) or classifier == 'kunet3plus2d':
-            self.classifier = KUNet3Plus2D(verbose=self.verbose,
-                                           workingdir=self.workingdir,
-                                           **kwargs)
-        elif isinstance(classifier, KVNet2D) or classifier == 'kvnet2d':
-            self.classifier = KVNet2D(verbose=self.verbose,
-                                      workingdir=self.workingdir, **kwargs)
-        elif isinstance(classifier, KR2UNet2dD) or classifier == 'kr2unet2d':
-            self.classifier = KR2UNet2dD(verbose=self.verbose,
-                                         workingdir=self.workingdir,
-                                         **kwargs)
-        else:
-            raise ValueError('Classifier not supported: {}'.format(classifier))
+        # Initialize the classifier and discriminator
+        self.classifier = self.initialize_classifier(classifier, kwargs)
+        self.discriminator = self.initialize_discriminator(discriminator)
 
-        # Initialize the discriminator
-        self.discriminator_scores = []
-        if discriminator is None or isinstance(
-                discriminator, CNNDiscriminator) or discriminator == 'cnn':
-            print('Using default discriminator (CNN)')
-            self.discriminator = CNNDiscriminator(
-                verbose=self.verbose, workingdir=self.workingdir)
-        elif isinstance(discriminator,
-                        CNNDiscriminatorPLUS) or discriminator == 'cnnplus':
-            print('Using  discriminator (CNN+)')
-            self.discriminator = CNNDiscriminatorPLUS(
-                verbose=self.verbose, workingdir=self.workingdir)
+    def initialize_classifier(self, classifier, kwargs):
+        classifier_classes = {
+            'unet': UNet,
+            'kunet': KUNet,
+            'unetplus': UNetPLUS,
+            'kattunet2d': KATTUnet2D,
+            'kunet2d': KUNet2D,
+            'kunetplus2d': KUNetPlus2D,
+            'kresunet2d': KResUNet2D,
+            'kunet3plus2d': KUNet3Plus2D,
+            'kvnet2d': KVNet2D,
+            'kr2unet2d': KR2UNet2dD,
+        }
+
+        classifier_type = type(classifier)
+        if classifier_type is str:
+            classifier_class = classifier_classes.get(classifier)
+            if classifier_class is None:
+                raise ValueError(f'Classifier not supported: {classifier}')
+            return classifier_class(verbose=self.verbose, workingdir=self.workingdir, **kwargs)
+
+        elif classifier_type in classifier_classes.values() or classifier is None:
+            return classifier if classifier is not None else UNet(verbose=self.verbose, workingdir=self.workingdir)
+
         else:
-            raise ValueError('Discriminator not supported: {}'.format(
-                discriminator))
+            raise ValueError(f'Classifier not supported: {classifier}')
+
+    def initialize_discriminator(self, discriminator):
+        if discriminator is None or isinstance(discriminator, CNNDiscriminator) or discriminator == 'cnn':
+            return CNNDiscriminator(verbose=self.verbose, workingdir=self.workingdir)
+        elif isinstance(discriminator, CNNDiscriminatorPLUS) or discriminator == 'cnnplus':
+            return CNNDiscriminatorPLUS(verbose=self.verbose, workingdir=self.workingdir)
+        else:
+            raise ValueError(f'Discriminator not supported: {discriminator}')
+
 
     #
     # STEP 0
@@ -239,7 +234,7 @@ class Runner:
         A_train_, A_val_, A_test_ = Util.create_train_val_test_split(
             A_, train_count=train_count, val_count=val_count,
             test_count=test_count, shuffle=False)
-        A_train_ids = A_ids[0:train_count]
+        A_train_ids = A_ids[:train_count]
         A_val_ids = A_ids[train_count:train_count + val_count]
         A_test_ids = A_ids[
                      train_count + val_count:train_count + val_count + test_count]
@@ -347,7 +342,7 @@ class Runner:
         C_size = (2 * B_.shape[0], B_.shape[1], B_.shape[2])
         C_images_ = np.zeros((C_size + (B_.shape[3],)), dtype=B_.dtype)
 
-        C_images_[0:A_test_with_pred_.shape[0]] = A_test_with_pred_
+        C_images_[:A_test_with_pred_.shape[0]] = A_test_with_pred_
         C_images_[A_test_with_pred_.shape[0]:] = B_
 
         C_labels_ = np.empty((C_size + (1,)), dtype=np.bool)
@@ -400,7 +395,7 @@ class Runner:
             C_, train_count=train_count, val_count=val_count,
             test_count=test_count, shuffle=False)
 
-        C_train_ids = C_ids[0:train_count]
+        C_train_ids = C_ids[:train_count]
         C_val_ids = C_ids[train_count:train_count + val_count]
         C_test_ids = \
             C_ids[train_count + val_count:train_count + val_count + test_count]
@@ -455,13 +450,11 @@ class Runner:
         self.create_C_dataset()
 
         dataset_size = self.dataset_size
-        weights = self.weights
-
         train_count = int(0.2 * train_ratio * dataset_size)
         val_count = int(0.2 * val_ratio * dataset_size)
         test_count = int(0.2 * test_ratio * dataset_size)
 
-        if weights:
+        if weights := self.weights:
             train_count = int(weights['B'] * weights['B_train'] * dataset_size)
             val_count = int(weights['B'] * weights['B_val'] * dataset_size)
             test_count = int(weights['B'] * weights['B_test'] * dataset_size)
@@ -471,30 +464,34 @@ class Runner:
         M = self.M
 
         if self.discriminatorTrained is False:
-            print("****** TRAINING DISCRIMINATOR ******")
-            C_train = M.get('C_train')
-            C_val = M.get('C_val')
-
-            C_train_, C_train_ids = C_train.to_array()
-            X_train_images_ = C_train_[:, :, :, 0]
-            X_train_masks_ = C_train_[:, :, :, 1]
-            y_train_ = C_train_[:, 0, 0, 2]
-
-            C_val_, C_val_ids = C_val.to_array()
-            X_val_images_ = C_val_[:, :, :, 0]
-            X_val_masks_ = C_val_[:, :, :, 1]
-            y_val_ = C_val_[:, 0, 0, 2]
-
-            self.discriminator.train(X_train_images_, X_train_masks_, y_train_,
-                                     X_val_images_, X_val_masks_, y_val_,
-                                     patience_counter=patience_counter,
-                                     epochs=epochs, batch_size=batch_size)
-            self.discriminatorTrained = True
-
+            self._train_discriminator(
+                M, patience_counter, epochs, batch_size
+            )
         if self.store_after_each_step:
             M.save(os.path.join(self.workingdir, 'M_step4.pickle'))
 
         self.predict_discriminator()
+
+    def _train_discriminator(self, M, patience_counter, epochs, batch_size):
+        print("****** TRAINING DISCRIMINATOR ******")
+        C_train = M.get('C_train')
+        C_val = M.get('C_val')
+
+        C_train_, C_train_ids = C_train.to_array()
+        X_train_images_ = C_train_[:, :, :, 0]
+        X_train_masks_ = C_train_[:, :, :, 1]
+        y_train_ = C_train_[:, 0, 0, 2]
+
+        C_val_, C_val_ids = C_val.to_array()
+        X_val_images_ = C_val_[:, :, :, 0]
+        X_val_masks_ = C_val_[:, :, :, 1]
+        y_val_ = C_val_[:, 0, 0, 2]
+
+        self.discriminator.train(X_train_images_, X_train_masks_, y_train_,
+                                 X_val_images_, X_val_masks_, y_val_,
+                                 patience_counter=patience_counter,
+                                 epochs=epochs, batch_size=batch_size)
+        self.discriminatorTrained = True
 
     #
     # STEP 5 (gets called by 4)
@@ -725,26 +722,23 @@ class Runner:
 
         if balance:
             total_samples = len(A_train.data.keys()) + \
-                            len(B.data.keys()) + len(A_test.data.keys())
+                                len(B.data.keys()) + len(A_test.data.keys())
             target_samples = total_samples // 3
 
-            while abs(len(A_train.data) - len(B.data)) > 1 or abs(
-                    len(A_train.data) - len(A_test.data)) > 1:
-                if len(A_train.data) > target_samples:
-                    if len(B.data) < target_samples:
-                        self.transfer(A_train, B)
-                    elif len(A_test.data) < target_samples:
-                        self.transfer(A_train, A_test)
-                elif len(B.data) > target_samples:
-                    if len(A_train.data) < target_samples:
-                        self.transfer(B, A_train)
-                    elif len(A_test.data) < target_samples:
-                        self.transfer(B, A_test)
-                elif len(A_test.data) > target_samples:
-                    if len(A_train.data) < target_samples:
-                        self.transfer(A_test, A_train)
-                    elif len(B.data) < target_samples:
-                        self.transfer(A_test, B)
+            data_sets = [A_train, B, A_test]
+            data_sets.sort(key=lambda x: len(x.data), reverse=True)
+
+            while len(data_sets[0].data) > target_samples + 1 and (
+                len(data_sets[1].data) != target_samples
+                or len(data_sets[2].data) != target_samples
+            ):
+                if len(data_sets[1].data) < target_samples:
+                    self.transfer(data_sets[0], data_sets[1])
+                elif len(data_sets[2].data) < target_samples:
+                    self.transfer(data_sets[0], data_sets[2])
+
+                # re-sort the data sets
+                data_sets.sort(key=lambda x: len(x.data), reverse=True)
 
         print('Removed:', removed_counter, 'Filled:', filled_counter)
 
@@ -766,7 +760,7 @@ class Runner:
         None
         """
         import numpy as np
-        print('Transfer from', source.name, 'to', target.name)
+        print('Transfer from', source.id, 'to', target.id)
         M = self.M
         source_uniq_ids = list(source.data.keys())
         source_uniq_id = np.random.choice(source_uniq_ids, replace=False)
@@ -779,14 +773,15 @@ class Runner:
     def run(self,
             images,
             masks,
-            weights,
+            weights=None,
             runs=1,
             epochs=100,
             batch_size=64,
             patience_counter=2,
             percent_to_replace=30,
             balance=False,
-            fillup=True):
+            fillup=True,
+            use_multi_gpu=False):
         """ Run the whole GP2 algorithm, including setting up the data, running
         the classifier and discriminator, and relabeling.
 
@@ -797,32 +792,57 @@ class Runner:
         masks : np.ndarray
             List of masks
         weights : dict
-            Dictionary of weights for the different classes
+            Dictionary of weights for the different classes in the masks. (Default: None)
+            If None is given, the default weights are used:
+                weights = {
+                    'A': 0.5,
+                    'A_train': 0.1,
+                    'A_val': 0.3,
+                    'A_test': 0.6,
+                    'B': 0.3,
+                    'B_train': 0.7,
+                    'B_val': 0.1,
+                    'B_test': 0.2,
+                    'Z': 0.2
+                }
         runs : int
-            Number of runs
+            Number of runs for the whole algorithm. (Default: 1)
         epochs : int
-            Number of epochs
+            Number of epochs for training the classifier. (Default: 100)
         batch_size : int
-            Batch size
+            Batch size for training the classifier. (Default: 64)
         patience_counter : int
             Number of times the classifier can run without improvement. (Default: 2)
         percent_to_replace : int
             Percentage of points to replace in each run. (Default: 30)
         balance : bool
-            If True, balance A_train with B and A_test
+            If True, balance A_train with B and A_test. (Default: False)
         fillup : bool
-            If True, fill-up B and A_test with points from A_train
+            If True, fill-up B and A_test with points from A_train (internal!). (Default: True)
+        use_multi_gpu : bool
+            If True, use multi-gpu training. (Default: False)
 
         Returns
         --------
         None
         """
+        if use_multi_gpu:
+            # noinspection PyUnresolvedReferences
+            from tensorflow.distribute import MirroredStrategy
+            strategy = MirroredStrategy()
+            print(f"Number of devices: {strategy.num_replicas_in_sync}")
+
+            with strategy.scope():
+                self.setup_data(images=images, masks=masks,
+                                dataset_size=len(images),
+                                weights=weights if weights is not None else DEFAULT_WEIGHTS)
+        else:
+            self.setup_data(images=images, masks=masks,
+                            dataset_size=len(images),
+                            weights=weights if weights is not None else DEFAULT_WEIGHTS)
+
         # assert that len of images and masks is the same
         assert len(images) == len(masks)
-        dataset_size = len(images)
-        self.setup_data(images=images, masks=masks,
-                        dataset_size=dataset_size,
-                        weights=weights)
 
         for run in range(runs):
             print('******')
@@ -859,3 +879,75 @@ class Runner:
         y2 = [v[1] for v in self.discriminator_scores]
 
         Util.plot_accuracies(x, y1, y2)
+
+
+def main():
+    """ Main function. """
+    # parse arguments
+    parser = argparse.ArgumentParser(description='GP2')
+    parser.add_argument('--images', type=str, required=True,
+                        help='Path to the images')
+    parser.add_argument('--masks', type=str, required=True,
+                        help='Path to the masks')
+    parser.add_argument('--weights', type=str, default=DEFAULT_WEIGHTS,
+                        help='Path to the weights')
+    parser.add_argument('--runs', type=int, default=1,
+                        help='Number of runs')
+    parser.add_argument('--epochs', type=int, default=100,
+                        help='Number of epochs')
+    parser.add_argument('--batch_size', type=int, default=64,
+                        help='Batch size')
+    parser.add_argument('--patience_counter', type=int, default=2,
+                        help='Patience counter')
+    parser.add_argument('--percent_to_replace', type=int, default=20,
+                        help='Percentage of points to replace')
+    parser.add_argument('--balance', type=bool, default=False,
+                        help='Balance')
+    parser.add_argument('--fillup', type=bool, default=True,
+                        help='Fill up')
+    parser.add_argument('--workingdir', type=str, default=tempfile.mkdtemp(suffix='GP2'),
+                        help='Working directory')
+    parser.add_argument('--store_after_each_step', type=bool, default=False,
+                        help='Store after each step')
+    parser.add_argument('--classifier', type=str, default='unet',
+                        help='Classifier')
+    parser.add_argument('--discriminator', type=str, default='cnn',
+                        help='Discriminator')
+    parser.add_argument('--use_multi_gpu', action='store_true', default=False,
+                        help='Use multiple GPUs if available')
+
+    args = parser.parse_args()
+
+    import numpy as np
+
+
+    # load images, masks, and weights
+    images = np.load(args.images)
+    masks = np.load(args.masks)
+
+
+    # run GP2
+    R = Runner(workingdir=args.workingdir,
+                store_after_each_step=args.store_after_each_step,
+                classifier=args.classifier,
+                discriminator=args.discriminator)
+
+    R.run(images=images,
+            masks=masks,
+            weights=args.weights,
+            runs=args.runs,
+            epochs=args.epochs,
+            batch_size=args.batch_size,
+            patience_counter=args.patience_counter,
+            percent_to_replace=args.percent_to_replace,
+            balance=args.balance,
+            fillup=args.fillup,
+            use_multi_gpu=args.use_multi_gpu)
+
+    # print accuracies to stdout
+    print('Classifier scores:', R.classifier_scores)
+    print('Discriminator scores:', R.discriminator_scores)
+
+
+if __name__ == '__main__':
+    main()

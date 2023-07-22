@@ -15,12 +15,12 @@ class KR2UNet2dD(BaseKerasSegmentationClassifier):
                  stack_num_down=2,
                  stack_num_up=2,
                  recur_num=2,
-                 activation='PReLU',
+                 activation='ReLU',
                  output_activation='Sigmoid',
-                 batch_norm=False,
-                 pool=False,
+                 batch_norm=True,
+                 pool=True,
                  unpool=False,
-                 name='r2_unet',
+                 name='kr2unet2d',
                  optimizer=None,
                  loss=None,
                  metric=None,
@@ -100,7 +100,7 @@ class KR2UNet2dD(BaseKerasSegmentationClassifier):
                                        unpool=self.unpool,
                                        name=self.name)
 
-        print('*** GP2 R2UNet2dD ***')
+        print('*** GP2 KR2UNet2dD ***')
         print('Working directory:', self.workingdir)
 
         self.build()

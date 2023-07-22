@@ -23,7 +23,7 @@ class KUNet2D(BaseKerasSegmentationClassifier):
                  weights='imagenet',
                  freeze_backbone=True,
                  freeze_batch_norm=True,
-                 name='unet',
+                 name='kunet2d',
                  optimizer=None,
                  loss=None,
                  metric=None,
