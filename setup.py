@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-from gp2.__version__ import __version__
+from gp2 import __version__
 
 setup(
     name='gp2',
