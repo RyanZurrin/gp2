@@ -107,6 +107,12 @@ Keep in mind that different tasks and datasets might require different combinati
     - Combined Loss - A combination of different loss functions 
             (e.g., Cross-Entropy Loss + Dice Loss) can sometimes improve performance 
             by leveraging the strengths of multiple loss functions.
+    - Huber Loss - A loss function that is less sensitive to outliers in data 
+            than the squared error loss.
+    - Hinge Loss - A loss function that is used for training classifiers with 
+            linear SVMs (Support Vector Machines).
+    - Poisson Loss - A loss function that is used for training regression models 
+            with Poisson regression.
 
 ## Metric functions:
     - IoU (Intersection over Union) - A popular metric to measure the overlap 
