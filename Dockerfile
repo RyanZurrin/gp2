@@ -29,13 +29,13 @@ RUN wget \
 
 RUN conda --version
 
-# create a conda env called gp2 with python 3.9
-RUN conda create -n gp2 python=3.9 -y
+# create a conda env called core with python 3.9
+RUN conda create -n core python=3.9 -y
 
 # activate the conda env
 RUN echo "source activate gp2" > ~/.bashrc
 
-# pip install gp2
+# pip install core
 RUN /bin/bash -c "source activate gp2 && pip install gp2"
 
 # finish by openng a bash shell for the user

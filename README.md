@@ -38,24 +38,30 @@ segmentation performance by adjusting hyperparameters, architecture settings, an
 
 ## Installation
 
-To install the GP2 Framework and its dependencies, follow these steps:
+There are multiple ways to install the GP2 Framework and its dependencies, which can be done according to your preference:
 
-1. Create a new Anaconda environment with a specified Python version:
+1. **Installation via cloning the repository and creating a conda environment:**
+
+    a. Clone the GP2 Framework repository to your local machine:
+    ```bash
+    git clone https://github.com/RyanZurrin/gp2.git
+    cd core
+    ```
+    
+    b. Create a new conda environment for the GP2 Framework:
+    ```bash
+    conda env create -f GP2.yml
+    ```
+    
+    c. Activate the newly created environment:
+    ```bash
+    conda activate GP2
+    ```
+
+2. **Installation via pip in your current environment (Python 3.9 or above is required):**
 
 ```bash
-conda create -n GP2 python=3.9
-```
-
-2. Activate the new environment:
-
-```bash
-conda activate GP2
-```
-
-3.Install the GP2 Framework within your newly created environment:
-
-```bash
-pip install gp2
+pip install core
 ```
 
 ## Docker Support
@@ -68,7 +74,7 @@ The GP2 Framework also supports Docker, simplifying setup and usage. You can bui
 2. You can pull the pre-built Docker image from Docker Hub:
 
 ```bash
-docker run -it highrez/gp2
+docker run -it highrez/core
 ```
 
 Or, you can build the Docker image locally:
@@ -109,7 +115,7 @@ When working with locally saved datasets, you can use Docker's bind mount featur
 2. When running your Docker container, you can use the `-v` flag to bind mount your local directory to a directory inside the container. For instance, you can bind the local directory `/home/gp2_data` to the `/home` directory inside the container like so:
 
 ```bash
-docker run -v /home/gp2_data:/home -it highrez/gp2:latest
+docker run -v /home/gp2_data:/home -it highrez/core:latest
 ```
 
 This command starts the Docker container and binds your local directory /home/gp2_data to the /home directory inside the container. Any changes you make inside the /home directory in the container will be reflected in your local directory /home/gp2_data, and vice versa.

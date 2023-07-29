@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 from gp2 import __version__
 
 setup(
-    name='gp2',
+    name='core',
     version=__version__,
     url='https://github.com/RyanZurrin/CS410-GP2',
     description='A framework for tuning segmentation classifiers and '

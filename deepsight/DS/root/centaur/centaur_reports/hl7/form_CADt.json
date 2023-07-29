@@ -1,7 +1,0 @@
-{
-  "APPLICATION_NAME": "Saige-Q",
-  "HL7_TEMPLATE": "MSH|^~\\&|{_sending_application}|{_sending_facility}|||{_datetime_of_message}||ORM^O01|{_message_control_ID}|{_processing_ID}|{_version_ID}||||{_application_acknowledgement_type}|\rPID|1||{_patient_identifier_list}||{_patient_surname}^{_patient_given_name}^^^||{_patient_DOB}|{_patient_gender}|||||||||||||||||||||||||\rORC|{_order_control_code}|{_accession_number}|||{_order_status_code}||||||||||||||||||1\rOBX|1|{_value_type}|{_deephealth_obx3}||{_deephealth_obx5}||||||F|||{_date_time_observation}",
-  "OBX5_ERROR_TEMPLATE": "{study_instance_uid}^Saige-Q: {error_message}",
-  "OBX5_SUSPICIOUS_TEMPLATE": "{study_instance_uid}^Saige-Q: Suspicious",
-  "OBX5_NON_SUSPICIOUS_TEMPLATE": "{study_instance_uid}^Saige-Q: "
-}

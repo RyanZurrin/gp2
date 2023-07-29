@@ -1,78 +1,45 @@
 # GP2 Example
 
-This example demonstrates how to uee the GP2 module for optimizing any classifier. In this case, we'll be using the KUNetPlus2D classifier.
+This example demonstrates how to uee the GP2 module for optimizing any classifier. In this case, we'll be using the Keras UNet Collection classifier KUN_UNet2D.
 
 ## Dependencies
 
-Create a new Anaconda environment with a specified Python version:
-```bash
-conda create -n GP2 python=3.9
-```
-Activate the new environment:
-```bash
-conda activate GP2
-```
-Now, you can install the GP2 module within your newly created environment:
-```bash
-pip install gp2
-```
+Be sure to follow the instructions in the [Installation](../README.md#Installation) section of the main README.md file before running this example.
+
 
 ## Example Code
+
+This code is ran from a jupyter notebook, if running from a python script, the visualization and plotting code will need to be modified.
 
 ```python
 import numpy as np
 
-# Import gp2 and its components
+# Import core and its components
 import gp2
 from gp2 import Runner
 
 # To get info about the model, run the following:
-help(gp2.KUNetPlus2D)
+help(gp2.KUC_UNet2D)
 
 # To use the Keras UnetPlus2D Unet, specify it as the classifier argument to the Runner instance when creating it:
-R = Runner(
-    verbose=True,
-    classifier='kunetplus2d',
-    discriminator='cnn',
-    filter_num=[16, 32, 64, 128, 256, 512, 1024],
-    stack_num_down=3,
-    stack_num_up=3,
-    activation='ReLU',
-    output_activation='Sigmoid',
-    batch_norm=True,
-    pool=True,
-    unpool=True,
-    deep_supervision=False,
-    weights=None,
-    freeze_backbone=True,
-    freeze_batch_norm=True,
-    optimizer=None,
-    loss=gp2.Util.hybrid_loss,
-    metric=None
-)
+R = Runner(verbose=True)
+
+C = gp2.KUC_UNet2D(workingdir=R.workingdir)
+
+R.classifier = C
 
 # Load data
 images = np.load('/path/to/images.npy')
 masks = np.load('/path/to/masks.npy')
 
-# Specify weights for the distribution of data into train, test, and val datasets for datasets A and B
-weights = {
-    'A': 0.5,
-    'A_train': 0.1,
-    'A_val': 0.3,
-    'A_test': 0.6,
-    'B': 0.3,
-    'B_train': 0.7,
-    'B_val': 0.1,
-    'B_test': 0.2,
-    'Z': 0.2
-}
-
 # To run training, use the Runner's run method, passing in the images, masks, weights, and the number of training loops to run for:
-R.run(images=images, masks=masks, weights=weights, runs=7)
+R.run(images=images, masks=masks, runs=1, batch_size=16)
 
 # Use the Runner's plot method to easily visualize results
 R.plot()
+
+# use gp2 utility function to visualize the images, ground truth masks, and predicted masks
+gp2.util.Util.visualize_predictions(C, images, masks)
 
 ```
 
