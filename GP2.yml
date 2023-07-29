@@ -17,3 +17,4 @@ dependencies:
       - tensorboard==2.8.0
       - keras-unet
       - keras-unet-collection
+      - protobuf==3.20.0
